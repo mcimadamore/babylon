@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * A type-variable reference.
  */
-public final class TypeVarRef implements JavaType {
+public final class TypeVarRef implements JavaType, JavaType.Argument {
 
     final String name;
     final Object owner;

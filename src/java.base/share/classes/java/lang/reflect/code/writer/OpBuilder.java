@@ -330,7 +330,7 @@ public class OpBuilder {
 
 
     Value buildMap(JavaType keyType, JavaType valueType, List<Value> keysAndValues) {
-        JavaType mapType = type(J_U_MAP, keyType, valueType);
+        JavaType mapType = type(J_U_MAP, (JavaType.Argument)keyType, (JavaType.Argument)valueType);
         if (keysAndValues.isEmpty()) {
             return builder.op(invoke(MAP_OF));
         } else {
@@ -345,8 +345,8 @@ public class OpBuilder {
     }
 
 
-    Value buildList(JavaType elementType, List<Value> elements) {
-        JavaType listType = type(J_U_LIST, elementType);
+    Value buildList(JavaType.Argument elementType, List<Value> elements) {
+        JavaType listType = type(J_U_LIST, (JavaType.Argument)elementType);
         if (elements.size() < 11) {
             MethodRef listOf = MethodRef.method(J_U_LIST, "of",
                     J_U_LIST, Collections.nCopies(elements.size(), J_L_OBJECT));

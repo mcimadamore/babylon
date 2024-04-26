@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * An array type.
  */
-public final class ArrayType implements JavaType {
+public final class ArrayType implements JavaType, JavaType.Argument {
     static final String NAME = "[";
 
     final JavaType componentType;

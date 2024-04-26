@@ -31,12 +31,12 @@ import java.util.Objects;
 /**
  * A wildcard type.
  */
-public final class WildcardType implements JavaType {
+public final class WildcardTypeArgument implements JavaType.Argument {
 
     final BoundKind kind;
     final JavaType boundType;
 
-    WildcardType(BoundKind kind, JavaType boundType) {
+    WildcardTypeArgument(BoundKind kind, JavaType boundType) {
         this.kind = kind;
         this.boundType = boundType;
     }
@@ -55,8 +55,7 @@ public final class WildcardType implements JavaType {
         return kind;
     }
 
-    @Override
-    public TypeDefinition toTypeDefinition() {
+    /* package */ TypeDefinition toTypeDefinition() {
         String prefix = kind == BoundKind.EXTENDS ? "+" : "-";
         return new TypeDefinition(prefix, List.of(boundType.toTypeDefinition()));
     }
@@ -69,7 +68,7 @@ public final class WildcardType implements JavaType {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        return o instanceof WildcardType that &&
+        return o instanceof WildcardTypeArgument that &&
                 kind.equals(that.kind) &&
                 boundType.equals(that.boundType);
     }
@@ -77,36 +76,6 @@ public final class WildcardType implements JavaType {
     @Override
     public int hashCode() {
         return Objects.hash(boundType, kind);
-    }
-
-    @Override
-    public JavaType erasure() {
-        throw new UnsupportedOperationException("Wildcard type");
-    }
-
-    @Override
-    public JavaType toBasicType() {
-        throw new UnsupportedOperationException("Wildcard type");
-    }
-
-    @Override
-    public String toNominalDescriptorString() {
-        throw new UnsupportedOperationException("Wildcard type");
-    }
-
-    @Override
-    public boolean isClass() {
-        return false;
-    }
-
-    @Override
-    public boolean isArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isPrimitive() {
-        return false;
     }
 
     public enum BoundKind {

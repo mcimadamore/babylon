@@ -1197,7 +1197,7 @@ public class ExtendedOps {
 
         @Override
         public Block.Builder lower(Block.Builder b, OpTransformer opT) {
-            JavaType elementType = (JavaType) init.entryBlock().parameters().get(0).type();
+            ClassType elementType = (ClassType) init.entryBlock().parameters().get(0).type();
             boolean isArray = expression.bodyType().returnType() instanceof ArrayType;
 
             Block.Builder preHeader = b.block(expression.bodyType().returnType());
@@ -2398,15 +2398,15 @@ public class ExtendedOps {
                 "$" + Pattern.Record.class.getSimpleName()));
 
         static JavaType bindingType(TypeElement t) {
-            return type(PATTERN_BINDING_TYPE, (JavaType) t);
+            return type(PATTERN_BINDING_TYPE, (JavaType.Argument) t);
         }
 
         static JavaType recordType(TypeElement t) {
-            return type(PATTERN_RECORD_TYPE, (JavaType) t);
+            return type(PATTERN_RECORD_TYPE, (JavaType.Argument) t);
         }
 
         static TypeElement targetType(TypeElement t) {
-            return ((ClassType) t).typeArguments().get(0);
+            return (TypeElement)((ClassType) t).typeArguments().get(0);
         }
     }
 

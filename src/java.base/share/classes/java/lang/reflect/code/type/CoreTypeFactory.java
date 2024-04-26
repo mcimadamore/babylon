@@ -2,7 +2,7 @@ package java.lang.reflect.code.type;
 
 import java.lang.constant.ClassDesc;
 import java.lang.reflect.code.TypeElement;
-import java.lang.reflect.code.type.WildcardType.BoundKind;
+import java.lang.reflect.code.type.WildcardTypeArgument.BoundKind;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,20 +107,26 @@ public final class CoreTypeFactory {
                 identifier = tree.identifier();
             }
 
-            List<JavaType> typeArguments = new ArrayList<>(tree.arguments().size());
+            List<JavaType.Argument> typeArguments = new ArrayList<>(tree.arguments().size());
             for (TypeDefinition child : tree.arguments()) {
-                TypeElement t = JAVA_TYPE_FACTORY.constructType(child);
-                if (!(t instanceof JavaType a)) {
-                    throw new IllegalArgumentException("Bad type: " + tree);
+                if (child.identifier().equals("+") || child.identifier().equals("-")) {
+                    // wildcard type argument
+                    TypeElement bound = JAVA_TYPE_FACTORY.constructType(child.arguments().get(0));
+                    if (!(bound instanceof JavaType javaBound)) {
+                        throw new IllegalArgumentException("Bad type: " + tree);
+                    }
+                    WildcardTypeArgument.BoundKind kind = identifier.equals("+") ?
+                            BoundKind.EXTENDS : BoundKind.SUPER;
+                    typeArguments.add(JavaType.wildcard(kind, javaBound));
+                } else {
+                    TypeElement t = JAVA_TYPE_FACTORY.constructType(child);
+                    if (!(t instanceof JavaType.Argument a)) {
+                        throw new IllegalArgumentException("Bad type: " + tree);
+                    }
+                    typeArguments.add(a);
                 }
-                typeArguments.add(a);
             }
-            if (identifier.equals("+") || identifier.equals("-")) {
-                // wildcard type
-                BoundKind kind = identifier.equals("+") ?
-                        BoundKind.EXTENDS : BoundKind.SUPER;
-                return JavaType.wildcard(kind, typeArguments.get(0));
-            } else if (identifier.contains("::")) {
+            if (identifier.contains("::")) {
                 // type-var
                 if (typeArguments.size() != 1) {
                     throw new IllegalArgumentException("Bad type-variable bounds: " + tree);
@@ -130,12 +136,12 @@ public final class CoreTypeFactory {
                     // class type-var
                     return JavaType.typeVarRef(parts[1],
                             (JavaType)constructType(parseTypeDef(parts[0])),
-                            typeArguments.get(0));
+                            (JavaType)typeArguments.get(0));
                 } else {
                     // method type-var
                     return JavaType.typeVarRef(parts[2],
                             parseMethodRef(String.format("%s::%s", parts[0], parts[1])),
-                            typeArguments.get(0));
+                            (JavaType)typeArguments.get(0));
                 }
             }
             JavaType t = switch (identifier) {

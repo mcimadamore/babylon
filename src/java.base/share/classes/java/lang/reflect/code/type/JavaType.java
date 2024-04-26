@@ -28,7 +28,7 @@ package java.lang.reflect.code.type;
 import java.lang.constant.ClassDesc;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.code.TypeElement;
-import java.lang.reflect.code.type.WildcardType.BoundKind;
+import java.lang.reflect.code.type.WildcardTypeArgument.BoundKind;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +38,7 @@ import java.util.Objects;
  */
 // @@@ Extend from this interface to model Java types with more fidelity
 public sealed interface JavaType extends TypeElement permits ClassType, ArrayType,
-                                                             PrimitiveType, WildcardType, TypeVarRef {
+                                                             PrimitiveType, WildcardTypeArgument, TypeVarRef {
 
     // @@@ Share with general void type?
     JavaType VOID = new PrimitiveType("void");
@@ -166,6 +166,7 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
         }
     }
 
+    // @@@: these factories should work in terms of j.l.r.Type for the type arguments?
     static JavaType type(Class<?> c, Class<?>... typeArguments) {
         return type(c, List.of(typeArguments));
     }
@@ -177,7 +178,7 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
             return array(type(c.getComponentType(), typeArguments));
         } else {
             return new ClassType(c.getName(),
-                    typeArguments.stream().map(JavaType::type).toList());
+                    typeArguments.stream().map(t -> (Argument)JavaType.type(t)).toList());
         }
     }
 
@@ -213,11 +214,11 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
         }
     }
 
-    static JavaType type(JavaType t, JavaType... typeArguments) {
+    static JavaType type(JavaType t, Argument... typeArguments) {
         return type(t, List.of(typeArguments));
     }
 
-    static JavaType type(JavaType t, List<JavaType> typeArguments) {
+    static JavaType type(JavaType t, List<Argument> typeArguments) {
         if (t.isPrimitive()) {
             throw new IllegalArgumentException("Cannot parameterize a primitive type");
         } else if (t.isArray()) {
@@ -266,8 +267,8 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
      *
      * @return an unbounded wildcard type.
      */
-    static WildcardType wildcard() {
-        return new WildcardType(BoundKind.EXTENDS, JavaType.J_L_OBJECT);
+    static WildcardTypeArgument wildcard() {
+        return new WildcardTypeArgument(BoundKind.EXTENDS, JavaType.J_L_OBJECT);
     }
 
     /**
@@ -275,8 +276,8 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
      *
      * @return a bounded wildcard type.
      */
-    static WildcardType wildcard(BoundKind kind, JavaType bound) {
-        return new WildcardType(kind, bound);
+    static WildcardTypeArgument wildcard(BoundKind kind, JavaType bound) {
+        return new WildcardTypeArgument(kind, bound);
     }
 
     /**
@@ -304,5 +305,11 @@ public sealed interface JavaType extends TypeElement permits ClassType, ArrayTyp
     // Copied code in jdk.compiler module throws UOE
     static JavaType ofString(String s) {
 /*__throw new UnsupportedOperationException();__*/        return (JavaType) CoreTypeFactory.JAVA_TYPE_FACTORY.constructType(java.lang.reflect.code.parser.impl.DescParser.parseTypeDefinition(s));
+    }
+
+    /**
+     * A marker interface for type-arguments in a parameterized type.
+     */
+    sealed interface Argument permits ClassType, ArrayType, TypeVarRef, WildcardTypeArgument {
     }
 }

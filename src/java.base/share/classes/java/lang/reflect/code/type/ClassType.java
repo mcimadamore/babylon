@@ -25,24 +25,22 @@
 
 package java.lang.reflect.code.type;
 
-import java.lang.reflect.code.TypeElement;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A class type.
  */
-public final class ClassType implements JavaType {
+public final class ClassType implements JavaType, JavaType.Argument {
     // Fully qualified name
     private final String type;
 
-    private final List<JavaType> typeArguments;
+    private final List<Argument> typeArguments;
 
     ClassType(String type) {
         this(type, List.of());
     }
 
-    ClassType(String type, List<JavaType> typeArguments) {
+    ClassType(String type, List<JavaType.Argument> typeArguments) {
         switch (type) {
             case "boolean", "char", "byte", "short", "int", "long",
                     "float", "double", "void" -> throw new IllegalArgumentException();
@@ -54,11 +52,18 @@ public final class ClassType implements JavaType {
     @Override
     public TypeDefinition toTypeDefinition() {
         List<TypeDefinition> args = typeArguments.stream()
-                .map(TypeElement::toTypeDefinition)
+                .map(this::typeArgumentToDefinition)
                 .toList();
 
         TypeDefinition td = new TypeDefinition(type, args);
         return td;
+    }
+
+    private TypeDefinition typeArgumentToDefinition(Argument targ) {
+        return switch (targ) {
+            case JavaType jt -> jt.toTypeDefinition();
+            case WildcardTypeArgument wta -> wta.toTypeDefinition();
+        };
     }
 
     @Override
@@ -114,7 +119,7 @@ public final class ClassType implements JavaType {
         return !typeArguments.isEmpty();
     }
 
-    public List<JavaType> typeArguments() {
+    public List<JavaType.Argument> typeArguments() {
         return typeArguments;
     }
 
@@ -147,4 +152,5 @@ public final class ClassType implements JavaType {
     static String toClassDescriptor(String type) {
         return type.replace('.', '/');
     }
+
 }
