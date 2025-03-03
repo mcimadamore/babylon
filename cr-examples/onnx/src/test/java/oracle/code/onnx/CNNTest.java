@@ -32,6 +32,7 @@ import jdk.incubator.code.op.CoreOp;
 import jdk.incubator.code.type.FunctionType;
 import jdk.incubator.code.type.TupleType;
 import jdk.incubator.code.writer.OpWriter;
+import oracle.code.onnx.OnnxRuntime.Environment;
 import oracle.code.onnx.compiler.OnnxTransformer;
 import oracle.code.onnx.ir.OnnxOps;
 import oracle.code.onnx.ir.OnnxType;
@@ -42,6 +43,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import java.lang.foreign.MemorySegment;
 import java.lang.foreign.ValueLayout;
@@ -377,10 +379,12 @@ public class CNNTest {
         var fc2Bias = floatTensor("fc2-bias-float-le", 84);
         var fc3Weight = floatTensor("fc3-weight-float-le", 10, 84);
         var fc3Bias = floatTensor("fc3-bias-float-le", 10);
-        test(inputImage -> OnnxRuntime.execute(MethodHandles.lookup(), () ->
-                cnn(conv1Weight, conv1Bias, conv2Weight, conv2Bias,
-                    fc1Weight, fc1Bias, fc2Weight, fc2Bias, fc3Weight, fc3Bias,
-                    inputImage)));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            test(inputImage -> env.execute(MethodHandles.lookup(), () ->
+                    cnn(conv1Weight, conv1Bias, conv2Weight, conv2Bias,
+                            fc1Weight, fc1Bias, fc2Weight, fc2Bias, fc3Weight, fc3Bias,
+                            inputImage)));
+        }
     }
 
     private void test(Function<Tensor<Byte>, Tensor<Float>> executor) throws Exception {

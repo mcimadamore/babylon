@@ -148,19 +148,21 @@ public class MNISTDemo {
                     scaledImage.getData().getSamples(0, 0, IMAGE_SIZE, IMAGE_SIZE, 0, imageData);
                     var imageTensor = Tensor.ofShape(new long[]{1, 1, IMAGE_SIZE, IMAGE_SIZE}, imageData);
 
-                    try (Arena onnxSession = Arena.ofConfined()) {
-                        var prediction = OnnxRuntime.execute(MethodHandles.lookup(),
-                                () -> cnn(imageTensor), onnxSession);
+                    for (int k = 0 ; k < 10_000 ; k++) {
+                        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+                            var prediction = env.execute(MethodHandles.lookup(),
+                                    () -> cnn(imageTensor));
 
-                        var result = prediction.data().toArray(ValueLayout.JAVA_FLOAT);
-                        var report = new StringBuilder("<html>");
-                        for (int i = 0; i < result.length; i++) {
-                            var w = result[i];
-                            report.append("&nbsp;<font size=\"%d\" color=\"#%s\">%d</font>&nbsp;(%.1f%%)&nbsp;<br><br><br>"
-                                    .formatted((int) (20 * w) + 3, COLORS[(int) (5.99 * w)], i, 100 * w));
+                            var result = prediction.data().toArray(ValueLayout.JAVA_FLOAT);
+                            var report = new StringBuilder("<html>");
+                            for (int i = 0; i < result.length; i++) {
+                                var w = result[i];
+                                report.append("&nbsp;<font size=\"%d\" color=\"#%s\">%d</font>&nbsp;(%.1f%%)&nbsp;<br><br><br>"
+                                        .formatted((int) (20 * w) + 3, COLORS[(int) (5.99 * w)], i, 100 * w));
+                            }
+                            results.setText(report.toString());
+                            cleanFlag.set(true);
                         }
-                        results.setText(report.toString());
-                        cleanFlag.set(true);
                     }
                 }
             }

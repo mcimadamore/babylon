@@ -131,31 +131,6 @@ public final class OnnxRuntime {
 
     private static final CachedModelClassValue MODEL_CACHE = new CachedModelClassValue();
 
-    public static <T> Tensor<T> execute(MethodHandles.Lookup l, OnnxFunction<Tensor<T>> codeLambda) {
-        return execute(l, codeLambda, Arena.ofAuto());
-    }
-
-    public static <T> Tensor<T> execute(MethodHandles.Lookup l, OnnxFunction<Tensor<T>> codeLambda, Arena sessionArena) {
-        var q = Op.ofQuotable(codeLambda).orElseThrow();
-
-        var model = MODEL_CACHE.computeIfAbsent(codeLambda.getClass(), l, q);
-
-        var captured = q.capturedValues().sequencedValues().toArray();
-        List<Tensor> arguments = IntStream.of(model.operandsMapping())
-                .mapToObj(i -> captured[i])
-                .map(val -> val instanceof CoreOp.Var<?> v ? v.value() : val)
-                .map(val -> (Tensor) val)
-                .toList();
-
-        try {
-            var session = getInstance().createSession(model.protoModel(), sessionArena);
-            return session.run(arguments).getFirst();
-        } catch (RuntimeException e) {
-            OnnxProtoPrinter.printModel(model.protoModel());
-            throw e;
-        }
-    }
-
     record SingleMethod(CoreOp.InvokeOp iop, Map<Value, Value> valueMapping) {}
     static SingleMethod singleMethodInvocation(CoreOp.LambdaOp lop) {
         // Single block
@@ -258,7 +233,7 @@ public final class OnnxRuntime {
     private static OnnxRuntime INSTANCE;
 
     private final Arena         arena;
-    private final MemorySegment runtimeAddress, ret, envAddress, defaultAllocatorAddress;
+    private final MemorySegment runtimeAddress, ret, defaultAllocatorAddress;
 
     private OnnxRuntime() {
         arena = Arena.ofAuto();
@@ -266,14 +241,10 @@ public final class OnnxRuntime {
         //  const OrtApi* ortPtr = OrtGetApiBase()->GetApi((uint32_t)apiVersion);
         var apiBase = OrtApiBase.reinterpret(OrtGetApiBase(), arena, null);
         runtimeAddress = OrtApi.reinterpret(OrtApiBase.GetApi(apiBase, ORT_API_VERSION()), arena, null);
-        envAddress = retAddr(OrtApi.CreateEnv(runtimeAddress, ORT_LOGGING_LEVEL_ERROR(), arena.allocateFrom(LOG_ID), ret));
         defaultAllocatorAddress = retAddr(OrtApi.GetAllocatorWithDefaultOptions(runtimeAddress, ret));
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            OrtApi.ReleaseEnv(runtimeAddress, envAddress);
-        }));
     }
 
-    public List<Tensor> runOp(String opName, List<Tensor> inputValues, int numOutputs, Map<String, Object> attributes, Arena sessionArena) {
+    public List<Tensor> runOp(String opName, List<Tensor> inputValues, int numOutputs, Map<String, Object> attributes) {
         var outputNames = IntStream.range(0, numOutputs).mapToObj(o -> "o" + o).toList();
         var protoModel = OnnxProtoBuilder.build(
                 IntStream.range(0, inputValues.size()).mapToObj(i -> OnnxProtoBuilder.tensorInfo("i" + i, inputValues.get(i).elementType().id)).toList(),
@@ -283,40 +254,83 @@ public final class OnnxRuntime {
                         outputNames,
                         attributes)),
                 outputNames);
-        return createSession(protoModel, sessionArena)
+        return new Environment(Arena.ofAuto())
+                .createSession(protoModel)
                 .run(inputValues);
     }
 
-    public List<Tensor> run(Block block, List<Tensor> inputValues, Arena sessionArena) {
+    public List<Tensor> run(Block block, List<Tensor> inputValues) {
         var protoModel = OnnxProtoBuilder.build(block);
-        return createSession(protoModel, sessionArena)
+        return new Environment(Arena.ofAuto())
+                .createSession(protoModel)
                 .run(inputValues);
     }
 
-    public Session createSession(String modelPath, Arena sessionArena) {
-        return createSession(modelPath, createSessionOptions(sessionArena), sessionArena);
+    public class Environment implements AutoCloseable {
+        private final Arena envArena;
+        private final MemorySegment envAddress;
+
+        Environment(Arena envArena) {
+            this.envArena = envArena;
+            envAddress = retAddr(OrtApi.CreateEnv(runtimeAddress, ORT_LOGGING_LEVEL_ERROR(), envArena.allocateFrom(LOG_ID), ret))
+                    .reinterpret(envArena, env -> OrtApi.ReleaseEnv(runtimeAddress, env));
+        }
+
+        public Session createSession(String modelPath) {
+            return createSession(modelPath, createSessionOptions(envArena));
+        }
+
+        public Session createSession(String modelPath, SessionOptions options) {
+            return new Session(retAddr(OrtApi.CreateSession(runtimeAddress, envAddress, envArena.allocateFrom(modelPath), options.sessionOptionsAddress, ret)), envArena);
+        }
+
+        public Session createSession(byte[] model) {
+            return createSession(model, createSessionOptions(envArena));
+        }
+
+        private Session createSession(byte[] model, SessionOptions options) {
+            return new Session(retAddr(OrtApi.CreateSessionFromArray(runtimeAddress, envAddress, envArena.allocateFrom(ValueLayout.JAVA_BYTE, model), model.length, options.sessionOptionsAddress, ret)), envArena);
+        }
+
+        @Override
+        public void close() {
+            envArena.close();
+        }
+
+        public <T> Tensor<T> execute(MethodHandles.Lookup l, OnnxFunction<Tensor<T>> codeLambda) {
+            var q = Op.ofQuotable(codeLambda).orElseThrow();
+
+            var model = MODEL_CACHE.computeIfAbsent(codeLambda.getClass(), l, q);
+
+            var captured = q.capturedValues().sequencedValues().toArray();
+            List<Tensor> arguments = IntStream.of(model.operandsMapping())
+                    .mapToObj(i -> captured[i])
+                    .map(val -> val instanceof CoreOp.Var<?> v ? v.value() : val)
+                    .map(val -> (Tensor) val)
+                    .toList();
+
+            try {
+                var session = createSession(model.protoModel());
+                return session.run(arguments).getFirst();
+            } catch (RuntimeException e) {
+                OnnxProtoPrinter.printModel(model.protoModel());
+                throw e;
+            }
+        }
     }
 
-    public Session createSession(String modelPath, SessionOptions options, Arena sessionArena) {
-        return new Session(retAddr(OrtApi.CreateSession(runtimeAddress, envAddress, sessionArena.allocateFrom(modelPath), options.sessionOptionsAddress, ret)), sessionArena);
-    }
-
-    public Session createSession(byte[] model, Arena sessionArena) {
-        return createSession(model, createSessionOptions(sessionArena), sessionArena);
-    }
-
-    private Session createSession(byte[] model, SessionOptions options, Arena sessionArena) {
-        return new Session(retAddr(OrtApi.CreateSessionFromArray(runtimeAddress, envAddress, sessionArena.allocateFrom(ValueLayout.JAVA_BYTE, model), model.length, options.sessionOptionsAddress, ret)), sessionArena);
+    public static Environment newEnv() {
+        return OnnxRuntime.getInstance().new Environment(Arena.ofConfined());
     }
 
     public final class Session {
 
         private final MemorySegment sessionAddress;
-        private final Arena sessionArena;
+        private final Arena envArena;
 
-        private Session(MemorySegment sessionAddress, Arena sessionArena) {
-            this.sessionArena = sessionArena;
-            this.sessionAddress = sessionAddress.reinterpret(sessionArena,
+        private Session(MemorySegment sessionAddress, Arena envArena) {
+            this.envArena = envArena;
+            this.sessionAddress = sessionAddress.reinterpret(envArena,
                     session -> OrtApi.ReleaseSession(runtimeAddress, session));
         }
 
@@ -341,24 +355,24 @@ public final class OnnxRuntime {
             var runOptions = MemorySegment.NULL;
             int inputLen = getNumberOfInputs();
             int outputLen = getNumberOfOutputs();
-            var inputNames = sessionArena.allocate(C_POINTER, inputLen);
-            var inputs = sessionArena.allocate(C_POINTER, inputLen);
+            var inputNames = envArena.allocate(C_POINTER, inputLen);
+            var inputs = envArena.allocate(C_POINTER, inputLen);
             long index = 0;
             for (int i = 0; i < inputLen; i++) {
-                inputNames.setAtIndex(C_POINTER, index, sessionArena.allocateFrom(getInputName(i)));
+                inputNames.setAtIndex(C_POINTER, index, envArena.allocateFrom(getInputName(i)));
                 inputs.setAtIndex(C_POINTER, index++, inputValues.get(i).tensorAddr);
             }
-            var outputNames = sessionArena.allocate(C_POINTER, outputLen);
-            var outputs = sessionArena.allocate(C_POINTER, outputLen);
+            var outputNames = envArena.allocate(C_POINTER, outputLen);
+            var outputs = envArena.allocate(C_POINTER, outputLen);
             for (int i = 0; i < outputLen; i++) {
-                outputNames.setAtIndex(C_POINTER, i, sessionArena.allocateFrom(getOutputName(i)));
+                outputNames.setAtIndex(C_POINTER, i, envArena.allocateFrom(getOutputName(i)));
                 outputs.setAtIndex(C_POINTER, i, MemorySegment.NULL);
             }
-            checkStatus(OrtApi.Run(runtimeAddress, sessionAddress, runOptions, inputNames, inputs, (long)inputLen, outputNames, (long)outputLen, outputs));
+            checkStatus(OrtApi.Run(runtimeAddress, sessionAddress, runOptions, inputNames, inputs, inputLen, outputNames, outputLen, outputs));
             var retArr = new Tensor[outputLen];
             for (int i = 0; i < outputLen; i++) {
                 retArr[i] = new Tensor(outputs.getAtIndex(C_POINTER, i)
-                        .reinterpret(sessionArena, value -> OrtApi.ReleaseValue(runtimeAddress, value)));
+                        .reinterpret(envArena, value -> OrtApi.ReleaseValue(runtimeAddress, value)));
             }
             return List.of(retArr);
         }

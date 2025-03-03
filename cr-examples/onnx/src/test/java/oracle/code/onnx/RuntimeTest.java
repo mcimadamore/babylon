@@ -15,16 +15,16 @@ public class RuntimeTest {
     @Test
     public void test() throws Exception {
         var ort = OnnxRuntime.getInstance();
-        try (Arena sessionArena = Arena.ofConfined()) {
-            var absOp = ort.createSession(build(
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var absOp = env.createSession(build(
                     List.of(tensorInfo("x", FLOAT.id)),
                     List.of(node("Abs", List.of("x"), List.of("y"), Map.of())),
-                    List.of("y")), sessionArena);
+                    List.of("y")));
 
-             var addOp = ort.createSession(build(
+             var addOp = env.createSession(build(
                 List.of(tensorInfo("a", FLOAT.id), tensorInfo("b", FLOAT.id)),
                 List.of(node("Add", List.of("a", "b"), List.of("y"), Map.of())),
-                List.of("y")), sessionArena);
+                List.of("y")));
 
             assertEquals(1, absOp.getNumberOfInputs());
             assertEquals(1, absOp.getNumberOfOutputs());
@@ -59,8 +59,8 @@ public class RuntimeTest {
     @Test
     public void testIf() throws Exception {
         var ort = OnnxRuntime.getInstance();
-        try (Arena sessionArena = Arena.ofConfined()) {
-        var ifOp = ort.createSession(build(
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+        var ifOp = env.createSession(build(
                 List.of(tensorInfo("cond", BOOL.id), tensorInfo("a", INT64.id), tensorInfo("b", INT64.id)),
                 List.of(node("If", List.of("cond"), List.of("y"), Map.of(
                         "then_branch", graph(
@@ -71,7 +71,7 @@ public class RuntimeTest {
                                 List.of(),
                                 List.of(node("Identity", List.of("b"), List.of("y"), Map.of())),
                                 List.of("y"))))),
-                List.of("y")), sessionArena);
+                List.of("y")));
 
             var a = Tensor.ofScalar(1l);
             var b = Tensor.ofScalar(2l);
@@ -83,8 +83,8 @@ public class RuntimeTest {
     @Test
     public void testLoop() throws Exception {
         var ort = OnnxRuntime.getInstance();
-        try (Arena sessionArena = Arena.ofConfined()) {
-            var forOp = ort.createSession(build(
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var forOp = env.createSession(build(
                     List.of(tensorInfo("max", INT64.id), tensorInfo("cond", BOOL.id), tensorInfo("a", INT64.id)),
                     List.of(node("Loop", List.of("max", "cond", "a"), List.of("a_out"), Map.of(
                             "body", graph(
@@ -92,7 +92,7 @@ public class RuntimeTest {
                                     List.of(node("Identity", List.of("cond_in"), List.of("cond_out"), Map.of()),
                                             node("Add", List.of("a_in", "a_in"), List.of("a_out"), Map.of())),
                                     List.of("cond_out", "a_out"))))),
-                    List.of("a_out")), sessionArena);
+                    List.of("a_out")));
 
             SimpleTest.assertEquals(Tensor.ofScalar(65536l), forOp.run(List.of(Tensor.ofScalar(15l), Tensor.ofScalar(true), Tensor.ofScalar(2l))).getFirst());
         }

@@ -58,7 +58,7 @@ public class OnnxInterpreter {
                               .map(i -> (Tensor)(i instanceof Optional o ? o.get() : i))
                               .toList(),
                     schema.outputs().size(),
-                    attributeMap, Arena.ofAuto());
+                    attributeMap);
             if (outTensors.size() == 1) {
                 return outTensors.getFirst();
             } else {

@@ -16,10 +16,12 @@ public class SimpleTest {
 
     @Test
     public void testAdd() throws Exception {
-        var a = Tensor.ofFlat(1f, 2, 3);
-        assertEquals(
-                add(a, a),
-                OnnxRuntime.execute(MethodHandles.lookup(), () -> add(a, a)));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var a = Tensor.ofFlat(1f, 2, 3);
+            assertEquals(
+                    add(a, a),
+                    env.execute(MethodHandles.lookup(), () -> add(a, a)));
+        }
     }
 
     @CodeReflection
@@ -29,11 +31,13 @@ public class SimpleTest {
 
     @Test
     public void testSub() throws Exception {
-        var b = Tensor.ofFlat(6f, 5, 4);
-        var a = Tensor.ofFlat(1f, 2, 3);
-        assertEquals(
-                sub(a, b),
-                OnnxRuntime.execute(MethodHandles.lookup(), () -> sub(a, b)));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var b = Tensor.ofFlat(6f, 5, 4);
+            var a = Tensor.ofFlat(1f, 2, 3);
+            assertEquals(
+                    sub(a, b),
+                    env.execute(MethodHandles.lookup(), () -> sub(a, b)));
+        }
     }
 
     @CodeReflection
@@ -43,10 +47,12 @@ public class SimpleTest {
 
     @Test
     public void testFconstant() throws Exception {
-        // tests the numbers are encoded correctly
-        var expected = Tensor.ofScalar(-1f);
-        assertEquals(expected, fconstant());
-        assertEquals(expected, OnnxRuntime.execute(MethodHandles.lookup(), () -> fconstant()));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            // tests the numbers are encoded correctly
+            var expected = Tensor.ofScalar(-1f);
+            assertEquals(expected, fconstant());
+            assertEquals(expected, env.execute(MethodHandles.lookup(), () -> fconstant()));
+        }
     }
 
     @CodeReflection
@@ -56,10 +62,12 @@ public class SimpleTest {
 
     @Test
     public void testFconstants() throws Exception {
-        // tests the numbers are encoded correctly
-        var expected = Tensor.ofFlat(-1f, 0, 1, Float.MIN_VALUE, Float.MAX_VALUE);
-        assertEquals(expected, fconstants());
-        assertEquals(expected, OnnxRuntime.execute(MethodHandles.lookup(), () -> fconstants()));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            // tests the numbers are encoded correctly
+            var expected = Tensor.ofFlat(-1f, 0, 1, Float.MIN_VALUE, Float.MAX_VALUE);
+            assertEquals(expected, fconstants());
+            assertEquals(expected, env.execute(MethodHandles.lookup(), () -> fconstants()));
+        }
     }
 
     @CodeReflection
@@ -69,10 +77,12 @@ public class SimpleTest {
 
     @Test
     public void testLconstant() throws Exception {
-        // tests the numbers are encoded correctly
-        var expected = Tensor.ofScalar(-1l);
-        assertEquals(expected, lconstant());
-        assertEquals(expected, OnnxRuntime.execute(MethodHandles.lookup(), () -> lconstant()));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            // tests the numbers are encoded correctly
+            var expected = Tensor.ofScalar(-1l);
+            assertEquals(expected, lconstant());
+            assertEquals(expected, env.execute(MethodHandles.lookup(), () -> lconstant()));
+        }
     }
 
     @CodeReflection
@@ -82,10 +92,12 @@ public class SimpleTest {
 
     @Test
     public void testLconstants() throws Exception {
-        // tests the numbers are encoded correctly
-        var expected = Tensor.ofFlat(-1l, 0, 1, Long.MIN_VALUE, Long.MAX_VALUE);
-        assertEquals(expected, lconstants());
-        assertEquals(expected, OnnxRuntime.execute(MethodHandles.lookup(), () -> lconstants()));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            // tests the numbers are encoded correctly
+            var expected = Tensor.ofFlat(-1l, 0, 1, Long.MIN_VALUE, Long.MAX_VALUE);
+            assertEquals(expected, lconstants());
+            assertEquals(expected, env.execute(MethodHandles.lookup(), () -> lconstants()));
+        }
     }
 
     @CodeReflection
@@ -95,11 +107,13 @@ public class SimpleTest {
 
     @Test
     public void testReshapeAndShape() throws Exception {
-        var data = Tensor.ofFlat(1f, 2, 3, 4, 5, 6, 7, 8);
-        var shape = Tensor.ofFlat(2l, 2, 2);
-        assertEquals(
-                reshapeAndShape(data, shape),
-                OnnxRuntime.execute(MethodHandles.lookup(), () -> reshapeAndShape(data, shape)));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var data = Tensor.ofFlat(1f, 2, 3, 4, 5, 6, 7, 8);
+            var shape = Tensor.ofFlat(2l, 2, 2);
+            assertEquals(
+                    reshapeAndShape(data, shape),
+                    env.execute(MethodHandles.lookup(), () -> reshapeAndShape(data, shape)));
+        }
     }
 
     @CodeReflection
@@ -110,10 +124,12 @@ public class SimpleTest {
 
     @Test
     public void testIndicesOfMaxPool() throws Exception {
-        var x = Tensor.ofShape(new long[]{2, 2, 2}, 1f, 2, 3, 4, 5, 6, 7, 8);
-        assertEquals(
-                indicesOfMaxPool(x),
-                OnnxRuntime.execute(MethodHandles.lookup(), () -> indicesOfMaxPool(x)));
+        try (OnnxRuntime.Environment env = OnnxRuntime.newEnv()) {
+            var x = Tensor.ofShape(new long[]{2, 2, 2}, 1f, 2, 3, 4, 5, 6, 7, 8);
+            assertEquals(
+                    indicesOfMaxPool(x),
+                    env.execute(MethodHandles.lookup(), () -> indicesOfMaxPool(x)));
+        }
     }
 
     static void assertEquals(Tensor expected, Tensor actual) {
