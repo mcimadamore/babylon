@@ -46,12 +46,17 @@ import java.util.stream.IntStream;
 import jdk.incubator.code.*;
 
 import jdk.incubator.code.dialect.core.CoreOp;
+import jdk.incubator.code.dialect.core.CoreOp.FuncOp;
+import jdk.incubator.code.dialect.core.CoreOp.ModuleOp;
 import jdk.incubator.code.dialect.core.TupleType;
 import jdk.incubator.code.dialect.java.ArrayType;
 import jdk.incubator.code.dialect.java.ClassType;
 import jdk.incubator.code.dialect.java.FieldRef;
 import jdk.incubator.code.dialect.java.JavaOp;
 import jdk.incubator.code.dialect.java.JavaType;
+import oracle.code.onnx.compiler.OnnxGraphBuilder;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxGraph;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxInitializer;
 import oracle.code.onnx.compiler.OnnxTransformer;
 import oracle.code.onnx.foreign.OrtApi;
 import oracle.code.onnx.foreign.OrtApiBase;
@@ -128,30 +133,45 @@ public final class OnnxRuntime {
             }
         }
 
-        @Override
+        //@Override
         protected SessionWithReturnType computeValue(Class<?> type) {
-            OnnxTransformer.ModuleAndInitializers mi = OnnxTransformer.transform(l, q);
+            OnnxGraphBuilder onnxGraphBuilder = new OnnxGraphBuilder(q);
+            OnnxGraph graph = onnxGraphBuilder.buildGraph();
 
-            String domainName = type.getSimpleName().split("\\$")[0];
-            byte[] protobufModel = OnnxProtoBuilder.buildModel(domainName, mi.module(), getInitValues(l, mi.initializers(), q.capturedValues().sequencedValues()));
-
-            if (DEBUG) {
-                System.out.println(mi.module().toText());
-//                System.out.println(OnnxModel.readFrom(protobufModel).toText());
-                try {
-                    var export = Path.of(domainName + ".onnx");
-                    Files.write(export, protobufModel);
-                    System.out.println("Onnx model exported to: " + export.toAbsolutePath());
-                } catch (IOException _) {}
-            }
+            byte[] protobufModel = OnnxProtoBuilder.buildModel(graph,
+                    getInitValues(l, graph.initializers().stream().map(OnnxInitializer::ref).toList(), q.capturedValues().sequencedValues()));
 
             return new SessionWithReturnType(
                     getInstance().createSession(
                             Arena.ofAuto(), // cached session must be created under its own auto arena
                             protobufModel),
-                    mi.module().functionTable().lastEntry().getValue().invokableType().returnType());
+                    onnxGraphBuilder.op().invokableType().returnType());
 
         }
+
+//        protected SessionWithReturnType computeValue(Class<?> type) {
+//            OnnxTransformer.ModuleAndInitializers mi = OnnxTransformer.transform(l, q);
+//
+//            String domainName = type.getSimpleName().split("\\$")[0];
+//            byte[] protobufModel = OnnxProtoBuilder.buildModel(domainName, mi.module(), getInitValues(l, mi.initializers(), q.capturedValues().sequencedValues()));
+//
+//            if (DEBUG) {
+//                System.out.println(mi.module().toText());
+////                System.out.println(OnnxModel.readFrom(protobufModel).toText());
+//                try {
+//                    var export = Path.of(domainName + ".onnx");
+//                    Files.write(export, protobufModel);
+//                    System.out.println("Onnx model exported to: " + export.toAbsolutePath());
+//                } catch (IOException _) {}
+//            }
+//
+//            return new SessionWithReturnType(
+//                    getInstance().createSession(
+//                            Arena.ofAuto(), // cached session must be created under its own auto arena
+//                            protobufModel),
+//                    mi.module().functionTable().lastEntry().getValue().invokableType().returnType());
+//
+//        }
     }
 
     private static final CachedSessionClassValue SESSION_CACHE = new CachedSessionClassValue();

@@ -37,12 +37,19 @@ import java.util.stream.IntStream;
 import jdk.incubator.code.Block;
 import jdk.incubator.code.CodeItem;
 import jdk.incubator.code.Op;
+import jdk.incubator.code.TypeElement;
 import jdk.incubator.code.Value;
 import jdk.incubator.code.dialect.core.CoreOp;
 import jdk.incubator.code.dialect.core.TupleType;
+import jdk.incubator.code.dialect.java.ClassType;
 import jdk.incubator.code.dialect.java.JavaOp;
 import jdk.incubator.code.dialect.java.JavaType;
 import jdk.incubator.code.extern.OpWriter;
+import oracle.code.onnx.compiler.OnnxGraphBuilder;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxInitializer;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxOperation;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxValue;
+import oracle.code.onnx.compiler.OnnxGraphBuilder.OnnxValueInfo;
 import oracle.code.onnx.ir.OnnxOp;
 import oracle.code.onnx.ir.OnnxOps;
 import oracle.code.onnx.ir.OnnxType;
@@ -427,5 +434,71 @@ public final class OnnxProtoBuilder {
             }
         }
         return attr;
+    }
+
+    // new methods
+
+    public static byte[] buildModel(OnnxGraphBuilder.OnnxGraph graph, List<Object> initializers) {
+        return buildModel(
+                graph(graph, initializers),
+                List.of(),
+                List.of());
+    }
+
+    static GraphProto graph(OnnxGraphBuilder.OnnxGraph graph, List<? extends Object> initializers) {
+        return graph(graph.name(),
+                IntStream.range(0, initializers.size()).boxed().<TensorProto>mapMulti((i, tps) -> {
+                    OnnxInitializer init = graph.initializers().get(i);
+                    Object val = initializers.get(i);
+                    tps.accept(tensorProto(init.name(), (Tensor)val, _ -> null));
+                }).toList(),
+                tensorInfos(graph.inputs()),
+                nodes(graph.operations()),
+                graph.outputs().stream().map(OnnxValue::name).toList());
+    }
+
+    static List<ValueInfoProto> tensorInfos(List<OnnxValueInfo> valueInfos) {
+        var infos = new ArrayList<ValueInfoProto>();
+        for (var arg : valueInfos) {
+            switch (convertType(arg.type())) {
+                case OnnxType.TensorType tt ->
+                        infos.add(tensorInfo(arg.name(), tt.eType().id(), false));
+                default ->
+                        throw new UnsupportedOperationException(arg.type().toString());
+            }
+        }
+        return infos;
+    }
+
+    static TypeElement convertType(TypeElement type) {
+        if (type instanceof ClassType ct) {
+            if (ct.rawType().toClassName().equals(Tensor.class.getName())) {
+                JavaType elementType = ct.typeArguments().getFirst();
+                if (elementType.equals(JavaType.J_L_INTEGER)) {
+                    return OnnxType.TENSOR_INT32;
+                } else if (elementType.equals(JavaType.J_L_FLOAT)) {
+                    return OnnxType.TENSOR_FLOAT32;
+                } else if (elementType.equals(JavaType.J_L_LONG)) {
+                    return OnnxType.TENSOR_INT64;
+                } else if (elementType.equals(JavaType.J_L_BYTE)) {
+                    return OnnxType.TENSOR_UINT8;
+                } else if (elementType.equals(JavaType.J_L_BOOLEAN)) {
+                    return OnnxType.TENSOR_BOOL;
+                }
+            }
+        }
+        return type;
+    }
+
+    static List<NodeProto> nodes(List<OnnxOperation> ops) {
+        return ops.stream().map(op -> {
+            Map<String, Object> attrs = new HashMap<>();
+            op.attributes().forEach(a -> attrs.put(a.name(), a.value()));
+            return node(
+                    op.name(),
+                    op.inputs().stream().map(OnnxValue::name).toList(),
+                    op.outputs().stream().map(OnnxValue::name).toList(),
+                    attrs);
+        }).toList();
     }
 }

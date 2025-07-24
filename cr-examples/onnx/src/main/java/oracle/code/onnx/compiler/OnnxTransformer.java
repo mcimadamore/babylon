@@ -12,6 +12,7 @@ import jdk.incubator.code.analysis.NormalizeBlocksTransformer;
 import jdk.incubator.code.analysis.Inliner;
 import jdk.incubator.code.analysis.SSA;
 import jdk.incubator.code.dialect.core.CoreOp;
+import jdk.incubator.code.dialect.core.CoreOp.FuncOp;
 import jdk.incubator.code.dialect.core.CoreType;
 import jdk.incubator.code.dialect.core.FunctionType;
 import jdk.incubator.code.dialect.core.TupleType;
