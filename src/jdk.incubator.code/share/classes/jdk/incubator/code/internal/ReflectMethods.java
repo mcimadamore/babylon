@@ -49,6 +49,7 @@ import com.sun.tools.javac.comp.Resolve;
 import com.sun.tools.javac.comp.TypeEnvs;
 import com.sun.tools.javac.jvm.ByteCodes;
 import com.sun.tools.javac.jvm.Gen;
+import com.sun.tools.javac.jvm.PoolConstant;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCArrayAccess;
@@ -102,10 +103,7 @@ import static com.sun.tools.javac.code.Flags.*;
 import static com.sun.tools.javac.code.Kinds.Kind.MTH;
 import static com.sun.tools.javac.code.Kinds.Kind.TYP;
 import static com.sun.tools.javac.code.Kinds.Kind.VAR;
-import static com.sun.tools.javac.code.TypeTag.BOT;
-import static com.sun.tools.javac.code.TypeTag.CLASS;
-import static com.sun.tools.javac.code.TypeTag.METHOD;
-import static com.sun.tools.javac.code.TypeTag.NONE;
+import static com.sun.tools.javac.code.TypeTag.*;
 import static com.sun.tools.javac.main.Option.G_CUSTOM;
 
 import static com.sun.tools.javac.resources.CompilerProperties.Errors.*;
@@ -181,10 +179,42 @@ public class ReflectMethods extends TreeTranslator {
                     log.note(MethodIrDump(tree.sym.enclClass(), tree.sym, funcOp.toText()));
                 }
                 // create a static method that returns the op
-                classOps.add(opMethodDecl(methodName(symbolToMethodRef(tree.sym)), funcOp, codeModelStorageOption));
+                JCMethodDecl mdecl = opMethodDecl(methodName(symbolToMethodRef(tree.sym)), funcOp, codeModelStorageOption);
+                delegateImpl(tree, mdecl);
+                classOps.add(mdecl);
             }
         }
         super.visitMethodDef(tree);
+    }
+
+    private void delegateImpl(JCMethodDecl tree, JCMethodDecl codeModelDecl) {
+        ListBuffer<JCTree.JCStatement> stats = new ListBuffer<>();
+        ListBuffer<JCExpression> indyArgs = new ListBuffer<>();
+        if (!tree.sym.isStatic()) {
+            indyArgs.add(makeThis());
+        }
+        indyArgs.addAll(tree.params.map(p -> make.Ident(p.sym)));
+        MethodType indyType = (MethodType) types.createMethodTypeWithParameters(tree.type,
+                indyArgs.toList().map(t -> t.type));
+        JCExpression indyCall = makeIndyCall(tree, crSyms.bytecodeGenerator, crSyms.generateName,
+                com.sun.tools.javac.util.List.of(codeModelDecl.sym.asHandle()),
+                indyType,
+                indyArgs.toList(),
+                names.fromString("delegate"));
+        if (tree.type.getReturnType().hasTag(VOID)) {
+            stats.add(make.Exec(indyCall));
+        } else {
+            stats.add(make.Return(indyCall));
+        }
+        tree.body = make.Block(0, stats.toList());
+    }
+
+    private JCIdent makeThis() {
+        VarSymbol _this = new VarSymbol(PARAMETER | FINAL | SYNTHETIC,
+                names._this,
+                currentClassSym.type,
+                currentClassSym);
+        return make.Ident(_this);
     }
 
     @Override
@@ -3026,5 +3056,40 @@ public class ReflectMethods extends TreeTranslator {
         com.sun.tools.javac.util.List<Type> argtypes = constructorRef.type().parameterTypes().stream()
                 .map(this::typeElementToType).collect(com.sun.tools.javac.util.List.collector());
         return resolve.resolveInternalConstructor(attrEnv().enclClass, attrEnv(), site, argtypes, com.sun.tools.javac.util.List.nil());
+    }
+
+    /**
+     * Generate an indy method call with given name, type and static bootstrap
+     * arguments types
+     */
+    private JCExpression makeIndyCall(DiagnosticPosition pos, Type site, Name bsmName,
+                                      com.sun.tools.javac.util.List<PoolConstant.LoadableConstant> staticArgs, MethodType indyType, com.sun.tools.javac.util.List<JCExpression> indyArgs,
+                                      Name methName) {
+        int prevPos = make.pos;
+        try {
+            make.at(pos);
+            com.sun.tools.javac.util.List<Type> bsm_staticArgs = com.sun.tools.javac.util.List.of(syms.methodHandleLookupType,
+                    syms.stringType,
+                    syms.methodTypeType).appendList(staticArgs.map(types::constantType));
+
+            MethodSymbol bsm = resolve.resolveInternalMethod(pos, attrEnv(), site,
+                    bsmName, bsm_staticArgs, com.sun.tools.javac.util.List.nil());
+
+            Symbol.DynamicMethodSymbol dynSym =
+                    new Symbol.DynamicMethodSymbol(methName,
+                            syms.noSymbol,
+                            bsm.asHandle(),
+                            indyType,
+                            staticArgs.toArray(new PoolConstant.LoadableConstant[staticArgs.length()]));
+            JCFieldAccess qualifier = make.Select(make.QualIdent(site.tsym), bsmName);
+            qualifier.sym = dynSym;
+            qualifier.type = indyType;
+
+            JCMethodInvocation proxyCall = make.Apply(com.sun.tools.javac.util.List.nil(), qualifier, indyArgs);
+            proxyCall.type = indyType.getReturnType();
+            return proxyCall;
+        } finally {
+            make.at(prevPos);
+        }
     }
 }

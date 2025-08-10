@@ -39,11 +39,7 @@ import java.lang.constant.DirectMethodHandleDesc;
 import java.lang.constant.DynamicCallSiteDesc;
 import java.lang.constant.MethodHandleDesc;
 import java.lang.constant.MethodTypeDesc;
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.invoke.StringConcatFactory;
+import java.lang.invoke.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import jdk.incubator.code.Block;
@@ -1279,6 +1275,28 @@ public final class BytecodeGenerator {
                 // Map slot of the block argument to slot of the value
                 singlePredecessorsValues.put(bargs.get(i), singlePredecessorsValues.getOrDefault(value, value));
             }
+        }
+    }
+
+    /**
+     * Bootstrap method which turns a method that turns a {@code FuncOp} returning method
+     * into a callsite wrapping a method handle corresponding to an executable version of the code
+     * modelled by that {@code FuncOp}.
+     * @param l lookup
+     * @param name lookup name
+     * @param type lookup type
+     * @param opHandle method handle that points to a method that returns a {@code FuncOp}
+     * @return callsite wrapping a method handle corresponding to an executable version of the code
+     *         modelled by that {@code FuncOp}.
+     */
+    public static CallSite generate(MethodHandles.Lookup l, String name, MethodType type,
+                                    MethodHandle opHandle) {
+        try {
+            FuncOp funcOp = (FuncOp) (Op) opHandle.invokeExact();
+            // @@@: check type conformance
+            return new ConstantCallSite(generate(l, funcOp));
+        } catch (Throwable ex) {
+            throw new IllegalStateException(ex);
         }
     }
 }

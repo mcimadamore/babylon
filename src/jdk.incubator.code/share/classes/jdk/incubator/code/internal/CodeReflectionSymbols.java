@@ -33,6 +33,7 @@ import com.sun.tools.javac.code.Type.ArrayType;
 import com.sun.tools.javac.code.Type.MethodType;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 
 import static com.sun.tools.javac.code.Flags.PUBLIC;
@@ -49,7 +50,9 @@ public class CodeReflectionSymbols {
     public final Type codeReflectionType;
     public final Type opType;
     public final Type funcOpType;
+    public final Type bytecodeGenerator;
     public final MethodSymbol quotedQuotedOp;
+    public final Name generateName;
 
     CodeReflectionSymbols(Context context) {
         Symtab syms = Symtab.instance(context);
@@ -65,6 +68,8 @@ public class CodeReflectionSymbols {
                 new MethodType(List.of(funcOpType, new ArrayType(syms.objectType, syms.arrayClass)), quotedType,
                         List.nil(), syms.methodClass),
                 quotedType.tsym);
+        bytecodeGenerator = syms.enterClass(jdk_incubator_code, "jdk.incubator.code.bytecode.BytecodeGenerator");
+        generateName = names.fromString("generate");
         syms.synthesizeEmptyInterfaceIfMissing(quotedType);
         syms.synthesizeEmptyInterfaceIfMissing(quotableType);
     }
