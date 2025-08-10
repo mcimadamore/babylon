@@ -194,7 +194,7 @@ public class ReflectMethods extends TreeTranslator {
             indyArgs.add(makeThis());
         }
         indyArgs.addAll(tree.params.map(p -> make.Ident(p.sym)));
-        MethodType indyType = (MethodType) types.createMethodTypeWithParameters(tree.type,
+        Type indyType = types.createMethodTypeWithParameters(tree.type,
                 indyArgs.toList().map(t -> t.type));
         JCExpression indyCall = makeIndyCall(tree, crSyms.bytecodeGenerator, crSyms.generateName,
                 com.sun.tools.javac.util.List.of(codeModelDecl.sym.asHandle()),
@@ -3063,7 +3063,7 @@ public class ReflectMethods extends TreeTranslator {
      * arguments types
      */
     private JCExpression makeIndyCall(DiagnosticPosition pos, Type site, Name bsmName,
-                                      com.sun.tools.javac.util.List<PoolConstant.LoadableConstant> staticArgs, MethodType indyType, com.sun.tools.javac.util.List<JCExpression> indyArgs,
+                                      com.sun.tools.javac.util.List<PoolConstant.LoadableConstant> staticArgs, Type indyType, com.sun.tools.javac.util.List<JCExpression> indyArgs,
                                       Name methName) {
         int prevPos = make.pos;
         try {
