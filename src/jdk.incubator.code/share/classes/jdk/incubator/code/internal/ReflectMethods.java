@@ -206,6 +206,17 @@ public class ReflectMethods extends TreeTranslator {
         } else {
             stats.add(make.Return(indyCall));
         }
+        class LocalClassScanner extends TreeScanner {
+            @Override
+            public void visitClassDef(JCClassDecl cdef) {
+                if (cdef.sym.owner == tree.sym) {
+                    // do not leave local classes behind!
+                    stats.add(cdef);
+                }
+            }
+        }
+        LocalClassScanner localClassScanner = new LocalClassScanner();
+        localClassScanner.scan(tree);
         tree.body = make.Block(0, stats.toList());
     }
 
