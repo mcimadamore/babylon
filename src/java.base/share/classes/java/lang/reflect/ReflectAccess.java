@@ -83,7 +83,13 @@ final class ReflectAccess implements JavaLangReflectAccess {
     }
 
     @Override
-    public Optional<?> setCodeModelIfNeeded(Method method, Function<Method, Optional<?>> modelFactory) {
-        return method.setCodeModelIfNeeded(modelFactory);
+    public Optional<?> setCodeModelIfNeeded(Executable ex, Function<Executable, Optional<?>> modelFactory) {
+        if (ex instanceof Constructor<?> constructor) {
+            return constructor.setCodeModelIfNeeded(modelFactory);
+        } else if (ex instanceof Method method) {
+            return method.setCodeModelIfNeeded(modelFactory);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 }

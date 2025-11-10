@@ -27,6 +27,7 @@ package jdk.incubator.code.dialect.java;
 
 import java.lang.constant.ClassDesc;
 import jdk.incubator.code.*;
+import jdk.incubator.code.dialect.java.JavaOp.InvokeOp.InvokeKind;
 import jdk.incubator.code.extern.DialectFactory;
 import jdk.incubator.code.dialect.core.*;
 import jdk.incubator.code.extern.ExternalizedOp;
@@ -398,8 +399,8 @@ public sealed abstract class JavaOp extends Op {
                 "booleanValue");
 
         private static boolean isBoxOrUnboxInvocation(InvokeOp iop) {
-            MethodRef mr = iop.invokeDescriptor();
-            return mr.refType() instanceof ClassType ct && ct.unbox().isPresent() &&
+            return iop.invokeDescriptor instanceof MethodRef mr &&
+                    mr.refType() instanceof ClassType ct && ct.unbox().isPresent() &&
                     (UNBOX_NAMES.contains(mr.name()) || mr.name().equals("valueOf"));
         }
     }
@@ -598,14 +599,14 @@ public sealed abstract class JavaOp extends Op {
 
         final InvokeKind invokeKind;
         final boolean isVarArgs;
-        final MethodRef invokeDescriptor;
+        final ExecutableRef invokeDescriptor;
         final TypeElement resultType;
 
         InvokeOp(ExternalizedOp def) {
             // Required attribute
-            MethodRef invokeDescriptor = def.extractAttributeValue(ATTRIBUTE_INVOKE_DESCRIPTOR,
+            ExecutableRef invokeDescriptor = def.extractAttributeValue(ATTRIBUTE_INVOKE_DESCRIPTOR,
                     true, v -> switch (v) {
-                        case MethodRef md -> md;
+                        case ExecutableRef ed -> ed;
                         case null, default ->
                                 throw new UnsupportedOperationException("Unsupported invoke descriptor value:" + v);
                     });
@@ -654,10 +655,10 @@ public sealed abstract class JavaOp extends Op {
             return new InvokeOp(this, cc);
         }
 
-        InvokeOp(InvokeKind invokeKind, boolean isVarArgs, TypeElement resultType, MethodRef invokeDescriptor, List<Value> args) {
+        InvokeOp(InvokeKind invokeKind, boolean isVarArgs, TypeElement resultType, ExecutableRef invokeDescriptor, List<Value> args) {
             super(args);
 
-            validateArgCount(invokeKind, isVarArgs, invokeDescriptor, args);
+            validate(invokeKind, isVarArgs, invokeDescriptor, args);
 
             this.invokeKind = invokeKind;
             this.isVarArgs = isVarArgs;
@@ -665,9 +666,18 @@ public sealed abstract class JavaOp extends Op {
             this.resultType = resultType;
         }
 
-        static void validateArgCount(InvokeKind invokeKind, boolean isVarArgs, MethodRef invokeDescriptor, List<Value> operands) {
+        static void validate(InvokeKind invokeKind, boolean isVarArgs, ExecutableRef invokeDescriptor, List<Value> operands) {
             int paramCount = invokeDescriptor.type().parameterTypes().size();
-            int argCount = operands.size() - (invokeKind == InvokeKind.STATIC ? 0 : 1);
+            final boolean isStaticInv;
+            if (invokeDescriptor instanceof ConstructorRef) {
+                if (invokeKind != InvokeKind.SUPER) {
+                    throw new IllegalArgumentException(invokeKind + " " + isVarArgs + " " + invokeDescriptor);
+                }
+                isStaticInv = true;
+            } else {
+                isStaticInv = invokeKind == InvokeKind.STATIC;
+            }
+            int argCount = operands.size() - (isStaticInv ? 0 : 1);
             if ((!isVarArgs && argCount != paramCount)
                     || argCount < paramCount - 1) {
                 throw new IllegalArgumentException(invokeKind + " " + isVarArgs + " " + invokeDescriptor);
@@ -699,7 +709,7 @@ public sealed abstract class JavaOp extends Op {
             return isVarArgs;
         }
 
-        public MethodRef invokeDescriptor() {
+        public ExecutableRef invokeDescriptor() {
             return invokeDescriptor;
         }
 
@@ -5162,7 +5172,7 @@ public sealed abstract class JavaOp extends Op {
      * @param args             the invoke parameters
      * @return the invoke operation
      */
-    public static InvokeOp invoke(MethodRef invokeDescriptor, Value... args) {
+    public static InvokeOp invoke(ExecutableRef invokeDescriptor, Value... args) {
         return invoke(invokeDescriptor, List.of(args));
     }
 
@@ -5183,7 +5193,7 @@ public sealed abstract class JavaOp extends Op {
      * @param args             the invoke arguments
      * @return the invoke operation
      */
-    public static InvokeOp invoke(MethodRef invokeDescriptor, List<Value> args) {
+    public static InvokeOp invoke(ExecutableRef invokeDescriptor, List<Value> args) {
         return invoke(invokeDescriptor.type().returnType(), invokeDescriptor, args);
     }
 
@@ -5203,7 +5213,7 @@ public sealed abstract class JavaOp extends Op {
      * @param args             the invoke arguments
      * @return the invoke operation
      */
-    public static InvokeOp invoke(TypeElement returnType, MethodRef invokeDescriptor, Value... args) {
+    public static InvokeOp invoke(TypeElement returnType, ExecutableRef invokeDescriptor, Value... args) {
         return invoke(returnType, invokeDescriptor, List.of(args));
     }
 
@@ -5223,12 +5233,17 @@ public sealed abstract class JavaOp extends Op {
      * @param args             the invoke arguments
      * @return the invoke super operation
      */
-    public static InvokeOp invoke(TypeElement returnType, MethodRef invokeDescriptor, List<Value> args) {
+    public static InvokeOp invoke(TypeElement returnType, ExecutableRef invokeDescriptor, List<Value> args) {
         int paramCount = invokeDescriptor.type().parameterTypes().size();
         int argCount = args.size();
-        InvokeOp.InvokeKind ik = (argCount == paramCount + 1)
-                ? InvokeOp.InvokeKind.INSTANCE
-                : InvokeOp.InvokeKind.STATIC;
+        InvokeOp.InvokeKind ik;
+        if (invokeDescriptor instanceof ConstructorRef) {
+            ik = InvokeKind.SUPER;
+        } else {
+            ik = (argCount == paramCount + 1)
+                    ? InvokeOp.InvokeKind.INSTANCE
+                    : InvokeOp.InvokeKind.STATIC;
+        }
         return new InvokeOp(ik, false, returnType, invokeDescriptor, args);
     }
 
@@ -5245,7 +5260,7 @@ public sealed abstract class JavaOp extends Op {
      *                                  and the invoke descriptors parameter count.
      */
     public static InvokeOp invoke(InvokeOp.InvokeKind invokeKind, boolean isVarArgs,
-                                  TypeElement returnType, MethodRef invokeDescriptor, List<Value> args) {
+                                  TypeElement returnType, ExecutableRef invokeDescriptor, List<Value> args) {
         return new InvokeOp(invokeKind, isVarArgs, returnType, invokeDescriptor, args);
     }
 

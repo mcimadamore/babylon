@@ -40,7 +40,7 @@ import static jdk.incubator.code.dialect.core.CoreType.functionType;
 /**
  * The symbolic reference to a Java constructor.
  */
-public sealed interface ConstructorRef extends JavaRef, TypeVariableType.Owner
+public sealed interface ConstructorRef extends ExecutableRef, TypeVariableType.Owner
         permits ConstructorRefImpl {
 
     FunctionType type();

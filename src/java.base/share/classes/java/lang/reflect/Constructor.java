@@ -41,7 +41,9 @@ import sun.reflect.generics.factory.GenericsFactory;
 import sun.reflect.generics.scope.ConstructorScope;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.AnnotationFormatError;
+import java.util.Optional;
 import java.util.StringJoiner;
+import java.util.function.Function;
 
 /**
  * {@code Constructor} provides information about, and access to, a single
@@ -74,6 +76,8 @@ public final class Constructor<T> extends Executable {
     private final transient String    signature;
     private final byte[]              annotations;
     private final byte[]              parameterAnnotations;
+
+    private volatile Optional<?> codeModel;
 
     // Generics infrastructure
     // Accessor for factory
@@ -232,6 +236,21 @@ public final class Constructor<T> extends Executable {
     @Override
     public int getModifiers() {
         return modifiers;
+    }
+
+    /* package */
+    Optional<?> setCodeModelIfNeeded(Function<Executable, Optional<?>> modelFactory) {
+        Optional<?> localRef = codeModel;
+        if (localRef == null) {
+            synchronized (this) {
+                localRef = codeModel;
+                if (localRef == null) {
+                    localRef = modelFactory.apply(this);
+                    codeModel = localRef;
+                }
+            }
+        }
+        return localRef;
     }
 
     /**

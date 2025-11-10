@@ -86,6 +86,7 @@ import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.Names;
 import com.sun.tools.javac.util.Options;
 import jdk.incubator.code.*;
+import jdk.incubator.code.dialect.java.JavaOp.InvokeOp.InvokeKind;
 import jdk.incubator.code.extern.DialectFactory;
 import jdk.incubator.code.dialect.core.*;
 import jdk.incubator.code.dialect.java.*;
@@ -181,7 +182,9 @@ public class ReflectMethods extends TreeTranslator {
                     log.note(MethodIrDump(tree.sym.enclClass(), tree.sym, funcOp.toText()));
                 }
                 // create a static method that returns the op
-                classOps.add(opMethodDecl(methodName(symbolToMethodRef(tree.sym)), funcOp, codeModelStorageOption));
+                ExecutableRef ref = tree.sym.isConstructor() ?
+                        symbolToConstructorRef(tree.sym) : symbolToMethodRef(tree.sym);
+                classOps.add(opMethodDecl(methodName(ref), funcOp, codeModelStorageOption));
             }
         }
         super.visitMethodDef(tree);
@@ -320,8 +323,8 @@ public class ReflectMethods extends TreeTranslator {
         return names.fromString("lambda").append('$', names.fromString(String.valueOf(lambdaCount++)));
     }
 
-    Name methodName(MethodRef method) {
-        char[] sigCh = method.toString().toCharArray();
+    Name methodName(ExecutableRef ref) {
+        char[] sigCh = ref.toString().toCharArray();
         for (int i = 0; i < sigCh.length; i++) {
             switch (sigCh[i]) {
                 case '.', ';', '[', '/' -> sigCh[i] = '$';
@@ -1113,7 +1116,9 @@ public class ReflectMethods extends TreeTranslator {
                     Symbol sym = access.sym;
                     List<Value> args = new ArrayList<>();
                     JavaOp.InvokeOp.InvokeKind ik;
-                    if (!sym.isStatic()) {
+                    if (sym.isConstructor()) {
+                        ik = InvokeKind.SUPER;
+                    } else if (!sym.isStatic()) {
                         ik = JavaOp.InvokeOp.InvokeKind.INSTANCE;
                         args.add(thisValue());
                     } else {
@@ -1122,7 +1127,9 @@ public class ReflectMethods extends TreeTranslator {
 
                     args.addAll(scanMethodArguments(tree.args, tree.meth.type, tree.varargsElement));
 
-                    MethodRef mr = symbolToMethodRef(sym, symbolSiteType(sym));
+                    ExecutableRef mr = sym.isConstructor() ?
+                            symbolToConstructorRef(sym) :
+                            symbolToMethodRef(sym, symbolSiteType(sym));
                     Value res = append(JavaOp.invoke(ik, tree.varargsElement != null,
                             typeToTypeElement(meth.type.getReturnType()), mr, args));
                     if (sym.type.getReturnType().getTag() != TypeTag.VOID) {
@@ -1139,7 +1146,9 @@ public class ReflectMethods extends TreeTranslator {
                     Symbol sym = access.sym;
                     List<Value> args = new ArrayList<>();
                     JavaOp.InvokeOp.InvokeKind ik;
-                    if (!sym.isStatic()) {
+                    if (sym.isConstructor()) {
+                        ik = InvokeKind.SUPER;
+                    } else if (!sym.isStatic()) {
                         args.add(receiver);
                         // @@@ expr.super(...) for inner class super constructor calls
                         ik = switch (access.selected) {
@@ -1153,8 +1162,9 @@ public class ReflectMethods extends TreeTranslator {
 
                     args.addAll(scanMethodArguments(tree.args, tree.meth.type, tree.varargsElement));
 
-                    MethodRef mr = symbolToMethodRef(sym, qualifierTarget.hasTag(NONE) ?
-                            access.selected.type : qualifierTarget);
+                    ExecutableRef mr = sym.isConstructor() ?
+                            symbolToConstructorRef(sym) :
+                            symbolToMethodRef(sym, qualifierTarget.hasTag(NONE) ? access.selected.type : qualifierTarget);
                     JavaType returnType = typeToTypeElement(meth.type.getReturnType());
                     JavaOp.InvokeOp iop = JavaOp.invoke(ik, tree.varargsElement != null,
                             returnType, mr, args);
@@ -1384,8 +1394,8 @@ public class ReflectMethods extends TreeTranslator {
             // We need to manually construct the constructor reference,
             // as the signature of the constructor symbol is not augmented
             // with enclosing this and captured params.
-            MethodRef methodRef = symbolToMethodRef(tree.constructor);
-            argtypes.addAll(methodRef.type().parameterTypes());
+            ExecutableRef cRef = symbolToConstructorRef(tree.constructor);
+            argtypes.addAll(cRef.type().parameterTypes());
             FunctionType constructorType = CoreType.functionType(
                     symbolToErasedDesc(tree.constructor.owner),
                     argtypes);
@@ -2706,7 +2716,9 @@ public class ReflectMethods extends TreeTranslator {
             com.sun.tools.javac.util.List<Value> arguments = invokeOp.operands().stream()
                     .skip(receiver == null ? 0 : 1)
                     .collect(com.sun.tools.javac.util.List.collector());
-            var methodSym = methodDescriptorToSymbol(invokeOp.invokeDescriptor());
+            var methodSym = invokeOp.invokeKind() == InvokeKind.SUPER ?
+                    constructorDescriptorToSymbol((ConstructorRef) invokeOp.invokeDescriptor()) :
+                    methodDescriptorToSymbol((MethodRef) invokeOp.invokeDescriptor());
             var meth = (receiver == null) ?
                     make.Ident(methodSym) :
                     make.Select(toExpr(translateOp(receiver)), methodSym);
@@ -2940,12 +2952,22 @@ public class ReflectMethods extends TreeTranslator {
     }
 
     MethodRef symbolToMethodRef(Symbol s) {
+        Assert.check(!s.isConstructor());
         Type erasedType = s.erasure(types);
         return MethodRef.method(
                 typeToTypeElement(s.owner.erasure(types)),
                 s.name.toString(),
                 typeToTypeElement(erasedType.getReturnType()),
                 erasedType.getParameterTypes().stream().map(this::typeToTypeElement).toArray(TypeElement[]::new));
+    }
+
+    ConstructorRef symbolToConstructorRef(Symbol s) {
+        Assert.check(s.isConstructor());
+        Type erasedType = s.erasure(types);
+        return ConstructorRef.constructor(
+                typeToTypeElement(s.owner.erasure(types)),
+                erasedType.getParameterTypes().stream().map(this::typeToTypeElement).toArray(TypeElement[]::new)
+        );
     }
 
     FunctionType typeToFunctionType(Type t) {

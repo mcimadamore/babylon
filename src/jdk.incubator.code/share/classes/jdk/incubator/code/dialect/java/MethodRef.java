@@ -44,7 +44,7 @@ import static jdk.incubator.code.dialect.core.CoreType.functionType;
 /**
  * The symbolic reference to a Java method.
  */
-public sealed interface MethodRef extends JavaRef, TypeVariableType.Owner
+public sealed interface MethodRef extends ExecutableRef, TypeVariableType.Owner
         permits MethodRefImpl {
 
     TypeElement refType();

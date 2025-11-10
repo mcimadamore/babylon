@@ -795,7 +795,7 @@ public final class BytecodeGenerator {
                             processOperands(op);
                         }
                         // Resolve referenced class to determine if interface
-                        MethodRef md = op.invokeDescriptor();
+                        ExecutableRef md = op.invokeDescriptor();
                         JavaType refType = (JavaType)md.refType();
                         Class<?> refClass;
                         try {
@@ -824,7 +824,7 @@ public final class BytecodeGenerator {
                         cob.invoke(
                                 invokeOpcode,
                                 refType.toNominalDescriptor(),
-                                md.name(),
+                                md instanceof MethodRef mr ? mr.name() : "<init>",
                                 mDesc,
                                 isInterface);
                         ClassDesc ret = toClassDesc(op.resultType());

@@ -35,6 +35,8 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import jdk.incubator.code.dialect.core.CoreType;
+import jdk.incubator.code.dialect.java.ConstructorRef;
+import jdk.incubator.code.dialect.java.ExecutableRef;
 import jdk.incubator.code.internal.ReflectMethods;
 import jdk.incubator.code.dialect.core.CoreOp.FuncOp;
 import jdk.incubator.code.dialect.core.FunctionType;
@@ -45,6 +47,8 @@ import jdk.internal.access.SharedSecrets;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -542,11 +546,27 @@ public non-sealed abstract class Op implements CodeElement<Op, Body> {
     @SuppressWarnings("unchecked")
     public static Optional<FuncOp> ofMethod(Method method) {
         return (Optional<FuncOp>)SharedSecrets.getJavaLangReflectAccess()
-                .setCodeModelIfNeeded(method, Op::createCodeModel);
+                .setCodeModelIfNeeded(method, m -> createCodeModel(m, MethodRef.method(method)));
     }
 
-    private static Optional<FuncOp> createCodeModel(Method method) {
-        char[] sig = MethodRef.method(method).toString().toCharArray();
+    /**
+     * Returns the code model of the given constructor's body, if present.
+     *
+     * @param constructor the constructor.
+     * @return the code model of the method body.
+     * @since 99
+     */
+    // @@@ Make caller sensitive with the same access control as invoke
+    // and throwing IllegalAccessException
+    // @CallerSensitive
+    @SuppressWarnings("unchecked")
+    public static Optional<FuncOp> ofConstructor(Constructor<?> constructor) {
+        return (Optional<FuncOp>)SharedSecrets.getJavaLangReflectAccess()
+                .setCodeModelIfNeeded(constructor, m -> createCodeModel(m, ConstructorRef.constructor(constructor)));
+    }
+
+    private static Optional<FuncOp> createCodeModel(Executable ex, ExecutableRef ref) {
+        char[] sig = ref.toString().toCharArray();
         for (int i = 0; i < sig.length; i++) {
             switch (sig[i]) {
                 case '.', ';', '[', '/': sig[i] = '$';
@@ -556,7 +576,7 @@ public non-sealed abstract class Op implements CodeElement<Op, Body> {
         Method opMethod;
         try {
             // @@@ Use method handle with full power mode
-            opMethod = method.getDeclaringClass().getDeclaredMethod(opMethodName);
+            opMethod = ex.getDeclaringClass().getDeclaredMethod(opMethodName);
         } catch (NoSuchMethodException e) {
             return Optional.empty();
         }

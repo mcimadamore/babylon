@@ -34,7 +34,7 @@ import jdk.incubator.code.TypeElement;
 /**
  * The symbolic reference to a Java field.
  */
-public sealed interface FieldRef extends JavaRef
+public sealed interface FieldRef extends MemberRef
         permits FieldRefImpl {
 
     TypeElement refType();

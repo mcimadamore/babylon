@@ -229,7 +229,7 @@ public final class Method extends Executable {
     }
 
     /* package */
-    Optional<?> setCodeModelIfNeeded(Function<Method, Optional<?>> modelFactory) {
+    Optional<?> setCodeModelIfNeeded(Function<Executable, Optional<?>> modelFactory) {
         if (root != null) {
             return root.setCodeModelIfNeeded(modelFactory);
         }

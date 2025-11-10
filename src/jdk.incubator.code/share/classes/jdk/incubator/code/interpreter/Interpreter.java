@@ -471,7 +471,9 @@ public final class Interpreter {
                 case STATIC, INSTANCE -> l;
                 case SUPER -> l.in(target.parameterType(0));
             };
-            MethodHandle mh = resolveToMethodHandle(il, co.invokeDescriptor(), co.invokeKind());
+            MethodHandle mh = co.invokeDescriptor() instanceof ConstructorRef ?
+                    resolveToConstructorHandle(il, (ConstructorRef) co.invokeDescriptor()) :
+                    resolveToMethodHandle(il, (MethodRef) co.invokeDescriptor(), co.invokeKind());
 
             mh = mh.asType(target).asFixedArity();
             Object[] values = o.operands().stream().map(oc::getValue).toArray();

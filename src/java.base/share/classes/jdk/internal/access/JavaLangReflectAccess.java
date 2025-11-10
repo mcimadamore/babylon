@@ -72,5 +72,5 @@ public interface JavaLangReflectAccess {
         throws IllegalAccessException, InstantiationException, InvocationTargetException;
 
     /** Cache code model on the reflective method instance (if none is set already). */
-    Optional<?> setCodeModelIfNeeded(Method method, Function<Method, Optional<?>> modelFactory);
+    Optional<?> setCodeModelIfNeeded(Executable ex, Function<Executable, Optional<?>> modelFactory);
 }
