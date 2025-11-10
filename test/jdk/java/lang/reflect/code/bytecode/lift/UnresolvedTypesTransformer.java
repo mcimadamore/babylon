@@ -128,7 +128,7 @@ final class UnresolvedTypesTransformer {
                     case JavaOp.BinaryOp bo ->
                         resolveTo(ut, bo.resultType());
                     case JavaOp.InvokeOp io -> {
-                        MethodRef id = io.invokeDescriptor();
+                        MethodRef id = (MethodRef) io.invokeDescriptor();
                         if (io.hasReceiver()) {
                             if (i == 0) yield resolveTo(ut, id.refType());
                             i--;
