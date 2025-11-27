@@ -11,12 +11,15 @@ class TestNoCodeReflectionInInnerClasses {
         @Reflect
         public void test1() { }
 
+        @Reflect
+        interface ReflectableRunnable extends Runnable { }
+
         void test2() {
-            Runnable q = (@Reflect Runnable) () -> { };
+            ReflectableRunnable q = (@Reflect ReflectableRunnable) () -> { };
         }
 
         void test3() {
-            Runnable q = (@Reflect Runnable) this::test2;
+            ReflectableRunnable q = (@Reflect ReflectableRunnable) this::test2;
         }
     }
 }

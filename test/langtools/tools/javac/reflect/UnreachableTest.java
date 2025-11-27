@@ -97,7 +97,6 @@ public class UnreachableTest {
         }
     }
 
-
     @Reflect
     @IR("""
             func @"test4" ()java.type:"void" -> {
@@ -173,9 +172,12 @@ public class UnreachableTest {
         };
     }
 
+    @Reflect
+    interface ReflectableIntUnaryOperator extends IntUnaryOperator { }
+
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"java.util.function.IntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
+                %0 : java.type:"UnreachableTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
                     %2 : Var<java.type:"int"> = var %1 @"i";
                     java.if
                         ()java.type:"boolean" -> {
@@ -195,7 +197,7 @@ public class UnreachableTest {
                 return;
             };
             """)
-    static final IntUnaryOperator QUOTABLE_TEST = (@Reflect IntUnaryOperator) (int i) -> {
+    static final ReflectableIntUnaryOperator QUOTABLE_TEST = (@Reflect ReflectableIntUnaryOperator) (int i) -> {
         if (true) {
             return i;
         } else {

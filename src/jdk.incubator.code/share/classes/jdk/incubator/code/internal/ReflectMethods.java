@@ -81,6 +81,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Assert;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+import com.sun.tools.javac.util.JCDiagnostic.Fragment;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
@@ -110,7 +111,9 @@ import static com.sun.tools.javac.code.TypeTag.NONE;
 import static com.sun.tools.javac.main.Option.G_CUSTOM;
 
 import static com.sun.tools.javac.resources.CompilerProperties.Errors.*;
+import static com.sun.tools.javac.resources.CompilerProperties.Fragments.*;
 import static com.sun.tools.javac.resources.CompilerProperties.Notes.*;
+import static com.sun.tools.javac.resources.CompilerProperties.Warnings.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.classfile.ClassFile;
@@ -241,7 +244,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
     @Override
     public void visitLambda(JCLambda tree) {
-        if (isQuotable(tree, prevNode())) {
+        if (isReflectable(tree, prevNode())) {
             if (currentClassSym.type.getEnclosingType().hasTag(CLASS)) {
                 // Quotable lambdas in inner classes are not supported
                 log.error(tree, QuotedLambdaInnerClass(currentClassSym.enclClass()));
@@ -272,7 +275,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
         MemberReferenceToLambda memberReferenceToLambda = new MemberReferenceToLambda(tree, currentClassSym);
         JCLambda lambdaTree = memberReferenceToLambda.lambda();
 
-        if (isQuotable(tree, prevNode())) {
+        if (isReflectable(tree, prevNode())) {
             if (currentClassSym.type.getEnclosingType().hasTag(CLASS)) {
                 // Quotable lambdas in inner classes are not supported
                 log.error(tree, QuotedMrefInnerClass(currentClassSym.enclClass()));
@@ -1439,7 +1442,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // Get the functional interface type
             JavaType fiType = typeToTypeElement(tree.target);
             // build functional lambda
-            Op lambdaOp = JavaOp.lambda(fiType, stack.body, isQuotable(tree, prevNode()));
+            Op lambdaOp = JavaOp.lambda(fiType, stack.body, isReflectable(tree, prevNode()));
 
             // Pop lambda body
             popBody();
@@ -2462,15 +2465,35 @@ public class ReflectMethods extends TreeTranslatorPrev {
         }
     }
 
-    boolean isQuotable(JCFunctionalExpression expr, JCTree prev) {
-        return isQuotable(expr.target, true) ||
-                (prev instanceof JCTypeCast castTree && isQuotable(castTree.clazz.type, false));
+    /*
+     * A reflectable functional expression is a functional expression such that:
+     * - its target type is a functional interface whose declaration is annotated with {@code Reflect}
+     * - its target type is set using a cast, where the cast type is annotated with {@code Reflect}
+     */
+    boolean isReflectable(JCFunctionalExpression expr, JCTree prev) {
+        boolean isDeclReflectable = isReflectable(expr.target, true);
+        boolean isCastReflectable = prev instanceof JCTypeCast castTree &&
+                isReflectable(castTree.clazz.type, false);
+        Fragment cause = null;
+        if (isDeclReflectable && !isCastReflectable) {
+            cause = ReflectableTargetButNoCast(expr.target);
+        } else if (isCastReflectable && !isDeclReflectable) {
+            cause = NotReflectableIntf(expr.target);
+        }
+        if (cause != null) {
+            if (expr instanceof JCLambda) {
+                log.warning(expr, BadReflectableLambda(cause));
+            } else {
+                log.warning(expr, BadReflectableMref(cause));
+            }
+        }
+        return isDeclReflectable && isCastReflectable;
     }
 
-    boolean isQuotable(Type target, boolean declAnnos) {
+    boolean isReflectable(Type target, boolean declAnnos) {
         if (target.isCompound()) {
             return ((IntersectionClassType)target).getComponents().stream()
-                    .anyMatch(t -> isQuotable(t, declAnnos));
+                    .anyMatch(t -> isReflectable(t, declAnnos));
         } else {
             return declAnnos ?
                     target.tsym.attribute(crSyms.codeReflectionType.tsym) != null :

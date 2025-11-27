@@ -23,11 +23,11 @@
 
 /*
  * @test
- * @summary Smoke test for code reflection with quotable lambdas.
+ * @summary Smoke test for code reflection with Reflectable lambdas.
  * @modules jdk.incubator.code
- * @build QuotableSubtypeTest
+ * @build ReflectableLambdaTest
  * @build CodeReflectionTester
- * @run main CodeReflectionTester QuotableSubtypeTest
+ * @run main CodeReflectionTester ReflectableLambdaTest
  */
 
 import jdk.incubator.code.Reflect;
@@ -36,41 +36,41 @@ import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 
-public class QuotableSubtypeTest {
+public class ReflectableLambdaTest {
 
     @Reflect
-    interface QuotableRunnable extends Runnable { }
+    interface ReflectableRunnable extends Runnable { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                     return;
                 };
                 return;
             };
             """)
-    static final QuotableRunnable QUOTED_NO_PARAM_VOID = () -> { };
+    static final ReflectableRunnable QUOTED_NO_PARAM_VOID = (@Reflect ReflectableRunnable) () -> { };
 
     @Reflect
-    interface QuotableIntSupplier extends IntSupplier { }
+    interface ReflectableIntSupplier extends IntSupplier { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableIntSupplier" = lambda @lambda.isQuotable=true ()java.type:"int" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableIntSupplier" = lambda @lambda.isQuotable=true ()java.type:"int" -> {
                     %1 : java.type:"int" = constant @1;
                     return %1;
                 };
                 return;
             };
             """)
-    static final QuotableIntSupplier QUOTED_NO_PARAM_CONST = () -> 1;
+    static final ReflectableIntSupplier QUOTED_NO_PARAM_CONST = (@Reflect ReflectableIntSupplier) () -> 1;
 
     @Reflect
-    interface QuotableIntUnaryOperator extends IntUnaryOperator { }
+    interface ReflectableIntUnaryOperator extends IntUnaryOperator { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
                     %2 : Var<java.type:"int"> = var %1 @"x";
                     %3 : java.type:"int" = var.load %2;
                     return %3;
@@ -78,14 +78,14 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static final QuotableIntUnaryOperator QUOTED_ID = x -> x;
+    static final ReflectableIntUnaryOperator QUOTED_ID = (@Reflect ReflectableIntUnaryOperator) x -> x;
 
     @Reflect
-    interface QuotableIntBinaryOperator extends IntBinaryOperator { }
+    interface ReflectableIntBinaryOperator extends IntBinaryOperator { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableIntBinaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int", %2 : java.type:"int")java.type:"int" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableIntBinaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int", %2 : java.type:"int")java.type:"int" -> {
                     %3 : Var<java.type:"int"> = var %1 @"x";
                     %4 : Var<java.type:"int"> = var %2 @"y";
                     %5 : java.type:"int" = var.load %3;
@@ -96,21 +96,21 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static final QuotableIntBinaryOperator QUOTED_PLUS = (x, y) -> x + y;
+    static final ReflectableIntBinaryOperator QUOTED_PLUS = (@Reflect ReflectableIntBinaryOperator) (x, y) -> x + y;
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                     %1 : java.type:"java.lang.AssertionError" = new @java.ref:"java.lang.AssertionError::()";
                     throw %1;
                 };
                 return;
             };
             """)
-    static final QuotableRunnable QUOTED_THROW_NO_PARAM = () -> { throw new AssertionError(); };
+    static final ReflectableRunnable QUOTED_THROW_NO_PARAM = (@Reflect ReflectableRunnable) () -> { throw new AssertionError(); };
 
     @IR("""
             func @"f" (%0 : Var<java.type:"int">)java.type:"void" -> {
-                %1 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
+                %1 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
                     %3 : Var<java.type:"int"> = var %2 @"y";
                     %4 : java.type:"int" = var.load %0;
                     %5 : java.type:"int" = var.load %3;
@@ -120,26 +120,26 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static final QuotableIntUnaryOperator QUOTED_CAPTURE_PARAM = new Object() {
-        QuotableIntUnaryOperator captureContext(int x) {
-            return y -> x + y;
+    static final ReflectableIntUnaryOperator QUOTED_CAPTURE_PARAM = new Object() {
+        ReflectableIntUnaryOperator captureContext(int x) {
+            return (@Reflect ReflectableIntUnaryOperator) y -> x + y;
         }
     }.captureContext(42);
 
     static class Context {
         int x, y;
 
-        QuotableIntUnaryOperator capture() {
-            return z -> x + y + z;
+        ReflectableIntUnaryOperator capture() {
+            return (@Reflect ReflectableIntUnaryOperator) z -> x + y + z;
         }
     }
 
     @IR("""
-            func @"f" (%0 : java.type:"QuotableSubtypeTest$Context")java.type:"void" -> {
-                %1 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
+            func @"f" (%0 : java.type:"ReflectableLambdaTest$Context")java.type:"void" -> {
+                %1 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
                     %3 : Var<java.type:"int"> = var %2 @"z";
-                    %4 : java.type:"int" = field.load %0 @java.ref:"QuotableSubtypeTest$Context::x:int";
-                    %5 : java.type:"int" = field.load %0 @java.ref:"QuotableSubtypeTest$Context::y:int";
+                    %4 : java.type:"int" = field.load %0 @java.ref:"ReflectableLambdaTest$Context::x:int";
+                    %5 : java.type:"int" = field.load %0 @java.ref:"ReflectableLambdaTest$Context::y:int";
                     %6 : java.type:"int" = add %4 %5;
                     %7 : java.type:"int" = var.load %3;
                     %8 : java.type:"int" = add %6 %7;
@@ -148,83 +148,83 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static final QuotableIntUnaryOperator QUOTED_CAPTURE_FIELD = new Context().capture();
+    static final ReflectableIntUnaryOperator QUOTED_CAPTURE_FIELD = new Context().capture();
 
     @Reflect
     @IR("""
             func @"captureParam" (%0 : java.type:"int")java.type:"void" -> {
                 %1 : Var<java.type:"int"> = var %0 @"x";
-                %2 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%3 : java.type:"int")java.type:"int" -> {
+                %2 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%3 : java.type:"int")java.type:"int" -> {
                     %4 : Var<java.type:"int"> = var %3 @"y";
                     %5 : java.type:"int" = var.load %1;
                     %6 : java.type:"int" = var.load %4;
                     %7 : java.type:"int" = add %5 %6;
                     return %7;
                 };
-                %8 : Var<java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator"> = var %2 @"op";
+                %8 : Var<java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator"> = var %2 @"op";
                 return;
             };
             """)
     static void captureParam(int x) {
-        QuotableIntUnaryOperator op = y -> x + y;
+        ReflectableIntUnaryOperator op = (@Reflect ReflectableIntUnaryOperator) y -> x + y;
     }
 
     int x, y;
 
     @Reflect
     @IR("""
-            func @"captureField" (%0 : java.type:"QuotableSubtypeTest")java.type:"void" -> {
-                %1 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
+            func @"captureField" (%0 : java.type:"ReflectableLambdaTest")java.type:"void" -> {
+                %1 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
                     %3 : Var<java.type:"int"> = var %2 @"z";
-                    %4 : java.type:"int" = field.load %0 @java.ref:"QuotableSubtypeTest::x:int";
-                    %5 : java.type:"int" = field.load %0 @java.ref:"QuotableSubtypeTest::y:int";
+                    %4 : java.type:"int" = field.load %0 @java.ref:"ReflectableLambdaTest::x:int";
+                    %5 : java.type:"int" = field.load %0 @java.ref:"ReflectableLambdaTest::y:int";
                     %6 : java.type:"int" = add %4 %5;
                     %7 : java.type:"int" = var.load %3;
                     %8 : java.type:"int" = add %6 %7;
                     return %8;
                 };
-                %9 : Var<java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator"> = var %1 @"op";
+                %9 : Var<java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator"> = var %1 @"op";
                 return;
             };
             """)
     void captureField() {
-        QuotableIntUnaryOperator op = z -> x + y + z;
+        ReflectableIntUnaryOperator op = (@Reflect ReflectableIntUnaryOperator) z -> x + y + z;
     }
 
     static void m() { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
-                    invoke @java.ref:"QuotableSubtypeTest::m():void";
+                %0 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                    invoke @java.ref:"ReflectableLambdaTest::m():void";
                     return;
                 };
                 return;
             };
             """)
-    static final QuotableRunnable QUOTED_NO_PARAM_VOID_REF = QuotableSubtypeTest::m;
+    static final ReflectableRunnable QUOTED_NO_PARAM_VOID_REF = (@Reflect ReflectableRunnable) ReflectableLambdaTest::m;
 
     static int g(int i) { return i; }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int" -> {
                     %2 : Var<java.type:"int"> = var %1 @"x$0";
                     %3 : java.type:"int" = var.load %2;
-                    %4 : java.type:"int" = invoke %3 @java.ref:"QuotableSubtypeTest::g(int):int";
+                    %4 : java.type:"int" = invoke %3 @java.ref:"ReflectableLambdaTest::g(int):int";
                     return %4;
                 };
                 return;
             };
             """)
-    static final QuotableIntUnaryOperator QUOTED_INT_PARAM_INT_RET_REF = QuotableSubtypeTest::g;
+    static final ReflectableIntUnaryOperator QUOTED_INT_PARAM_INT_RET_REF = (@Reflect ReflectableIntUnaryOperator) ReflectableLambdaTest::g;
 
     @Reflect
-    interface QuotableIntFunction<A> extends IntFunction<A> { }
+    interface ReflectableIntFunction<A> extends IntFunction<A> { }
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                %0 : java.type:"QuotableSubtypeTest$QuotableIntFunction<int[]>" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int[]" -> {
+                %0 : java.type:"ReflectableLambdaTest$ReflectableIntFunction<int[]>" = lambda @lambda.isQuotable=true (%1 : java.type:"int")java.type:"int[]" -> {
                     %2 : Var<java.type:"int"> = var %1 @"x$0";
                     %3 : java.type:"int" = var.load %2;
                     %4 : java.type:"int[]" = new %3 @java.ref:"int[]::(int)";
@@ -233,33 +233,33 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static final QuotableIntFunction<int[]> QUOTED_INT_PARAM_ARR_RET_REF = int[]::new;
+    static final ReflectableIntFunction<int[]> QUOTED_INT_PARAM_ARR_RET_REF = (@Reflect ReflectableIntFunction<int[]>) int[]::new;
 
     static class ContextRef {
         int g(int i) { return i; }
 
-        QuotableIntUnaryOperator capture() {
-            return this::g;
+        ReflectableIntUnaryOperator capture() {
+            return (@Reflect ReflectableIntUnaryOperator) this::g;
         }
     }
 
     @IR("""
-            func @"f" (%0 : java.type:"QuotableSubtypeTest$ContextRef")java.type:"void" -> {
-                %1 : java.type:"QuotableSubtypeTest$QuotableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
+            func @"f" (%0 : java.type:"ReflectableLambdaTest$ContextRef")java.type:"void" -> {
+                %1 : java.type:"ReflectableLambdaTest$ReflectableIntUnaryOperator" = lambda @lambda.isQuotable=true (%2 : java.type:"int")java.type:"int" -> {
                     %3 : Var<java.type:"int"> = var %2 @"x$0";
                     %4 : java.type:"int" = var.load %3;
-                    %5 : java.type:"int" = invoke %0 %4 @java.ref:"QuotableSubtypeTest$ContextRef::g(int):int";
+                    %5 : java.type:"int" = invoke %0 %4 @java.ref:"ReflectableLambdaTest$ContextRef::g(int):int";
                     return %5;
                 };
                 return;
             };
             """)
-    static final QuotableIntUnaryOperator QUOTED_CAPTURE_THIS_REF = new ContextRef().capture();
+    static final ReflectableIntUnaryOperator QUOTED_CAPTURE_THIS_REF = (@Reflect ReflectableIntUnaryOperator) new ContextRef().capture();
 
     static final int Z = 42;
     @IR("""
             func @"f" (%0 : Var<java.type:"int">)java.type:"void" -> {
-                %1 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                %1 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                     %2 : java.type:"int" = var.load %0;
                     %3 : Var<java.type:"int"> = var %2 @"x";
                     return;
@@ -267,22 +267,22 @@ public class QuotableSubtypeTest {
                 return;
             };
             """)
-    static QuotableRunnable QUOTED_CAPTURE_FINAL_STATIC_FIELD = () -> {
+    static ReflectableRunnable QUOTED_CAPTURE_FINAL_STATIC_FIELD = (@Reflect ReflectableRunnable) () -> {
         int x = Z;
     };
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                  %1 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                  %1 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                       %2 : java.type:"int" = constant @1;
-                      %3 : java.type:"int" = invoke %2 @java.ref:"QuotableSubtypeTest::n(int):int";
+                      %3 : java.type:"int" = invoke %2 @java.ref:"ReflectableLambdaTest::n(int):int";
                       return;
                   };
                   return;
             };
             """)
     // the lambda model used to contain operation that perform unnecessary type conversion
-    static QuotableRunnable QUOTED_RETURN_VOID = () -> {
+    static ReflectableRunnable QUOTED_RETURN_VOID = (@Reflect ReflectableRunnable) () -> {
         n(1);
     };
     static int n(int i) {
@@ -291,7 +291,7 @@ public class QuotableSubtypeTest {
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                  %1 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                  %1 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                       %2 : java.type:"java.lang.Object" = new @java.ref:"java.lang.Object::()";
                       return;
                   };
@@ -299,11 +299,11 @@ public class QuotableSubtypeTest {
             };
             """)
     // the lambda model used to contain ReturnOp with a value, even though the lambda type is void
-    static QuotableRunnable QUOTED_EXPRESSION_RETURN_VOID = () -> new Object();
+    static ReflectableRunnable QUOTED_EXPRESSION_RETURN_VOID = (@Reflect ReflectableRunnable) () -> new Object();
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                  %1 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                  %1 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                       %2 : java.type:"java.lang.Runnable" = lambda @lambda.isQuotable=false ()java.type:"void" -> {
                           return;
                       };
@@ -313,24 +313,24 @@ public class QuotableSubtypeTest {
                   return;
             };
             """)
-    static QuotableRunnable QUOTED_NESTED_LAMBDA = () -> {
+    static ReflectableRunnable QUOTED_NESTED_LAMBDA = (@Reflect ReflectableRunnable) () -> {
         Runnable r = () -> {};
     };
 
     @IR("""
             func @"f" ()java.type:"void" -> {
-                  %1 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
-                      %2 : java.type:"QuotableSubtypeTest$QuotableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                  %1 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
+                      %2 : java.type:"ReflectableLambdaTest$ReflectableRunnable" = lambda @lambda.isQuotable=true ()java.type:"void" -> {
                           return;
                       };
-                      %3 : Var<java.type:"QuotableSubtypeTest$QuotableRunnable"> = var %2 @"r";
+                      %3 : Var<java.type:"ReflectableLambdaTest$ReflectableRunnable"> = var %2 @"r";
                       return;
                   };
                   return;
             };
             """)
-    // @@@ should this be the excepted behaviour in case we have a nested quotable lambda ?
-    static QuotableRunnable QUOTED_NESTED_QUOTABLE_LAMBDA = () -> {
-        QuotableRunnable r = () -> {};
+    // @@@ should this be the excepted behaviour in case we have a nested Reflectable lambda ?
+    static ReflectableRunnable QUOTED_NESTED_Reflectable_LAMBDA = (@Reflect ReflectableRunnable) () -> {
+        ReflectableRunnable r = (@Reflect ReflectableRunnable) () -> {};
     };
 }

@@ -15,8 +15,11 @@ import java.util.stream.Stream;
  */
 public class LambdaModelUniquenessTest {
 
-    Runnable f() {
-        return (@Reflect Runnable) () -> {
+    @Reflect
+    interface ReflectableRunnable extends Runnable { }
+
+    ReflectableRunnable f() {
+        return (@Reflect ReflectableRunnable) () -> {
             System.out.println("Running...");
         };
     }
@@ -38,8 +41,11 @@ public class LambdaModelUniquenessTest {
         Assertions.assertSame(ops.getFirst(), ops.getLast());
     }
 
-    static IntUnaryOperator g(int i) {
-        return (@Reflect IntUnaryOperator) j -> j + i;
+    @Reflect
+    interface ReflectableIntUnaryOperator extends IntUnaryOperator { }
+
+    static ReflectableIntUnaryOperator g(int i) {
+        return (@Reflect ReflectableIntUnaryOperator) j -> j + i;
     }
 
     @Test

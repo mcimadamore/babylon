@@ -19,7 +19,10 @@ import java.util.stream.IntStream;
 
 public class QuotedSameInstanceTest {
 
-    private static final Runnable q1 = (@Reflect Runnable) () -> {
+    @Reflect
+    interface ReflectableRunnable extends Runnable { }
+
+    private static final ReflectableRunnable q1 = (@Reflect ReflectableRunnable) () -> {
     };
 
     @Test
@@ -29,7 +32,7 @@ public class QuotedSameInstanceTest {
 
     @Reflect
     interface QuotableIntUnaryOperator extends IntUnaryOperator { }
-    private static final QuotableIntUnaryOperator q2 = x -> x;
+    private static final QuotableIntUnaryOperator q2 = (@Reflect QuotableIntUnaryOperator) x -> x;
 
     @Test
     public void testWithMultiThreads() {
@@ -43,7 +46,7 @@ public class QuotedSameInstanceTest {
     public interface QuotableIntSupplier extends IntSupplier {}
     @Reflect
     static QuotableIntSupplier q() {
-        QuotableIntSupplier r = () -> 8;
+        QuotableIntSupplier r = (@Reflect QuotableIntSupplier) () -> 8;
         return r;
     }
 
