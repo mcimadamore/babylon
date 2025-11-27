@@ -395,7 +395,7 @@ public class TestBytecodeLift {
 
     @Reflect
     static int quotableLambda(int i) {
-        return consumeQuotable(i, a -> -a);
+        return consumeQuotable(i, (@Reflect QuotableFunc) a -> -a);
     }
 
     @Reflect
@@ -405,7 +405,7 @@ public class TestBytecodeLift {
 
     @Reflect
     static int quotableLambdaWithCapture(int i, String s) {
-        return consumeQuotable(i, a -> a + s.length());
+        return consumeQuotable(i, (@Reflect QuotableFunc) a -> a + s.length());
     }
 
     @Reflect
@@ -415,7 +415,7 @@ public class TestBytecodeLift {
 
     @Reflect
     static int nestedQuotableLambdasWithCaptures(int i, int j, String s) {
-        return consumeQuotable(i, a -> consumeQuotable(a, b -> a + b + j - s.length()) + s.length());
+        return consumeQuotable(i, (@Reflect QuotableFunc) a -> consumeQuotable(a, (@Reflect QuotableFunc) b -> a + b + j - s.length()) + s.length());
     }
 
     @Reflect

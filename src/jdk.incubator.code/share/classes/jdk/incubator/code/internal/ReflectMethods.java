@@ -244,7 +244,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
     @Override
     public void visitLambda(JCLambda tree) {
-        if (isReflectable(tree, prevNode())) {
+        if (isReflectable(tree, prevNode(), true)) {
             if (currentClassSym.type.getEnclosingType().hasTag(CLASS)) {
                 // Quotable lambdas in inner classes are not supported
                 log.error(tree, QuotedLambdaInnerClass(currentClassSym.enclClass()));
@@ -275,7 +275,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
         MemberReferenceToLambda memberReferenceToLambda = new MemberReferenceToLambda(tree, currentClassSym);
         JCLambda lambdaTree = memberReferenceToLambda.lambda();
 
-        if (isReflectable(tree, prevNode())) {
+        if (isReflectable(tree, prevNode(), true)) {
             if (currentClassSym.type.getEnclosingType().hasTag(CLASS)) {
                 // Quotable lambdas in inner classes are not supported
                 log.error(tree, QuotedMrefInnerClass(currentClassSym.enclClass()));
@@ -1442,7 +1442,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // Get the functional interface type
             JavaType fiType = typeToTypeElement(tree.target);
             // build functional lambda
-            Op lambdaOp = JavaOp.lambda(fiType, stack.body, isReflectable(tree, prevNode()));
+            Op lambdaOp = JavaOp.lambda(fiType, stack.body, isReflectable(tree, prevNode(), false));
 
             // Pop lambda body
             popBody();
@@ -2470,21 +2470,23 @@ public class ReflectMethods extends TreeTranslatorPrev {
      * - its target type is a functional interface whose declaration is annotated with {@code Reflect}
      * - its target type is set using a cast, where the cast type is annotated with {@code Reflect}
      */
-    boolean isReflectable(JCFunctionalExpression expr, JCTree prev) {
+    boolean isReflectable(JCFunctionalExpression expr, JCTree prev, boolean warn) {
         boolean isDeclReflectable = isReflectable(expr.target, true);
         boolean isCastReflectable = prev instanceof JCTypeCast castTree &&
                 isReflectable(castTree.clazz.type, false);
-        Fragment cause = null;
-        if (isDeclReflectable && !isCastReflectable) {
-            cause = ReflectableTargetButNoCast(expr.target);
-        } else if (isCastReflectable && !isDeclReflectable) {
-            cause = NotReflectableIntf(expr.target);
-        }
-        if (cause != null) {
-            if (expr instanceof JCLambda) {
-                log.warning(expr, BadReflectableLambda(cause));
-            } else {
-                log.warning(expr, BadReflectableMref(cause));
+        if (warn) {
+            Fragment cause = null;
+            if (isDeclReflectable && !isCastReflectable) {
+                cause = ReflectableTargetButNoCast(expr.target);
+            } else if (isCastReflectable && !isDeclReflectable) {
+                cause = NotReflectableIntf(expr.target);
+            }
+            if (cause != null) {
+                if (expr instanceof JCLambda) {
+                    log.warning(expr, BadReflectableLambda(cause));
+                } else {
+                    log.warning(expr, BadReflectableMref(cause));
+                }
             }
         }
         return isDeclReflectable && isCastReflectable;

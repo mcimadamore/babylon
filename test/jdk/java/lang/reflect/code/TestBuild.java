@@ -47,8 +47,11 @@ import static jdk.incubator.code.dialect.java.JavaType.type;
 
 public class TestBuild {
 
+    @Reflect
+    interface ReflectableIntBinaryOperator extends IntBinaryOperator { }
+
     public JavaOp.LambdaOp f() {
-        IntBinaryOperator ibo = (@Reflect IntBinaryOperator) (a, b) -> a + b;
+        ReflectableIntBinaryOperator ibo = (@Reflect ReflectableIntBinaryOperator) (a, b) -> a + b;
         return SSA.transform((JavaOp.LambdaOp) Op.ofQuotable(ibo).get().op());
     }
 

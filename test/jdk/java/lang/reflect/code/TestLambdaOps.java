@@ -149,9 +149,12 @@ public class TestLambdaOps {
         return or;
     }
 
+    @Reflect
+    interface ReflectableRunnable extends Runnable { }
+
     @Test
     public void testQuotableModel() {
-        Runnable quotable = (@Reflect Runnable) () -> {};
+        ReflectableRunnable quotable = (@Reflect ReflectableRunnable) () -> {};
         Op qop = Op.ofQuotable(quotable).get().op();
         Op top = qop.ancestorOp().ancestorOp();
         Assertions.assertTrue(top instanceof CoreOp.FuncOp);
@@ -167,7 +170,7 @@ public class TestLambdaOps {
 
     @Reflect
     static QuotableIntSupplier quote(int i) {
-        QuotableIntSupplier s = () -> i;
+        QuotableIntSupplier s = (@Reflect QuotableIntSupplier) () -> i;
         return s;
     }
 

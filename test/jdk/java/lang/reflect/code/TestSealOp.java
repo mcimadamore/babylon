@@ -31,9 +31,12 @@ public class TestSealOp {
         assertOpIsCopiedWhenAddedToBlock(f);
     }
 
+    @Reflect
+    interface ReflectableIntUnaryOperator extends IntUnaryOperator { }
+
     @Test
     void test1() {
-        IntUnaryOperator q = (@Reflect IntUnaryOperator) i -> i / 2;
+        ReflectableIntUnaryOperator q = (@Reflect ReflectableIntUnaryOperator) i -> i / 2;
         Quoted quoted = Op.ofQuotable(q).get();
         CoreOp.QuotedOp quotedOp = (CoreOp.QuotedOp) quoted.op().ancestorBody().ancestorOp();
         CoreOp.FuncOp funcOp = (CoreOp.FuncOp) quotedOp.ancestorBody().ancestorOp();
@@ -56,9 +59,12 @@ public class TestSealOp {
         funcOp.seal();
     }
 
+    @Reflect
+    interface ReflectableIntBinaryOperator extends IntBinaryOperator { }
+
     @Test
     void test4() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) -> {
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) -> {
             return a + b;
         };
         Quoted quoted = Op.ofQuotable(q).get();

@@ -52,7 +52,7 @@ public class TestNestedCapturingLambda {
     @Reflect
     static public int f(int a) {
         if (a > 0) {
-            QIntSupplier s = () -> a;
+            QIntSupplier s = (@Reflect QIntSupplier) () -> a;
             test(s, a);
             return s.getAsInt();
         } else {

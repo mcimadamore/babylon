@@ -57,12 +57,12 @@ public class TestMethodRefLambda {
 
     List<Object> methodRefLambdas() {
         return List.of(
-                (QuotableIntUnaryOperator) TestMethodRefLambda::m1,
-                (QuotableIntUnaryOperator) TestMethodRefLambda::m2,
-                (QuotableFunction<Integer, Integer>) TestMethodRefLambda::m1,
-                (QuotableFunction<Integer, Integer>) TestMethodRefLambda::m2,
-                (QuotableIntUnaryOperator) this::m3,
-                (QuotableBiFunction<TestMethodRefLambda, Integer, Integer>) TestMethodRefLambda::m4
+                (@Reflect QuotableIntUnaryOperator) TestMethodRefLambda::m1,
+                (@Reflect QuotableIntUnaryOperator) TestMethodRefLambda::m2,
+                (@Reflect QuotableFunction<Integer, Integer>) TestMethodRefLambda::m1,
+                (@Reflect QuotableFunction<Integer, Integer>) TestMethodRefLambda::m2,
+                (@Reflect QuotableIntUnaryOperator) this::m3,
+                (@Reflect QuotableBiFunction<TestMethodRefLambda, Integer, Integer>) TestMethodRefLambda::m4
         );
     }
 

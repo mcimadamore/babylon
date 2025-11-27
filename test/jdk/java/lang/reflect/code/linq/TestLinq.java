@@ -21,6 +21,7 @@
  * questions.
  */
 
+import jdk.incubator.code.Reflect;
 import jdk.incubator.code.interpreter.Interpreter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -47,8 +48,8 @@ public class TestLinq {
 
         // Query all customers based in London, and return their names
         QueryResult<Stream<String>> qr = qp.query(Customer.class)
-                .where(c -> c.city.equals("London"))
-                .select(c -> c.contactName)
+                .where((@Reflect QuotablePredicate<Customer>)c -> c.city.equals("London"))
+                .select((@Reflect QuotableFunction<Customer, String>)c -> c.contactName)
                 .elements();
 
         System.out.println(qr.expression().toText());

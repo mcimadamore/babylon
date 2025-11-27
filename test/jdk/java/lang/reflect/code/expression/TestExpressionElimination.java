@@ -41,21 +41,31 @@ import java.util.function.DoubleUnaryOperator;
 
 public class TestExpressionElimination {
 
+    @Reflect
+    interface ReflectableDoubleUnaryOperator extends DoubleUnaryOperator { }
+
     @Test
     public void testAddZero() {
-        JavaOp.LambdaOp lf = generate((@Reflect DoubleUnaryOperator) (double a) -> a + 0.0);
+        JavaOp.LambdaOp lf = generateUnop((@Reflect ReflectableDoubleUnaryOperator) (double a) -> a + 0.0);
 
         Assertions.assertEquals(1.0d, (double) Interpreter.invoke(MethodHandles.lookup(), lf, 1.0d));
     }
 
+    @Reflect
+    interface ReflectableDoubleBinaryOperator extends DoubleBinaryOperator { }
+
     @Test
     public void testF() {
-        JavaOp.LambdaOp lf = generate((@Reflect DoubleBinaryOperator) (double a, double b) -> -a + b);
+        JavaOp.LambdaOp lf = generateBinop((@Reflect ReflectableDoubleBinaryOperator) (double a, double b) -> -a + b);
 
         Assertions.assertEquals(0.0d, (double) Interpreter.invoke(MethodHandles.lookup(), lf, 1.0d, 1.0d));
     }
 
-    static JavaOp.LambdaOp generate(Object q) {
+    static JavaOp.LambdaOp generateUnop(ReflectableDoubleUnaryOperator q) {
+        return generateF((JavaOp.LambdaOp)Op.ofQuotable(q).get().op());
+    }
+
+    static JavaOp.LambdaOp generateBinop(ReflectableDoubleBinaryOperator q) {
         return generateF((JavaOp.LambdaOp)Op.ofQuotable(q).get().op());
     }
 

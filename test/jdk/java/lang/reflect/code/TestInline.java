@@ -48,9 +48,12 @@ import static jdk.incubator.code.dialect.java.JavaType.INT;
 
 public class TestInline {
 
+    @Reflect
+    interface ReflectableIntBinaryOperator extends IntBinaryOperator { }
+
     @Test
     public void testInline() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) -> a + b;
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) -> a + b;
         JavaOp.LambdaOp cop = (JavaOp.LambdaOp) Op.ofQuotable(q).get().op();
 
         // functional type = (int)int
@@ -72,7 +75,7 @@ public class TestInline {
 
     @Test
     public void testInlineVar() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) -> a + b;
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) -> a + b;
         JavaOp.LambdaOp cop = (JavaOp.LambdaOp) Op.ofQuotable(q).get().op();
 
         // functional type = (int)int
@@ -101,7 +104,7 @@ public class TestInline {
 
     @Test
     public void testInlineLowerMultipleReturn() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) ->  {
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) ->  {
             if (a < 10) {
                 return a + b;
             }
@@ -130,7 +133,7 @@ public class TestInline {
 
     @Test
     public void testInlineLowerMultipleReturnVar() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) ->  {
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) ->  {
             if (a < 10) {
                 return a + b;
             }
@@ -165,7 +168,7 @@ public class TestInline {
 
     @Test
     public void testInlineMultipleReturnLower() {
-        IntBinaryOperator q = (@Reflect IntBinaryOperator)(int a, int b) ->  {
+        ReflectableIntBinaryOperator q = (@Reflect ReflectableIntBinaryOperator)(int a, int b) ->  {
             if (a < 10) {
                 return a + b;
             }
@@ -192,9 +195,12 @@ public class TestInline {
         Assertions.assertEquals(43, ir);
     }
 
+    @Reflect
+    interface ReflectableConsumer<X> extends Consumer<X> { }
+
     @Test
     public void testInlineVoid() {
-        Consumer<int[]> q = (@Reflect Consumer<int[]>) (int[] a) -> {
+        ReflectableConsumer<int[]> q = (@Reflect ReflectableConsumer<int[]>) (int[] a) -> {
             a[0] = 42;
             return;
         };

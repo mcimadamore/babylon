@@ -28,6 +28,7 @@
  */
 
 import jdk.incubator.code.CodeTransformer;
+import jdk.incubator.code.Reflect;
 import jdk.incubator.code.dialect.core.CoreOp;
 import jdk.incubator.code.interpreter.Interpreter;
 import org.junit.jupiter.api.Assertions;
@@ -43,12 +44,12 @@ public class TestStream {
     @Test
     public void testMapFilterForEach() {
         CoreOp.FuncOp f = StreamFuser.fromList(Integer.class)
-                .map(Object::toString)
-                .filter(s -> s.length() < 10)
-                .map(s -> s.concat("_XXX"))
-                .filter(s -> s.length() < 10)
+                .map((StreamFuser.@Reflect QuotableFunction<Integer,String>) Object::toString)
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>) s -> s.length() < 10)
+                .map((StreamFuser.@Reflect QuotableFunction<String, String>)s -> s.concat("_XXX"))
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>)s -> s.length() < 10)
                 // Cannot use method reference since it captures the result of the expression "System.out"
-                .forEach(s -> System.out.println(s));
+                .forEach((StreamFuser.@Reflect QuotableConsumer<String>)s -> System.out.println(s));
 
         System.out.println(f.toText());
 
@@ -63,12 +64,12 @@ public class TestStream {
     @Test
     public void testMapFlatMapFilterCollect() {
         CoreOp.FuncOp f = StreamFuser.fromList(Integer.class)
-                .map(Object::toString)
-                .flatMap(s -> List.of(s, s))
-                .filter(s -> s.length() < 10)
-                .map(s -> s.concat("_XXX"))
-                .filter(s -> s.length() < 10)
-                .collect(ArrayList::new, ArrayList::add);
+                .map((StreamFuser.@Reflect QuotableFunction<Integer,String>) Object::toString)
+                .flatMap((StreamFuser.@Reflect QuotableFunction<String, Iterable<String>>)s -> List.of(s, s))
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>)s -> s.length() < 10)
+                .map((StreamFuser.@Reflect QuotableFunction<String, String>)s -> s.concat("_XXX"))
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>)s -> s.length() < 10)
+                .collect((StreamFuser.@Reflect QuotableSupplier<ArrayList<String>>) ArrayList::new, (StreamFuser.@Reflect QuotableBiConsumer<ArrayList<String>, String>) ArrayList::add);
 
         System.out.println(f.toText());
 
@@ -79,11 +80,11 @@ public class TestStream {
         List<Integer> source = List.of(1, 2, 3, 4, 5, 100_000_000, 10_000, 20);
 
         List<String> expected = source.stream()
-                .map(Object::toString)
-                .flatMap(s -> Stream.of(s, s))
-                .filter(s -> s.length() < 10)
-                .map(s -> s.concat("_XXX"))
-                .filter(s -> s.length() < 10)
+                .map((StreamFuser.@Reflect QuotableFunction<Integer,String>) Object::toString)
+                .flatMap((StreamFuser.@Reflect QuotableFunction<String, Stream<String>>)s -> Stream.of(s, s))
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>)s -> s.length() < 10)
+                .map((StreamFuser.@Reflect QuotableFunction<String, String>)s -> s.concat("_XXX"))
+                .filter((StreamFuser.@Reflect QuotablePredicate<String>)s -> s.length() < 10)
                 .toList();
 
         @SuppressWarnings("unchecked")

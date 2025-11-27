@@ -73,11 +73,14 @@ public class TestQuoteOp {
         Assertions.assertEquals(args[1], iterator.next());
     }
 
+    @Reflect
+    interface ReflectableIntUnaryOperator extends IntUnaryOperator { }
+
     @Test
     void testWithJavacModel() {
         final int y = 88;
         int z = 99;
-        IntUnaryOperator q = (@Reflect IntUnaryOperator) x -> x + y + z + hashCode();
+        ReflectableIntUnaryOperator q = (@Reflect ReflectableIntUnaryOperator) x -> x + y + z + hashCode();
 
         // access FuncOp created by javac
         Quoted quoted = Op.ofQuotable(q).orElseThrow();
