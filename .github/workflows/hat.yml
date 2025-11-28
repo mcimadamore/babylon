@@ -30,6 +30,15 @@ jobs:
   run_hat_tests:
     runs-on: ${{ inputs.runs-on }}
 
+    name: 'Get bundles'
+    id: bundles
+    uses: ./.github/actions/get-bundles
+    with:
+          platform: ${{ inputs.platform }}
+          debug-suffix: ${{ inputs.debug-suffix }}
+          static-suffix: ${{ inputs.static-suffix }}
+    if: ${{ inputs.dry-run == false }}
+
     steps:
     # Install build dependencies for OpenJDK (adjust as needed)
     - name: Install build dependencies
