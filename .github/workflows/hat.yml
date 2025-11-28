@@ -47,9 +47,9 @@ jobs:
           libxcomposite-dev libxi-dev libxmu-dev \
           wget unzip zip
     
-    - name: Get the BootJDK
-        uses: ./.github/actions/get-bootjdk
-        with:
+    - name: 'Get the BootJDK'
+      uses: ./.github/actions/get-bootjdk
+      with:
           platform: ${{ inputs.bootjdk-platform }}
 
     - name: Configure and build OpenJDK
