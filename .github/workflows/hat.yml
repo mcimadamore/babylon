@@ -43,17 +43,6 @@ jobs:
           libxrandr-dev libxinerama-dev libxdamage-dev \
           libxcomposite-dev libxi-dev libxmu-dev \
           wget unzip zip
-    
-    - name: 'Get the BootJDK'
-      uses: ./.github/actions/get-bootjdk
-      with:
-          platform: ${{ inputs.bootjdk-platform }}
-
-    - name: Configure and build OpenJDK
-      run: |
-        BOOT_JDK_PATH="${JAVA_HOME}"
-        bash configure --with-boot-jdk="$BOOT_JDK_PATH" --with-version-pre=dev
-        make images
 
     # Find the path to the built JDK (typically build/*/images/jdk)
     - name: Set JAVA_HOME and run hat command
