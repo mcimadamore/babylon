@@ -1,0 +1,51 @@
+name: Build and Test Babylon JDK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_jdk_and_run_hat:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Install build dependencies for OpenJDK (adjust as needed)
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          autoconf make build-essential \
+          libcups2-dev libx11-dev libxext-dev libxrender-dev \
+          libxtst-dev libxt-dev libasound2-dev \
+          libfreetype6-dev libfontconfig1-dev \
+          libxrandr-dev libxinerama-dev libxdamage-dev \
+          libxcomposite-dev libxi-dev libxmu-dev \
+          wget unzip zip
+        # Add any Babylon-specific dependencies here
+        
+    - name: Set up Boot JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'   # Or 'oracle', 'adopt', etc.
+        java-version: '24'        # Or '25', as you prefer
+
+    - name: Configure and build OpenJDK
+      run: |
+        BOOT_JDK_PATH="${JAVA_HOME}"
+        bash configure --with-boot-jdk="$BOOT_JDK_PATH" --with-version-pre=dev
+        make images
+
+    # Find the path to the built JDK (typically build/*/images/jdk)
+    - name: Set JAVA_HOME and run hat command
+      run: |
+        # Find the jdk images directory
+        JDK_PATH=$(find ./build -type d -name "jdk" | head -n 1)
+        echo "Located JDK at $JDK_PATH"
+        export JAVA_HOME="$PWD/$JDK_PATH"
+        cd hat
+        "$JAVA_HOME/bin/java" @hat/bld
