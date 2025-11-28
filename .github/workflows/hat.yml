@@ -46,10 +46,8 @@ jobs:
           libxrandr-dev libxinerama-dev libxdamage-dev \
           libxcomposite-dev libxi-dev libxmu-dev \
           wget unzip zip
-        # Add any Babylon-specific dependencies here
-        
-    - name: 'Get the BootJDK'
-        id: bootjdk
+    
+    - name: Get the BootJDK
         uses: ./.github/actions/get-bootjdk
         with:
           platform: ${{ inputs.bootjdk-platform }}
