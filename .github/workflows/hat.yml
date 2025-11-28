@@ -1,10 +1,30 @@
 name: Build and Test Babylon JDK
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      bootjdk-platform:
+        required: true
+        type: string
+      runs-on:
+        required: true
+        type: string
+      xcode-toolset-version:
+        required: false
+        type: string
+      dry-run:
+        required: false
+        type: boolean
+        default: false
+      debug-suffix:
+        required: false
+        type: string
+      static-suffix:
+        required: false
+        type: string
 
 jobs:
   build_jdk_and_run_hat:
@@ -28,11 +48,11 @@ jobs:
           wget unzip zip
         # Add any Babylon-specific dependencies here
         
-    - name: Set up Boot JDK
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'   # Or 'oracle', 'adopt', etc.
-        java-version: '24'        # Or '25', as you prefer
+    - name: 'Get the BootJDK'
+        id: bootjdk
+        uses: ./.github/actions/get-bootjdk
+        with:
+          platform: ${{ inputs.bootjdk-platform }}
 
     - name: Configure and build OpenJDK
       run: |
@@ -44,8 +64,6 @@ jobs:
     - name: Set JAVA_HOME and run hat command
       run: |
         # Find the jdk images directory
-        JDK_PATH=$(find ./build -type d -name "jdk" | head -n 1)
-        echo "Located JDK at $JDK_PATH"
-        export JAVA_HOME="$PWD/$JDK_PATH"
+        export JAVA_HOME=${{ steps.bundles.outputs.jdk-path }}
         cd hat
         "$JAVA_HOME/bin/java" @hat/bld
