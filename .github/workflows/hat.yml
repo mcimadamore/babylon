@@ -31,9 +31,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
     # Install build dependencies for OpenJDK (adjust as needed)
     - name: Install build dependencies
       run: |
