@@ -27,25 +27,20 @@ on:
         type: string
 
 jobs:
-  build_jdk_and_run_hat:
-    runs-on: ubuntu-latest
+  run_hat_tests:
+    runs-on: ${{ inputs.runs-on }}
 
     steps:
     # Install build dependencies for OpenJDK (adjust as needed)
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          autoconf make build-essential \
-          libcups2-dev libx11-dev libxext-dev libxrender-dev \
-          libxtst-dev libxt-dev libasound2-dev \
-          libfreetype6-dev libfontconfig1-dev \
-          libxrandr-dev libxinerama-dev libxdamage-dev \
-          libxcomposite-dev libxi-dev libxmu-dev \
-          wget unzip zip
+        sudo apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo
+        # Verify OpenCL installation
+        clinfo
 
     # Find the path to the built JDK (typically build/*/images/jdk)
-    - name: Set JAVA_HOME and run hat command
+    - name: Set JAVA_HOME and run hat build
       run: |
         # Find the jdk images directory
         export JAVA_HOME=${{ steps.bundles.outputs.jdk-path }}
