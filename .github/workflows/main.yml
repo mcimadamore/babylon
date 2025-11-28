@@ -455,7 +455,7 @@ jobs:
     needs:
       - prepare
       - build-linux-x64
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/hat.yml
     with:
       platform: linux-x64
       bootjdk-platform: linux-x64
