@@ -43,28 +43,21 @@ jobs:
           static-suffix: ${{ inputs.static-suffix }}
       if: ${{ inputs.dry-run == false }}
 
-    # Install build dependencies for OpenJDK (adjust as needed)
+    # Install OpenCL support
     - name: Install build dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo
-        # Intel stuff
-        mkdir neo
-        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17537.24/intel-igc-core_1.0.17537.24_amd64.deb
-        wget https://github.com/intel/intel-graphics-compiler/releases/download/igc-1.0.17537.24/intel-igc-opencl_1.0.17537.24_amd64.deb
-        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.36/intel-level-zero-gpu-legacy1-dbgsym_1.5.30872.36_amd64.ddeb
-        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.36/intel-level-zero-gpu-legacy1_1.5.30872.36_amd64.deb
-        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.36/intel-opencl-icd-legacy1-dbgsym_24.35.30872.36_amd64.ddeb
-        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.36/intel-opencl-icd-legacy1_24.35.30872.36_amd64.deb
-        wget https://github.com/intel/compute-runtime/releases/download/24.35.30872.36/libigdgmm12_22.5.0_amd64.deb
-        sudo dpkg -i *.deb
+        sudo apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo libpocl2 mesa-opencl-icd
         # Verify OpenCL installation
         clinfo
     
-    # Find the path to the built JDK (typically build/*/images/jdk)
+    # Build and test HAT
     - name: Set JAVA_HOME and run hat build
       run: |
         # Find the jdk images directory
         export JAVA_HOME=${{ steps.bundles.outputs.jdk-path }}
         cd hat
+        # build HAT
         "$JAVA_HOME/bin/java" @hat/bld
+        # test HAT
+        "$JAVA_HOME/bin/java" --add-modules jdk.incubator.code @hat/test-suite ffi-opencl
