@@ -31,6 +31,9 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
 
     steps:
+    - name: 'Checkout the babylon sources'
+      uses: actions/checkout@v4
+
     - name: 'Get bundles'
       id: bundles
       uses: ./.github/actions/get-bundles
@@ -57,9 +60,6 @@ jobs:
         sudo dpkg -i *.deb
         # Verify OpenCL installation
         clinfo
-    
-    - name: 'Checkout the babylon sources'
-      uses: actions/checkout@v4
     
     # Find the path to the built JDK (typically build/*/images/jdk)
     - name: Set JAVA_HOME and run hat build
