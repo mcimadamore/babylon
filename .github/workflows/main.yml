@@ -68,7 +68,6 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo
-          sudo apt-get install pocl
+          sudo apt-get install -y ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo libpocl2 mesa-opencl-icd
           # Verify OpenCL installation
           clinfo
