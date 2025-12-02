@@ -30,6 +30,7 @@ import java.lang.foreign.ValueLayout;
 import java.lang.invoke.MethodHandles;
 import jdk.incubator.code.Reflect;
 import oracle.code.onnx.OnnxRuntime;
+import oracle.code.onnx.OnnxRuntime.OnnxFunction;
 import oracle.code.onnx.Tensor;
 
 import static java.util.Optional.empty;
@@ -86,8 +87,9 @@ public class MNISTModel {
 
             // Execute the machine learning model
             // Translate the Java code to an ONNX model and execute in the ONNX runtime
+            @SuppressWarnings("unchecked")
             var predictionTensor = OnnxRuntime.execute(arena, MethodHandles.lookup(),
-                    () -> cnn(imageTensor));
+                    (@Reflect OnnxFunction<Tensor<Float>>) () -> cnn(imageTensor));
 
             // Convert the output predication tensor to float[]
             return predictionTensor.data().toArray(ValueLayout.JAVA_FLOAT);
