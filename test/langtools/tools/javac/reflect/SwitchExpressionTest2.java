@@ -37,7 +37,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantRuleExpression" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"r";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=6
                     (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
                         %5 : java.type:"java.lang.String" = constant @"FOO";
                         %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
@@ -65,13 +65,9 @@ public class SwitchExpressionTest2 {
                         %15 : java.type:"java.lang.String" = constant @"FOO";
                         yield %15;
                     }
-                    ()java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = constant @true;
-                        yield %16;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %17 : java.type:"java.lang.String" = constant @"";
-                        yield %17;
+                        %16 : java.type:"java.lang.String" = constant @"";
+                        yield %16;
                     };
                 return %3;
             };
@@ -90,7 +86,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantRuleBlock" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"r";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=6
                     (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
                         %5 : java.type:"java.lang.String" = constant @"FOO";
                         %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
@@ -118,13 +114,9 @@ public class SwitchExpressionTest2 {
                         %15 : java.type:"java.lang.String" = constant @"FOO";
                         java.yield %15;
                     }
-                    ()java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = constant @true;
-                        yield %16;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %17 : java.type:"java.lang.String" = constant @"";
-                        java.yield %17;
+                        %16 : java.type:"java.lang.String" = constant @"";
+                        java.yield %16;
                     };
                 return %3;
             };
@@ -151,7 +143,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantStatement" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=6
                     (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
                         %5 : java.type:"java.lang.String" = constant @"FOO";
                         %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
@@ -179,13 +171,9 @@ public class SwitchExpressionTest2 {
                         %15 : java.type:"java.lang.String" = constant @"FOO";
                         java.yield %15;
                     }
-                    ()java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = constant @true;
-                        yield %16;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %17 : java.type:"java.lang.String" = constant @"";
-                        java.yield %17;
+                        %16 : java.type:"java.lang.String" = constant @"";
+                        java.yield %16;
                     };
                 return %3;
             };
@@ -205,7 +193,7 @@ public class SwitchExpressionTest2 {
                 %1 : Var<java.type:"char"> = var %0 @"c";
                 %2 : java.type:"char" = var.load %1;
                 %3 : java.type:"char" = invoke %2 @java.ref:"java.lang.Character::toLowerCase(char):char";
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"char")java.type:"boolean" -> {
                         %6 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
@@ -239,13 +227,9 @@ public class SwitchExpressionTest2 {
                         %17 : java.type:"java.lang.String" = constant @"vowel";
                         java.yield %17;
                     }
-                    ()java.type:"boolean" -> {
-                        %18 : java.type:"boolean" = constant @true;
-                        yield %18;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %19 : java.type:"java.lang.String" = constant @"consonant";
-                        java.yield %19;
+                        %18 : java.type:"java.lang.String" = constant @"consonant";
+                        java.yield %18;
                     };
                 return %4;
             };
@@ -272,7 +256,7 @@ public class SwitchExpressionTest2 {
                 %10 : Var<java.type:"java.lang.Byte"> = var %9;
                 %11 : java.type:"java.lang.Short" = constant @null;
                 %12 : Var<java.type:"java.lang.Short"> = var %11;
-                %13 : java.type:"java.lang.String" = java.switch.expression %2
+                %13 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=2
                     (%14 : java.type:"java.lang.Object")java.type:"boolean" -> {
                         %15 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
@@ -341,13 +325,9 @@ public class SwitchExpressionTest2 {
                         %31 : java.type:"java.lang.String" = constant @"integral type";
                         yield %31;
                     }
-                    ()java.type:"boolean" -> {
-                        %32 : java.type:"boolean" = constant @true;
-                        yield %32;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %33 : java.type:"java.lang.String" = constant @"non integral type";
-                        yield %33;
+                        %32 : java.type:"java.lang.String" = constant @"non integral type";
+                        yield %32;
                     };
                 return %13;
             };
@@ -372,7 +352,7 @@ public class SwitchExpressionTest2 {
                 %8 : Var<java.type:"java.lang.Byte"> = var %7;
                 %9 : java.type:"java.lang.Short" = constant @null;
                 %10 : Var<java.type:"java.lang.Short"> = var %9;
-                %11 : java.type:"java.lang.String" = java.switch.expression %2
+                %11 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=2
                     (%12 : java.type:"java.lang.Object")java.type:"boolean" -> {
                         %13 : java.type:"boolean" = java.cand
                             ()java.type:"boolean" -> {
@@ -441,13 +421,9 @@ public class SwitchExpressionTest2 {
                         %32 : java.type:"java.lang.String" = constant @"integral type";
                         yield %32;
                     }
-                    ()java.type:"boolean" -> {
-                        %33 : java.type:"boolean" = constant @true;
-                        yield %33;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %34 : java.type:"java.lang.String" = constant @"non integral type";
-                        yield %34;
+                        %33 : java.type:"java.lang.String" = constant @"non integral type";
+                        yield %33;
                     };
                 return %11;
             };
@@ -464,7 +440,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantThrow" (%0 : java.type:"java.lang.Integer")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.Integer"> = var %0 @"i";
                 %2 : java.type:"java.lang.Integer" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
                     (%4 : java.type:"java.lang.Integer")java.type:"boolean" -> {
                         %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
                         %6 : java.type:"int" = constant @8;
@@ -485,13 +461,9 @@ public class SwitchExpressionTest2 {
                         %13 : java.type:"java.lang.String" = constant @"NINE";
                         yield %13;
                     }
-                    ()java.type:"boolean" -> {
-                        %14 : java.type:"boolean" = constant @true;
-                        yield %14;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %15 : java.type:"java.lang.String" = constant @"An integer";
-                        yield %15;
+                        %14 : java.type:"java.lang.String" = constant @"An integer";
+                        yield %14;
                     };
                 return %3;
             };
@@ -509,23 +481,14 @@ public class SwitchExpressionTest2 {
             func @"caseConstantNullLabel" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.handle.nulls=true
-                    (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %5 : java.type:"java.lang.Object" = constant @null;
-                        %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %6;
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=1 @switch.nullBody=0
+                    ()java.type:"java.lang.String" -> {
+                        %4 : java.type:"java.lang.String" = constant @"null";
+                        yield %4;
                     }
                     ()java.type:"java.lang.String" -> {
-                        %7 : java.type:"java.lang.String" = constant @"null";
-                        yield %7;
-                    }
-                    ()java.type:"boolean" -> {
-                        %8 : java.type:"boolean" = constant @true;
-                        yield %8;
-                    }
-                    ()java.type:"java.lang.String" -> {
-                        %9 : java.type:"java.lang.String" = constant @"non null";
-                        yield %9;
+                        %5 : java.type:"java.lang.String" = constant @"non null";
+                        yield %5;
                     };
                 return %3;
             };
@@ -542,7 +505,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantNullAndDefault" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.handle.nulls=true
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.nullDefaultBody=2
                     (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
                         %5 : java.type:"java.lang.String" = constant @"abc";
                         %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
@@ -552,13 +515,9 @@ public class SwitchExpressionTest2 {
                         %7 : java.type:"java.lang.String" = constant @"alphabet";
                         yield %7;
                     }
-                    ()java.type:"boolean" -> {
-                        %8 : java.type:"boolean" = constant @true;
-                        yield %8;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %9 : java.type:"java.lang.String" = constant @"null or default";
-                        yield %9;
+                        %8 : java.type:"java.lang.String" = constant @"null or default";
+                        yield %8;
                     };
                 return %3;
             };
@@ -575,7 +534,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantFallThrough" (%0 : java.type:"char")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"char"> = var %0 @"c";
                 %2 : java.type:"char" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
                     (%4 : java.type:"char")java.type:"boolean" -> {
                         %5 : java.type:"char" = constant @'A';
                         %6 : java.type:"boolean" = eq %4 %5;
@@ -593,13 +552,9 @@ public class SwitchExpressionTest2 {
                         %10 : java.type:"java.lang.String" = constant @"A or B";
                         java.yield %10;
                     }
-                    ()java.type:"boolean" -> {
-                        %11 : java.type:"boolean" = constant @true;
-                        yield %11;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %12 : java.type:"java.lang.String" = constant @"Neither A nor B";
-                        java.yield %12;
+                        %11 : java.type:"java.lang.String" = constant @"Neither A nor B";
+                        java.yield %11;
                     };
                 return %3;
             };
@@ -622,7 +577,7 @@ public class SwitchExpressionTest2 {
             func @"caseConstantEnum" (%0 : java.type:"SwitchExpressionTest2$Day")java.type:"int" -> {
                 %1 : Var<java.type:"SwitchExpressionTest2$Day"> = var %0 @"d";
                 %2 : java.type:"SwitchExpressionTest2$Day" = var.load %1;
-                %3 : java.type:"int" = java.switch.expression %2
+                %3 : java.type:"int" = java.switch.expression %2 @switch.defaultBody=8
                     (%4 : java.type:"SwitchExpressionTest2$Day")java.type:"boolean" -> {
                         %5 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
@@ -682,13 +637,9 @@ public class SwitchExpressionTest2 {
                         %27 : java.type:"int" = constant @9;
                         yield %27;
                     }
-                    ()java.type:"boolean" -> {
-                        %28 : java.type:"boolean" = constant @true;
-                        yield %28;
-                    }
                     ()java.type:"int" -> {
-                        %29 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
-                        throw %29;
+                        %28 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
+                        throw %28;
                     };
                 return %3;
             };
@@ -712,7 +663,7 @@ public class SwitchExpressionTest2 {
                 %2 : java.type:"int" = constant @11;
                 %3 : Var<java.type:"int"> = var %2 @"eleven";
                 %4 : java.type:"int" = var.load %1;
-                %5 : java.type:"java.lang.String" = java.switch.expression %4
+                %5 : java.type:"java.lang.String" = java.switch.expression %4 @switch.defaultBody=26
                     (%6 : java.type:"int")java.type:"boolean" -> {
                         %7 : java.type:"int" = constant @1;
                         %8 : java.type:"int" = constant @15;
@@ -736,7 +687,7 @@ public class SwitchExpressionTest2 {
                         yield %17;
                     }
                     (%18 : java.type:"int")java.type:"boolean" -> {
-                        %19 : java.type:"long" = constant @3;
+                        %19 : java.type:"long" = constant @3L;
                         %20 : java.type:"int" = conv %19;
                         %21 : java.type:"boolean" = eq %18 %20;
                         yield %21;
@@ -864,13 +815,9 @@ public class SwitchExpressionTest2 {
                         %82 : java.type:"java.lang.String" = constant @"13";
                         yield %82;
                     }
-                    ()java.type:"boolean" -> {
-                        %83 : java.type:"boolean" = constant @true;
-                        yield %83;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %84 : java.type:"java.lang.String" = constant @"an int";
-                        yield %84;
+                        %83 : java.type:"java.lang.String" = constant @"an int";
+                        yield %83;
                     };
                 return %5;
             };
@@ -908,7 +855,7 @@ public class SwitchExpressionTest2 {
                 %6 : java.type:"byte" = conv %5;
                 %7 : Var<java.type:"byte"> = var %6 @"b";
                 %8 : java.type:"short" = var.load %1;
-                %9 : java.type:"java.lang.String" = java.switch.expression %8
+                %9 : java.type:"java.lang.String" = java.switch.expression %8 @switch.defaultBody=6
                     (%10 : java.type:"short")java.type:"boolean" -> {
                         %11 : java.type:"short" = var.load %4;
                         %12 : java.type:"boolean" = eq %10 %11;
@@ -938,13 +885,9 @@ public class SwitchExpressionTest2 {
                         %23 : java.type:"java.lang.String" = constant @"two";
                         yield %23;
                     }
-                    ()java.type:"boolean" -> {
-                        %24 : java.type:"boolean" = constant @true;
-                        yield %24;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %25 : java.type:"java.lang.String" = constant @"default";
-                        yield %25;
+                        %24 : java.type:"java.lang.String" = constant @"default";
+                        yield %24;
                     };
                 return %9;
             };
@@ -968,7 +911,7 @@ public class SwitchExpressionTest2 {
                 %3 : java.type:"byte" = conv %2;
                 %4 : Var<java.type:"byte"> = var %3 @"b";
                 %5 : java.type:"java.lang.Byte" = var.load %1;
-                %6 : java.type:"java.lang.String" = java.switch.expression %5
+                %6 : java.type:"java.lang.String" = java.switch.expression %5 @switch.defaultBody=4
                     (%7 : java.type:"java.lang.Byte")java.type:"boolean" -> {
                         %8 : java.type:"byte" = invoke %7 @java.ref:"java.lang.Byte::byteValue():byte";
                         %9 : java.type:"int" = constant @1;
@@ -977,8 +920,8 @@ public class SwitchExpressionTest2 {
                         yield %11;
                     }
                     ()java.type:"java.lang.String" -> {
-                        %11 : java.type:"java.lang.String" = constant @"one";
-                        yield %11;
+                        %12 : java.type:"java.lang.String" = constant @"one";
+                        yield %12;
                     }
                     (%13 : java.type:"java.lang.Byte")java.type:"boolean" -> {
                         %14 : java.type:"byte" = invoke %13 @java.ref:"java.lang.Byte::byteValue():byte";
@@ -990,13 +933,9 @@ public class SwitchExpressionTest2 {
                         %17 : java.type:"java.lang.String" = constant @"two";
                         yield %17;
                     }
-                    ()java.type:"boolean" -> {
-                        %18 : java.type:"boolean" = constant @true;
-                        yield %18;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %19 : java.type:"java.lang.String" = constant @"default";
-                        yield %19;
+                        %18 : java.type:"java.lang.String" = constant @"default";
+                        yield %18;
                     };
                 return %6;
             };
@@ -1017,7 +956,7 @@ public class SwitchExpressionTest2 {
             func @"noDefaultLabelEnum" (%0 : java.type:"SwitchExpressionTest2$E")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"SwitchExpressionTest2$E"> = var %0 @"e";
                 %2 : java.type:"SwitchExpressionTest2$E" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
                     (%4 : java.type:"SwitchExpressionTest2$E")java.type:"boolean" -> {
                         %5 : java.type:"SwitchExpressionTest2$E" = field.load @java.ref:"SwitchExpressionTest2$E::F:SwitchExpressionTest2$E";
                         %6 : java.type:"boolean" = eq %4 %5;
@@ -1036,13 +975,9 @@ public class SwitchExpressionTest2 {
                         %11 : java.type:"java.lang.String" = constant @"g";
                         yield %11;
                     }
-                    ()java.type:"boolean" -> {
-                        %12 : java.type:"boolean" = constant @true;
-                        yield %12;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %13 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
-                        throw %13;
+                        %12 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
+                        throw %12;
                     };
                 return %3;
             };
@@ -1109,7 +1044,7 @@ public class SwitchExpressionTest2 {
                 %4 : Var<java.type:"SwitchExpressionTest2$B"> = var %3 @"b";
                 %5 : java.type:"SwitchExpressionTest2::C" = constant @null;
                 %6 : Var<java.type:"SwitchExpressionTest2::C"> = var %5 @"c";
-                %7 : java.type:"java.lang.String" = java.switch.expression %2
+                %7 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
                     (%8 : java.type:"SwitchExpressionTest2$A")java.type:"boolean" -> {
                         %9 : java.type:"boolean" = pattern.match %8
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<SwitchExpressionTest2$B>" -> {
@@ -1142,13 +1077,9 @@ public class SwitchExpressionTest2 {
                         %17 : java.type:"java.lang.String" = constant @"C";
                         yield %17;
                     }
-                    ()java.type:"boolean" -> {
-                        %18 : java.type:"boolean" = constant @true;
-                        yield %18;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %19 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
-                        throw %19;
+                        %18 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
+                        throw %18;
                     };
                 return %7;
             };
@@ -1165,32 +1096,28 @@ public class SwitchExpressionTest2 {
             func @"defaultNotTheLastLabel" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
                 %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
                 %2 : java.type:"java.lang.String" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
-                    ()java.type:"boolean" -> {
-                        %12 : java.type:"boolean" = constant @true;
-                        yield %12;
-                    }
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=0
                     ()java.type:"java.lang.String" -> {
-                        %13 : java.type:"java.lang.String" = constant @"else";
-                        yield %13;
+                        %4 : java.type:"java.lang.String" = constant @"else";
+                        yield %4;
                     }
-                    (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %5 : java.type:"java.lang.String" = constant @"M";
-                        %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %6;
-                    }
-                    ()java.type:"java.lang.String" -> {
-                        %7 : java.type:"java.lang.String" = constant @"Mow";
+                    (%5 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %6 : java.type:"java.lang.String" = constant @"M";
+                        %7 : java.type:"boolean" = invoke %5 %6 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
                         yield %7;
                     }
-                    (%8 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %9 : java.type:"java.lang.String" = constant @"A";
-                        %10 : java.type:"boolean" = invoke %8 %9 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %10;
+                    ()java.type:"java.lang.String" -> {
+                        %8 : java.type:"java.lang.String" = constant @"Mow";
+                        yield %8;
+                    }
+                    (%9 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %10 : java.type:"java.lang.String" = constant @"A";
+                        %11 : java.type:"boolean" = invoke %9 %10 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %11;
                     }
                     ()java.type:"java.lang.String" -> {
-                        %11 : java.type:"java.lang.String" = constant @"Aow";
-                        yield %11;
+                        %12 : java.type:"java.lang.String" = constant @"Aow";
+                        yield %12;
                     };
                 return %3;
             };
@@ -1206,48 +1133,44 @@ public class SwitchExpressionTest2 {
 
     @IR("""
             func @"caseConstantPrimitiveWrapperSelector" (%0 : java.type:"java.lang.Integer")java.type:"java.lang.String" -> {
-                  %1 : Var<java.type:"java.lang.Integer"> = var %0 @"i";
-                  %2 : java.type:"java.lang.Integer" = var.load %1;
-                  %3 : java.type:"java.lang.String" = java.switch.expression %2
-                      (%4 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                          %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
-                          %6 : java.type:"int" = constant @1;
-                          %7 : java.type:"boolean" = eq %5 %6;
-                          yield %7;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %8 : java.type:"java.lang.String" = constant @"one";
-                          yield %8;
-                      }
-                      (%9 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                          %10 : java.type:"boolean" = java.cor
-                              ()java.type:"boolean" -> {
-                                  %11 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                  %12 : java.type:"int" = constant @2;
-                                  %13 : java.type:"boolean" = eq %11 %12;
-                                  yield %13;
-                              }
-                              ()java.type:"boolean" -> {
-                                  %14 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                  %15 : java.type:"int" = constant @3;
-                                  %16 : java.type:"boolean" = eq %14 %15;
-                                  yield %16;
-                              };
-                          yield %10;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %17 : java.type:"java.lang.String" = constant @"two or three";
-                          yield %17;
-                      }
-                      ()java.type:"boolean" -> {
-                          %18 : java.type:"boolean" = constant @true;
-                          yield %18;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %19 : java.type:"java.lang.String" = constant @"else";
-                          yield %19;
-                      };
-                  return %3;
+                %1 : Var<java.type:"java.lang.Integer"> = var %0 @"i";
+                %2 : java.type:"java.lang.Integer" = var.load %1;
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
+                    (%4 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
+                        %6 : java.type:"int" = constant @1;
+                        %7 : java.type:"boolean" = eq %5 %6;
+                        yield %7;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %8 : java.type:"java.lang.String" = constant @"one";
+                        yield %8;
+                    }
+                    (%9 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %10 : java.type:"boolean" = java.cor
+                            ()java.type:"boolean" -> {
+                                %11 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %12 : java.type:"int" = constant @2;
+                                %13 : java.type:"boolean" = eq %11 %12;
+                                yield %13;
+                            }
+                            ()java.type:"boolean" -> {
+                                %14 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %15 : java.type:"int" = constant @3;
+                                %16 : java.type:"boolean" = eq %14 %15;
+                                yield %16;
+                            };
+                        yield %10;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %17 : java.type:"java.lang.String" = constant @"two or three";
+                        yield %17;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %18 : java.type:"java.lang.String" = constant @"else";
+                        yield %18;
+                    };
+                return %3;
             };
             """)
     @Reflect
@@ -1261,30 +1184,26 @@ public class SwitchExpressionTest2 {
 
     @IR("""
             func @"constantLabelCasted" (%0 : java.type:"int")java.type:"java.lang.String" -> {
-                  %1 : Var<java.type:"int"> = var %0 @"i";
-                  %2 : java.type:"int" = var.load %1;
-                  %3 : java.type:"java.lang.String" = java.switch.expression %2
-                      (%4 : java.type:"int")java.type:"boolean" -> {
-                          %5 : java.type:"int" = constant @1;
-                          %6 : java.type:"byte" = conv %5;
-                          %7 : java.type:"int" = conv %6;
-                          %8 : java.type:"boolean" = eq %4 %7;
-                          yield %8;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %9 : java.type:"java.lang.String" = constant @"one";
-                          yield %9;
-                      }
-                      ()java.type:"boolean" -> {
-                          %10 : java.type:"boolean" = constant @true;
-                          yield %10;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %11 : java.type:"java.lang.String" = constant @"not one";
-                          yield %11;
-                      };
-                  return %3;
-              };
+                %1 : Var<java.type:"int"> = var %0 @"i";
+                %2 : java.type:"int" = var.load %1;
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=2
+                    (%4 : java.type:"int")java.type:"boolean" -> {
+                        %5 : java.type:"int" = constant @1;
+                        %6 : java.type:"byte" = conv %5;
+                        %7 : java.type:"int" = conv %6;
+                        %8 : java.type:"boolean" = eq %4 %7;
+                        yield %8;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %9 : java.type:"java.lang.String" = constant @"one";
+                        yield %9;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %10 : java.type:"java.lang.String" = constant @"not one";
+                        yield %10;
+                    };
+                return %3;
+            };
             """)
     @Reflect
     static String constantLabelCasted(int i) {
@@ -1296,46 +1215,42 @@ public class SwitchExpressionTest2 {
 
     @IR("""
             func @"caseConstantStringLiteral" (%0 : java.type:"java.lang.String")java.type:"java.lang.String" -> {
-                  %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
-                  %2 : java.type:"java.lang.String" = var.load %1;
-                  %3 : java.type:"java.lang.String" = java.switch.expression %2
-                      (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
-                          %5 : java.type:"java.lang.String" = constant @"1";
-                          %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                          yield %6;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %7 : java.type:"java.lang.String" = constant @"one";
-                          yield %7;
-                      }
-                      (%8 : java.type:"java.lang.String")java.type:"boolean" -> {
-                          %9 : java.type:"boolean" = java.cor
-                              ()java.type:"boolean" -> {
-                                  %10 : java.type:"java.lang.String" = constant @"2";
-                                  %11 : java.type:"boolean" = invoke %8 %10 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                                  yield %11;
-                              }
-                              ()java.type:"boolean" -> {
-                                  %12 : java.type:"java.lang.String" = constant @"3";
-                                  %13 : java.type:"boolean" = invoke %8 %12 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                                  yield %13;
-                              };
-                          yield %9;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %14 : java.type:"java.lang.String" = constant @"two or three";
-                          yield %14;
-                      }
-                      ()java.type:"boolean" -> {
-                          %15 : java.type:"boolean" = constant @true;
-                          yield %15;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %16 : java.type:"java.lang.String" = constant @"else";
-                          yield %16;
-                      };
-                  return %3;
-              };
+                %1 : Var<java.type:"java.lang.String"> = var %0 @"s";
+                %2 : java.type:"java.lang.String" = var.load %1;
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=4
+                    (%4 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %5 : java.type:"java.lang.String" = constant @"1";
+                        %6 : java.type:"boolean" = invoke %4 %5 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %6;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %7 : java.type:"java.lang.String" = constant @"one";
+                        yield %7;
+                    }
+                    (%8 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %9 : java.type:"boolean" = java.cor
+                            ()java.type:"boolean" -> {
+                                %10 : java.type:"java.lang.String" = constant @"2";
+                                %11 : java.type:"boolean" = invoke %8 %10 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                                yield %11;
+                            }
+                            ()java.type:"boolean" -> {
+                                %12 : java.type:"java.lang.String" = constant @"3";
+                                %13 : java.type:"boolean" = invoke %8 %12 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                                yield %13;
+                            };
+                        yield %9;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %14 : java.type:"java.lang.String" = constant @"two or three";
+                        yield %14;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %15 : java.type:"java.lang.String" = constant @"else";
+                        yield %15;
+                    };
+                return %3;
+            };
             """)
     @Reflect
     static String caseConstantStringLiteral(String s) {

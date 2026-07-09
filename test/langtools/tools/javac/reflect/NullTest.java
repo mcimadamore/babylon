@@ -164,7 +164,7 @@ public class NullTest {
             func @"test7" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -174,13 +174,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @"";
                         yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @null;
-                        yield %10;
+                        %9 : java.type:"java.lang.String" = constant @null;
+                        yield %9;
                     };
                 return %4;
             };
@@ -197,7 +193,7 @@ public class NullTest {
             func @"test8" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -207,13 +203,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @null;
                         yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @"";
-                        yield %10;
+                        %9 : java.type:"java.lang.String" = constant @"";
+                        yield %9;
                     };
                 return %4;
             };
@@ -230,7 +222,7 @@ public class NullTest {
             func @"test9" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -240,13 +232,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @null;
                         yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @null;
-                        yield %10;
+                        %9 : java.type:"java.lang.String" = constant @null;
+                        yield %9;
                     };
                 return %4;
             };
@@ -263,7 +251,7 @@ public class NullTest {
             func @"test10" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.Object" = java.switch.expression %3
+                %4 : java.type:"java.lang.Object" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -273,16 +261,12 @@ public class NullTest {
                         %8 : java.type:"java.lang.Object" = constant @null;
                         yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.Object" -> {
-                        %10 : java.type:"java.lang.Object" = constant @null;
-                        yield %10;
+                        %9 : java.type:"java.lang.Object" = constant @null;
+                        yield %9;
                     };
-                %11 : java.type:"java.lang.String" = cast %4 @java.type:"java.lang.String";
-                return %11;
+                %10 : java.type:"java.lang.String" = cast %4 @java.type:"java.lang.String";
+                return %10;
             };
             """)
     String test10(int cond) {
@@ -297,7 +281,7 @@ public class NullTest {
             func @"test11" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -307,13 +291,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @"";
                         java.yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @null;
-                        java.yield %10;
+                        %9 : java.type:"java.lang.String" = constant @null;
+                        java.yield %9;
                     };
                 return %4;
             };
@@ -330,7 +310,7 @@ public class NullTest {
             func @"test12" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -340,13 +320,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @null;
                         java.yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @"";
-                        java.yield %10;
+                        %9 : java.type:"java.lang.String" = constant @"";
+                        java.yield %9;
                     };
                 return %4;
             };
@@ -363,7 +339,7 @@ public class NullTest {
             func @"test13" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.String" = java.switch.expression %3
+                %4 : java.type:"java.lang.String" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -373,13 +349,9 @@ public class NullTest {
                         %8 : java.type:"java.lang.String" = constant @null;
                         java.yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %10 : java.type:"java.lang.String" = constant @null;
-                        java.yield %10;
+                        %9 : java.type:"java.lang.String" = constant @null;
+                        java.yield %9;
                     };
                 return %4;
             };
@@ -396,7 +368,7 @@ public class NullTest {
             func @"test14" (%0 : java.type:"NullTest", %1 : java.type:"int")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"int"> = var %1 @"cond";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"java.lang.Object" = java.switch.expression %3
+                %4 : java.type:"java.lang.Object" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -406,16 +378,12 @@ public class NullTest {
                         %8 : java.type:"java.lang.Object" = constant @null;
                         java.yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"java.lang.Object" -> {
-                        %10 : java.type:"java.lang.Object" = constant @null;
-                        java.yield %10;
+                        %9 : java.type:"java.lang.Object" = constant @null;
+                        java.yield %9;
                     };
-                %11 : java.type:"java.lang.String" = cast %4 @java.type:"java.lang.String";
-                return %11;
+                %10 : java.type:"java.lang.String" = cast %4 @java.type:"java.lang.String";
+                return %10;
             };
             """)
     String test14(int cond) {

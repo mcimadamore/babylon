@@ -27,7 +27,9 @@ package jdk.incubator.code.dialect.java;
 
 import java.lang.constant.ClassDesc;
 import jdk.incubator.code.*;
-import jdk.incubator.code.dialect.java.JavaOp.JavaSwitchOp.SwitchNullHandling;
+import jdk.incubator.code.Body.Builder;
+import jdk.incubator.code.dialect.java.JavaOp.JavaSwitchOp.SwitchCase;
+import jdk.incubator.code.dialect.java.JavaOp.JavaSwitchOp.SwitchCase.Kind;
 import jdk.incubator.code.extern.DialectFactory;
 import jdk.incubator.code.dialect.core.*;
 import jdk.incubator.code.extern.ExternalizedOp;
@@ -35,6 +37,7 @@ import jdk.incubator.code.extern.OpFactory;
 import jdk.incubator.code.internal.ArithmeticAndConvOpImpls;
 import jdk.incubator.code.internal.BranchTarget;
 import jdk.incubator.code.internal.OpDeclaration;
+import jdk.incubator.code.internal.StructuralPreconditions;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -3439,29 +3442,122 @@ public sealed abstract class JavaOp extends Op {
     public abstract static sealed class JavaSwitchOp extends JavaOp implements Op.Nested, Op.Lowerable
             permits SwitchStatementOp, SwitchExpressionOp {
 
-        final List<Body> bodies;
-        final boolean handleNulls;
+        /**
+         * A switch case models a case label in a switch expression or statement.
+         * There are four kind of switch cases. Yada. Yada.
+         */
+        public static final class SwitchCase {
+            private final Body.Builder predicateBuilder, actionBuilder;
+            private final Kind caseKind;
 
-        enum SwitchNullHandling {
-            ALLOW_NULL,
-            REJECT_NULL,
-            INFER;
+            /**
+             * The kind of a switch case label.
+             */
+            public enum Kind {
+                /** models a {@code case null} case label */
+                NULL,
+                /** models a {@code case default} case label */
+                DEFAULT,
+                /** models a {@code case null, default} case label */
+                NULL_DEFAULT,
+                 /** models an ordinary case label */
+                PREDICATE;
+            };
 
-            static SwitchNullHandling of(ExternalizedOp def) {
-                return of(optionalBooleanAttribute(def, ATTRIBUTE_SWITCH_HANDLE_NULLS));
-
+            private SwitchCase(Kind caseKind, Builder predicateBuilder, Builder actionBuilder) {
+                this.caseKind = caseKind;
+                this.predicateBuilder = predicateBuilder;
+                this.actionBuilder = actionBuilder;
             }
 
-            static SwitchNullHandling of(boolean handleNulls) {
-                return handleNulls ?
-                        ALLOW_NULL : REJECT_NULL;
+            /**
+             * {@return a new case null label, with given action body builder}
+             * @param actionBuilder the builder for the action body
+             */
+            public static SwitchCase ofNull(Body.Builder actionBuilder) {
+                return new SwitchCase(Kind.NULL,
+                        nullPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+            }
+
+            /**
+             * {@return a new default label, with given action body builder}
+             * @param actionBuilder the builder for the action body
+             */
+            public static SwitchCase ofDefault(Body.Builder actionBuilder) {
+                return new SwitchCase(Kind.DEFAULT,
+                        defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+            }
+
+            /**
+             * {@return a new null-default label, with given action body builder}
+             * @param actionBuilder the builder for the action body
+             */
+            public static SwitchCase ofNullDefault(Body.Builder actionBuilder) {
+                return new SwitchCase(Kind.NULL_DEFAULT,
+                        defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+            }
+
+            /**
+             * {@return a new case label, with given predicate and action body builders}
+             * @param predicateBuilder the builder for the predicate body
+             * @param actionBuilder the builder for the action body
+             */
+            public static SwitchCase of(Body.Builder predicateBuilder, Body.Builder actionBuilder) {
+                return new SwitchCase(Kind.PREDICATE, predicateBuilder, actionBuilder);
+            }
+
+            private static List<SwitchCase> of(ExternalizedOp def) {
+                Optional<Integer> nullBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL, false, Integer.class);
+                Optional<Integer> defaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_DEFAULT, false, Integer.class);
+                Optional<Integer> nullDefaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT, false, Integer.class);
+                List<SwitchCase> cases = new ArrayList<>();
+                for (int i = 0 ; i < def.bodyDefinitions().size(); ) {
+                    if (defaultBody.isPresent() && defaultBody.get() == i) {
+                        cases.add(SwitchCase.ofDefault(def.bodyDefinitions().get(i)));
+                        i++;
+                    } else if (nullBody.isPresent() && nullBody.get() == i) {
+                        cases.add(SwitchCase.ofNull(def.bodyDefinitions().get(i)));
+                        i++;
+                    } else if (nullDefaultBody.isPresent() && nullDefaultBody.get() == i) {
+                        cases.add(SwitchCase.ofNullDefault(def.bodyDefinitions().get(i)));
+                        i++;
+                    } else {
+                        cases.add(SwitchCase.of(def.bodyDefinitions().get(i), def.bodyDefinitions().get(i + 1)));
+                        i += 2;
+                    }
+                }
+                return List.copyOf(cases);
+            }
+
+            private static Body.Builder nullPredicate(Body.Builder parent) {
+                var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN, JavaType.J_L_OBJECT));
+                var entry = bb.entryBlock();
+                var n = entry.add(CoreOp.constant(J_L_OBJECT, null));
+                var res = entry.add(JavaOp.eq(entry.parameters().getFirst(), n));
+                entry.add(CoreOp.core_yield(res));
+                return bb;
+            }
+
+            private static Body.Builder defaultPredicate(Body.Builder parent) {
+                var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN));
+                var entry = bb.entryBlock();
+                var t = entry.add(CoreOp.constant(JavaType.BOOLEAN, true));
+                entry.add(CoreOp.core_yield(t));
+                return bb;
             }
         }
+
+        final List<Body> bodies;
+        final List<Kind> caseKinds;
 
         /**
          * The externalized attribute key for a switch that handles nulls.
          */
-        static final String ATTRIBUTE_SWITCH_HANDLE_NULLS = "switch.handle.nulls";
+        static final String ATTRIBUTE_SWITCH_CASE_NULL = "switch.nullBody";
+
+        static final String ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT = "switch.nullDefaultBody";
+
+        static final String ATTRIBUTE_SWITCH_DEFAULT = "switch.defaultBody";
 
         JavaSwitchOp(JavaSwitchOp that, CodeContext cc, CodeTransformer ct) {
             super(that, cc);
@@ -3469,34 +3565,67 @@ public sealed abstract class JavaOp extends Op {
             // Copy body
             this.bodies = that.bodies.stream()
                     .map(b -> b.transform(cc, ct).build(this)).toList();
-            this.handleNulls = that.handleNulls;
+            this.caseKinds = that.caseKinds;
         }
 
-        JavaSwitchOp(Value target, SwitchNullHandling nullHandling, List<Body.Builder> bodyCs) {
+        JavaSwitchOp(Value target, List<SwitchCase> cases) {
             super(List.of(target));
 
             // Each case is modeled as a contiguous pair of bodies
             // The first body models the case labels, and the second models the case statements
             // The labels body has a parameter whose type is target operand's type and returns a boolean value
             // The action body has no parameters and returns void
-            this.bodies = bodyCs.stream().map(bc -> bc.build(this)).toList();
-            this.handleNulls = switch (nullHandling) {
-                case ALLOW_NULL -> true;
-                case REJECT_NULL -> false;
-                case INFER -> inferNullCase();
-            };
+            List<Body> bodies = new ArrayList<>();
+            List<Kind> caseKinds = new ArrayList<>();
+            for (SwitchCase c : cases) {
+                bodies.add(c.predicateBuilder.build(this));
+                bodies.add(c.actionBuilder.build(this));
+                caseKinds.add(c.caseKind);
+            }
+            this.bodies = List.copyOf(bodies);
+            this.caseKinds = List.copyOf(caseKinds);
         }
 
         @Override
         public List<Body> bodies() {
+            List<Body> filteredBodies = new ArrayList<>(bodies);
+            for (int i = caseKinds.size() - 1 ; i >= 0 ; i--) {
+                if (caseKinds.get(i) != Kind.PREDICATE) {
+                    filteredBodies.remove(i * 2);
+                }
+            }
+            return List.copyOf(filteredBodies);
+        }
+
+        /**
+         * {@return the list of predicate/action body pairs of this switch operation}
+         */
+        public List<Body> normalizedBodies() {
             return bodies;
         }
 
         @Override
         public Map<String, Object> externalize() {
-            return handleNulls ?
-                    Map.of(ATTRIBUTE_SWITCH_HANDLE_NULLS, true) :
-                    Map.of();
+            int bodyIndex = 0;
+            Map<String, Object> attributes = new HashMap<>();
+            for (Kind caseKind : caseKinds) {
+                switch (caseKind) {
+                    case PREDICATE -> bodyIndex += 2;
+                    case NULL_DEFAULT -> {
+                        attributes.put(ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT, bodyIndex);
+                        bodyIndex += 1;
+                    }
+                    case NULL -> {
+                        attributes.put(ATTRIBUTE_SWITCH_CASE_NULL, bodyIndex);
+                        bodyIndex += 1;
+                    }
+                    case DEFAULT -> {
+                        attributes.put(ATTRIBUTE_SWITCH_DEFAULT, bodyIndex);
+                        bodyIndex += 1;
+                    }
+                }
+            }
+            return Map.copyOf(attributes);
         }
 
         @Override
@@ -3505,6 +3634,8 @@ public sealed abstract class JavaOp extends Op {
 
             // @@@ we can add this during model generation
             // if no case null, add one that throws NPE
+            boolean handleNulls = caseKinds.stream()
+                    .anyMatch(k -> k == Kind.NULL_DEFAULT || k == Kind.NULL);
             if (!(selectorExpression.type() instanceof PrimitiveType) && !handleNulls) {
                 Block.Builder throwBlock = b.block();
                 throwBlock.add(throw_(
@@ -3521,8 +3652,8 @@ public sealed abstract class JavaOp extends Op {
             }
 
             int defLabelIndex = -1;
-            for (int i = 0; i < bodies().size(); i+=2) {
-                Block eb = bodies().get(i).entryBlock();
+            for (int i = 0; i < bodies.size(); i += 2) {
+                Block eb = bodies.get(i).entryBlock();
                 // @@@ confusing YieldOp with Core.YieldOp in checks
                 if (eb.terminatingOp() instanceof CoreOp.YieldOp yop && yop.yieldValue() instanceof Op.Result r
                         && r.op() instanceof ConstantOp cop && cop.resultType().equals(BOOLEAN)) {
@@ -3533,11 +3664,11 @@ public sealed abstract class JavaOp extends Op {
             if (defLabelIndex == -1 && this instanceof SwitchExpressionOp) {
                 // if it's a switch expression, it must have a default
                 // if not explicit, it's an unconditional pattern which is the last label
-                defLabelIndex = bodies().size() - 2;
+                defLabelIndex = bodies.size() - 2;
             }
 
             List<Block.Builder> blocks = new ArrayList<>();
-            for (int i = 0; i < bodies().size(); i++) {
+            for (int i = 0; i < bodies.size(); i++) {
                 Block.Builder bb;
                 if (i == defLabelIndex) {
                     // we don't need a block for default label
@@ -3548,7 +3679,7 @@ public sealed abstract class JavaOp extends Op {
                 blocks.add(bb);
             }
             // append ops of the first non default label to b
-            for (int i = 0; i < blocks.size(); i+=2) {
+            for (int i = 0; i < blocks.size(); i += 2) {
                 if (blocks.get(i) == null) {
                     continue;
                 }
@@ -3557,7 +3688,7 @@ public sealed abstract class JavaOp extends Op {
             }
 
             Block.Builder exit;
-            if (bodies().isEmpty()) {
+            if (bodies.isEmpty()) {
                 exit = b;
             } else {
                 exit = resultType() == VOID ? b.block() : b.block(resultType());
@@ -3569,11 +3700,11 @@ public sealed abstract class JavaOp extends Op {
             BranchTarget.setBranchTarget(b.context(), this, exit, null);
             // map statement body to nextExprBlock
             // this mapping will be used for lowering SwitchFallThroughOp
-            for (int i = 1; i < bodies().size() - 2; i+=2) {
-                BranchTarget.setBranchTarget(b.context(), bodies().get(i), null, blocks.get(i + 2));
+            for (int i = 1; i < bodies.size() - 2; i += 2) {
+                BranchTarget.setBranchTarget(b.context(), bodies.get(i), null, blocks.get(i + 2));
             }
 
-            for (int i = 0; i < bodies().size(); i+=2) {
+            for (int i = 0; i < bodies.size(); i += 2) {
                 if (i == defLabelIndex) {
                     continue;
                 }
@@ -3581,7 +3712,7 @@ public sealed abstract class JavaOp extends Op {
                 boolean isLastLabel = i == blocks.size() - 2;
                 Block.Builder nextLabel = isLastLabel ? null : blocks.get(i + 2);
                 int finalDefLabelIndex = defLabelIndex;
-                blocks.get(i).transformBody(bodies().get(i), List.of(selectorExpression), loweringTransformer(inherited,
+                blocks.get(i).transformBody(bodies.get(i), List.of(selectorExpression), loweringTransformer(inherited,
                         (block, op) -> switch (op) {
                             case CoreOp.YieldOp yop -> {
                                 Block.Reference falseTarget;
@@ -3599,7 +3730,7 @@ public sealed abstract class JavaOp extends Op {
                             default -> null;
                         }));
 
-                blocks.get(i + 1).transformBody(bodies().get(i + 1), List.of(), loweringTransformer(inherited,
+                blocks.get(i + 1).transformBody(bodies.get(i + 1), List.of(), loweringTransformer(inherited,
                         (block, op) -> switch (op) {
                             case CoreOp.YieldOp yop -> {
                                 List<Value> args = yop.yieldValue() == null ? List.of() : List.of(block.context().getValue(yop.yieldValue()));
@@ -3611,7 +3742,7 @@ public sealed abstract class JavaOp extends Op {
             }
 
             if (defLabelIndex != -1) {
-                blocks.get(defLabelIndex + 1).transformBody(bodies().get(defLabelIndex + 1), List.of(), loweringTransformer(inherited,
+                blocks.get(defLabelIndex + 1).transformBody(bodies.get(defLabelIndex + 1), List.of(), loweringTransformer(inherited,
                         (block, op) -> switch (op) {
                             case CoreOp.YieldOp yop -> {
                                 List<Value> args = yop.yieldValue() == null ? List.of() : List.of(block.context().getValue(yop.yieldValue()));
@@ -3623,40 +3754,6 @@ public sealed abstract class JavaOp extends Op {
             }
 
             return exit;
-        }
-
-        /**
-         * {@return {@code true} if this switch operation handles nulls}
-         */
-        public boolean handleNulls() {
-            return handleNulls;
-        }
-
-        private boolean inferNullCase() {
-            /*
-            case null is modeled like this:
-            (%4 : T)boolean -> {
-                %5 : java.lang.Object = constant @null;
-                %6 : boolean = invoke %4 %5 @"java.util.Objects::equals(java.lang.Object, java.lang.Object)boolean";
-                yield %6;
-            }
-            * */
-            for (int i = 0; i < bodies().size() - 2; i+=2) {
-                Body labelBody = bodies().get(i);
-                if (labelBody.blocks().size() != 1) {
-                    continue; // we skip, for now
-                }
-                Op terminatingOp = bodies().get(i).entryBlock().terminatingOp();
-                //@@@ when op pattern matching is ready, we can use it
-                if (terminatingOp instanceof CoreOp.YieldOp yieldOp &&
-                        yieldOp.yieldValue() instanceof Op.Result opr &&
-                        opr.op() instanceof InvokeOp invokeOp &&
-            invokeOp.invokeReference().equals(MethodRef.method(Objects.class, "equals", boolean.class, Object.class, Object.class)) &&
-                        invokeOp.operands().stream().anyMatch(o -> o instanceof Op.Result r && r.op() instanceof ConstantOp cop && cop.value() == null)) {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 
@@ -3676,7 +3773,7 @@ public sealed abstract class JavaOp extends Op {
         final CodeType resultType;
 
         SwitchExpressionOp(ExternalizedOp def) {
-            this(def.resultType(), requireSingleOperand(def), SwitchNullHandling.of(def), def.bodyDefinitions());
+            this(def.resultType(), requireSingleOperand(def), SwitchCase.of(def));
         }
 
         SwitchExpressionOp(SwitchExpressionOp that, CodeContext cc, CodeTransformer ct) {
@@ -3690,8 +3787,8 @@ public sealed abstract class JavaOp extends Op {
             return new SwitchExpressionOp(this, cc, ct);
         }
 
-        SwitchExpressionOp(CodeType resultType, Value target, SwitchNullHandling nullHandling, List<Body.Builder> bodyCs) {
-            super(target, nullHandling, requireBodyPairs(NAME, bodyCs));
+        SwitchExpressionOp(CodeType resultType, Value target, List<SwitchCase> cases) {
+            super(target, cases);
             this.resultType = resultType == null ? bodies.get(1).yieldType() : resultType;
         }
 
@@ -3716,7 +3813,7 @@ public sealed abstract class JavaOp extends Op {
         static final String NAME = "java.switch.statement";
 
         SwitchStatementOp(ExternalizedOp def) {
-            this(requireSingleOperand(def), SwitchNullHandling.of(def), def.bodyDefinitions());
+            this(requireSingleOperand(def), SwitchCase.of(def));
         }
 
         SwitchStatementOp(SwitchStatementOp that, CodeContext cc, CodeTransformer ct) {
@@ -3728,8 +3825,8 @@ public sealed abstract class JavaOp extends Op {
             return new SwitchStatementOp(this, cc, ct);
         }
 
-        SwitchStatementOp(Value target, SwitchNullHandling nullHandling, List<Body.Builder> bodyCs) {
-            super(target, nullHandling, requireBodyPairs(NAME, bodyCs));
+        SwitchStatementOp(Value target, List<SwitchCase> cases) {
+            super(target, cases);
         }
 
         @Override
@@ -7149,17 +7246,13 @@ public sealed abstract class JavaOp extends Op {
      * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
      * second is the corresponding action body. The result type of the operation will be derived from the yield type of
      * the first action body.
-     * <p>
-     * The returned switch expression operation handles nulls if this factory can determine that at least one of the
-     * predicate bodies accepts null selector values. For more explicit selection of null-handling policy, please
-     * use {@link #switchExpression(CodeType, Value, boolean, List)}.</p>
      *
      * @param target the switch target value
-     * @param bodies the body builders for the predicate and action bodies
+     * @param cases the switch cases
      * @return the switch expression operation
      */
-    public static SwitchExpressionOp switchExpression(Value target, List<Body.Builder> bodies) {
-        return new SwitchExpressionOp(null, target, SwitchNullHandling.INFER, bodies);
+    public static SwitchExpressionOp switchExpression(Value target, List<SwitchCase> cases) {
+        return new SwitchExpressionOp(null, target, cases);
     }
 
     /**
@@ -7167,57 +7260,16 @@ public sealed abstract class JavaOp extends Op {
      * <p>
      * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
      * second is the corresponding action body.
-     * <p>
-     * The returned switch expression operation handles nulls if this factory can determine that at least one of the
-     * predicate bodies accepts null selector values. For more explicit selection of null-handling policy, please
-     * use {@link #switchExpression(CodeType, Value, boolean, List)}.</p>
      *
      * @param resultType the result type of the expression
      * @param target     the switch target value
-     * @param bodies     the body builders for the predicate and action bodies
+     * @param cases     the switch cases
      * @return the switch expression operation
      */
     public static SwitchExpressionOp switchExpression(CodeType resultType, Value target,
-                                                      List<Body.Builder> bodies) {
+                                                      List<SwitchCase> cases) {
         Objects.requireNonNull(resultType);
-        return new SwitchExpressionOp(resultType, target, SwitchNullHandling.INFER, bodies);
-    }
-
-    /**
-     * Creates a switch expression operation.
-     * <p>
-     * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
-     * second is the corresponding action body.
-     *
-     * @param resultType  the result type of the expression
-     * @param target      the switch target value
-     * @param handleNulls whether the switch expression handles nulls
-     * @param bodies      the body builders for the predicate and action bodies
-     * @return the switch expression operation
-     */
-    public static SwitchExpressionOp switchExpression(CodeType resultType, Value target,
-                                                      boolean handleNulls,
-                                                      List<Body.Builder> bodies) {
-        Objects.requireNonNull(resultType);
-        return new SwitchExpressionOp(resultType, target, SwitchNullHandling.of(handleNulls), bodies);
-    }
-
-    /**
-     * Creates a switch statement operation.
-     * <p>
-     * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
-     * second is the corresponding action body.
-     * <p>
-     * The returned switch statement operation handles nulls if this factory can determine that at least one of the
-     * predicate bodies accepts null selector values. For more explicit selection of null-handling policy, please
-     * use {@link #switchStatement(Value, boolean, List)}.</p>
-     *
-     * @param target the switch target value
-     * @param bodies the body builders for the predicate and action bodies
-     * @return the switch statement operation
-     */
-    public static SwitchStatementOp switchStatement(Value target, List<Body.Builder> bodies) {
-        return new SwitchStatementOp(target, SwitchNullHandling.INFER, bodies);
+        return new SwitchExpressionOp(resultType, target, cases);
     }
 
     /**
@@ -7227,12 +7279,11 @@ public sealed abstract class JavaOp extends Op {
      * second is the corresponding action body.
      *
      * @param target the switch target value
-     * @param handleNulls whether the switch statement handles nulls
-     * @param bodies the body builders for the predicate and action bodies
+     * @param cases the switch cases
      * @return the switch statement operation
      */
-    public static SwitchStatementOp switchStatement(Value target, boolean handleNulls, List<Body.Builder> bodies) {
-        return new SwitchStatementOp(target, SwitchNullHandling.of(handleNulls), bodies);
+    public static SwitchStatementOp switchStatement(Value target, List<SwitchCase> cases) {
+        return new SwitchStatementOp(target, cases);
     }
 
     /**

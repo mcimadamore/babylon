@@ -215,26 +215,22 @@ public class ImplicitConversionTest {
             func @"test10" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
                         yield %7;
                     }
                     ()java.type:"long" -> {
-                        %8 : java.type:"long" = constant @1;
+                        %8 : java.type:"long" = constant @1L;
                         yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"long" -> {
-                        %10 : java.type:"int" = constant @0;
-                        %11 : java.type:"long" = conv %10;
-                        yield %11;
+                        %9 : java.type:"int" = constant @0;
+                        %10 : java.type:"long" = conv %9;
+                        yield %10;
                     };
-                %12 : Var<java.type:"long"> = var %4 @"l";
+                %11 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)
@@ -250,7 +246,7 @@ public class ImplicitConversionTest {
             func @"test11" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -261,15 +257,11 @@ public class ImplicitConversionTest {
                         %9 : java.type:"long" = conv %8;
                         yield %9;
                     }
-                    ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
-                    }
                     ()java.type:"long" -> {
-                        %11 : java.type:"long" = constant @0;
-                        yield %11;
+                        %10 : java.type:"long" = constant @0L;
+                        yield %10;
                     };
-                %12 : Var<java.type:"long"> = var %4 @"l";
+                %11 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)
@@ -285,7 +277,7 @@ public class ImplicitConversionTest {
             func @"test12" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -296,16 +288,12 @@ public class ImplicitConversionTest {
                         %9 : java.type:"long" = conv %8;
                         yield %9;
                     }
-                    ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
-                    }
                     ()java.type:"long" -> {
-                        %11 : java.type:"int" = constant @0;
-                        %12 : java.type:"long" = conv %11;
-                        yield %12;
+                        %10 : java.type:"int" = constant @0;
+                        %11 : java.type:"long" = conv %10;
+                        yield %11;
                     };
-                %13 : Var<java.type:"long"> = var %4 @"l";
+                %12 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)
@@ -321,26 +309,22 @@ public class ImplicitConversionTest {
             func @"test13" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
                         yield %7;
                     }
                     ()java.type:"long" -> {
-                        %8 : java.type:"long" = constant @1;
+                        %8 : java.type:"long" = constant @1L;
                         java.yield %8;
                     }
-                    ()java.type:"boolean" -> {
-                        %9 : java.type:"boolean" = constant @true;
-                        yield %9;
-                    }
                     ()java.type:"long" -> {
-                        %10 : java.type:"int" = constant @0;
-                        %11 : java.type:"long" = conv %10;
-                        java.yield %11;
+                        %9 : java.type:"int" = constant @0;
+                        %10 : java.type:"long" = conv %9;
+                        java.yield %10;
                     };
-                %12 : Var<java.type:"long"> = var %4 @"l";
+                %11 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)
@@ -356,7 +340,7 @@ public class ImplicitConversionTest {
             func @"test14" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -367,15 +351,11 @@ public class ImplicitConversionTest {
                         %9 : java.type:"long" = conv %8;
                         java.yield %9;
                     }
-                    ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
-                    }
                     ()java.type:"long" -> {
-                        %11 : java.type:"long" = constant @0;
-                        java.yield %11;
+                        %10 : java.type:"long" = constant @0L;
+                        java.yield %10;
                     };
-                %12 : Var<java.type:"long"> = var %4 @"l";
+                %11 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)
@@ -391,7 +371,7 @@ public class ImplicitConversionTest {
             func @"test15" (%0 : java.type:"ImplicitConversionTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"long" = java.switch.expression %3
+                %4 : java.type:"long" = java.switch.expression %3 @switch.defaultBody=2
                     (%5 : java.type:"int")java.type:"boolean" -> {
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"boolean" = eq %5 %6;
@@ -402,16 +382,12 @@ public class ImplicitConversionTest {
                         %9 : java.type:"long" = conv %8;
                         java.yield %9;
                     }
-                    ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
-                    }
                     ()java.type:"long" -> {
-                        %11 : java.type:"int" = constant @0;
-                        %12 : java.type:"long" = conv %11;
-                        java.yield %12;
+                        %10 : java.type:"int" = constant @0;
+                        %11 : java.type:"long" = conv %10;
+                        java.yield %11;
                     };
-                %13 : Var<java.type:"long"> = var %4 @"l";
+                %12 : Var<java.type:"long"> = var %4 @"l";
                 return;
             };
             """)

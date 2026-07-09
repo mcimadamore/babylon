@@ -29,6 +29,7 @@ import jdk.incubator.code.*;
 import jdk.incubator.code.dialect.core.CoreType;
 import jdk.incubator.code.dialect.core.FunctionType;
 import jdk.incubator.code.dialect.java.*;
+import jdk.incubator.code.dialect.java.JavaOp.JavaSwitchOp.SwitchCase;
 import jdk.incubator.code.extern.*;
 
 import java.util.*;
@@ -401,7 +402,7 @@ public class OpBuilder {
             String followUpBuilderName = EXTER_TYPE_BUILDER_F_NAME + (methodCounter + 1);
             funcs.add(func(EXTER_TYPE_BUILDER_F_NAME + (methodCounter > 0 ? methodCounter : ""), EXTER_TYPE_BUILDER_F_TYPE).body(b -> {
                 Block.Parameter i = b.parameter(INT);
-                List<Body.Builder> swBodies = new ArrayList<>();
+                List<SwitchCase> swCases = new ArrayList<>();
                 for (int counter = 0; counter < TYPE_LIMIT && typesEnntryIterator.hasNext();) {
                     Map.Entry<ExternalizedCodeType, List<Integer>> e = typesEnntryIterator.next();
                     counter += e.getValue().size();
@@ -432,14 +433,10 @@ public class OpBuilder {
                     }
                     expr.entryBlock().add(core_yield(type));
 
-                    swBodies.add(l);
-                    swBodies.add(expr);
+                    swCases.add(SwitchCase.of(l, expr));
                 }
 
                 // default case
-                Body.Builder dl = Body.Builder.of(b.parentBody(), functionType(BOOLEAN));
-                dl.entryBlock().parameter(INT);
-                dl.entryBlock().add(core_yield(dl.entryBlock().add(constant(BOOLEAN, true))));
                 Body.Builder de = Body.Builder.of(b.parentBody(), EXTER_TYPE_BUILDER_F_TYPE);
                 if (typesEnntryIterator.hasNext()) {
                     // forward to a follow-up builder method (we are over TYPE_LIMIT)
@@ -448,10 +445,9 @@ public class OpBuilder {
                     // throw
                     de.entryBlock().add(throw_(de.entryBlock().add(new_(MethodRef.constructor(IllegalStateException.class)))));
                 }
-                swBodies.add(dl);
-                swBodies.add(de);
+                swCases.add(SwitchCase.ofDefault(de));
 
-                var r = b.add(switchExpression(i, swBodies));
+                var r = b.add(switchExpression(i, swCases));
                 b.add(return_(r));
             }));
             methodCounter++;

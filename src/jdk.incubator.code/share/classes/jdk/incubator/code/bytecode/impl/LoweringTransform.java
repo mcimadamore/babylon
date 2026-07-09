@@ -153,14 +153,14 @@ public final class LoweringTransform {
         }
         var labels = new ArrayList<Integer>();
         var targets = new ArrayList<Block>();
-        for (int i = 0; i < swOp.bodies().size(); i += 2) {
-            Body label = swOp.bodies().get(i);
+        for (int i = 0; i < swOp.normalizedBodies().size(); i += 2) {
+            Body label = swOp.normalizedBodies().get(i);
             List<Integer> ls = isCaseConstantLabel(lookup, label);
             if (ls.isEmpty()) {
                 return Optional.empty();
             }
             labels.addAll(ls);
-            targets.addAll(Collections.nCopies(ls.size(), swOp.bodies().get(i + 1).entryBlock()));
+            targets.addAll(Collections.nCopies(ls.size(), swOp.normalizedBodies().get(i + 1).entryBlock()));
         }
         return Optional.of(new LabelsAndTargets(labels, targets));
     }

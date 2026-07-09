@@ -137,7 +137,7 @@ public class UnreachableTest {
             func @"test5" (%0 : java.type:"int")java.type:"void" -> {
                 %1 : Var<java.type:"int"> = var %0 @"n";
                 %2 : java.type:"int" = var.load %1;
-                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                %3 : java.type:"java.lang.String" = java.switch.expression %2 @switch.defaultBody=2
                     (%4 : java.type:"int")java.type:"boolean" -> {
                         %5 : java.type:"int" = constant @42;
                         %6 : java.type:"boolean" = eq %4 %5;
@@ -154,15 +154,11 @@ public class UnreachableTest {
                             };
                         unreachable;
                     }
-                    ()java.type:"boolean" -> {
-                        %8 : java.type:"boolean" = constant @true;
-                        yield %8;
-                    }
                     ()java.type:"java.lang.String" -> {
-                        %9 : java.type:"java.lang.String" = constant @"";
-                        yield %9;
+                        %8 : java.type:"java.lang.String" = constant @"";
+                        yield %8;
                     };
-                %10 : Var<java.type:"java.lang.String"> = var %3 @"s";
+                %9 : Var<java.type:"java.lang.String"> = var %3 @"s";
                 return;
             };
             """)
