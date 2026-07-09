@@ -3467,7 +3467,7 @@ public sealed abstract class JavaOp extends Op {
             };
 
             private final Kind caseKind;
-            private final Body predicateBody;
+            private final Body predicateBody, actionBody;
 
             /**
              * {@return the kind of this case label}
@@ -3490,7 +3490,14 @@ public sealed abstract class JavaOp extends Op {
                 return actionBody;
             }
 
-            private final Body actionBody;
+            private SwitchCase.Builder transform(CodeContext cc, CodeTransformer ct) {
+                return switch (caseKind) {
+                    case NULL -> SwitchCase.Builder.ofNull(actionBody.transform(cc, ct));
+                    case NULL_DEFAULT -> SwitchCase.Builder.ofNullDefault(actionBody.transform(cc, ct));
+                    case DEFAULT -> SwitchCase.Builder.ofDefault(actionBody.transform(cc, ct));
+                    case PREDICATE -> SwitchCase.Builder.of(predicateBody.transform(cc, ct), actionBody.transform(cc, ct));
+                };
+            }
 
             private SwitchCase(Kind caseKind, Body predicateBody, Body actionBody) {
                 this.caseKind = caseKind;
@@ -3612,12 +3619,9 @@ public sealed abstract class JavaOp extends Op {
         JavaSwitchOp(JavaSwitchOp that, CodeContext cc, CodeTransformer ct) {
             super(that, cc);
 
-            // Copy body
+            // Copy cases
             this.cases = that.cases.stream()
-                    .map(c -> new SwitchCase(
-                            c.caseKind,
-                            c.predicateBody.transform(cc, ct).build(this),
-                            c.actionBody.transform(cc, ct).build(this)))
+                    .map(c -> c.transform(cc, ct).build(this))
                     .toList();
         }
 
