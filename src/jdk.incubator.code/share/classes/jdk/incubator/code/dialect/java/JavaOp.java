@@ -49,6 +49,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static jdk.incubator.code.Op.Lowerable.*;
 import static jdk.incubator.code.dialect.core.CoreOp.*;
@@ -3428,13 +3429,8 @@ public sealed abstract class JavaOp extends Op {
     /**
      * An operation modeling a Java switch statement or expression.
      * <p>
-     * Switch operations are parameterized by a selector value.
-     * They feature a sequence of case bodies, each modeled as a pair of bodies: a <em>predicate body</em> and an
-     * <em>action body</em>.
-     * <p>
-     * Each predicate body accepts one argument, the selector value, and yields a {@link JavaType#BOOLEAN} value.
-     * Each action body yields a value of the same type {@code T}. For switch statement operations, {@code T} is
-     * {@code void}. For switch expression operations, {@code T} is the switch expression type.
+     * Switch operations are parameterized by a selector value. They contain zero or more {@linkplain SwitchCase case labels},
+     * each modeling a case label associated with the Java switch statement or expression modeled by this operation.
      *
      * @jls 14.11 The switch Statement
      * @jls 15.28 {@code switch} Expressions
@@ -3444,111 +3440,165 @@ public sealed abstract class JavaOp extends Op {
 
         /**
          * A switch case models a case label in a switch expression or statement.
-         * There are four kind of switch cases. Yada. Yada.
+         * <p>
+         * A switch case features a {@linkplain Kind kind} and a pair of bodies: a <em>predicate body</em>
+         * and an <em>action body</em>.
+         * <p>
+         * The predicate body for a {@code case null, default} or a {@code default} label accepts zero arguments and trivially yields
+         * the value {@code true}. The predicate body for any other switch label accepts one argument, the selector value,
+         * and yields a {@link JavaType#BOOLEAN} value.
+         * <p>
+         * Each action body yields a value of the same type {@code T}. For switch statement operations, {@code T} is
+         * {@code void}. For switch expression operations, {@code T} is the switch expression type.
          */
         public static final class SwitchCase {
-            private final Body.Builder predicateBuilder, actionBuilder;
-            private final Kind caseKind;
-
             /**
              * The kind of a switch case label.
              */
             public enum Kind {
-                /** models a {@code case null} case label */
+                /** models a {@code case null} label */
                 NULL,
-                /** models a {@code case default} case label */
+                /** models a {@code default} label */
                 DEFAULT,
-                /** models a {@code case null, default} case label */
+                /** models a {@code case null, default} label */
                 NULL_DEFAULT,
-                 /** models an ordinary case label */
+                /** models an ordinary case label */
                 PREDICATE;
             };
 
-            private SwitchCase(Kind caseKind, Builder predicateBuilder, Builder actionBuilder) {
+            private final Kind caseKind;
+            private final Body predicateBody;
+
+            /**
+             * {@return the kind of this case label}
+             */
+            public Kind kind() {
+                return caseKind;
+            }
+
+            /**
+             * {@return the predicate body of this case label}
+             */
+            public Body predicateBody() {
+                return predicateBody;
+            }
+
+            /**
+             * {@return the action body of this case label}
+             */
+            public Body actionBody() {
+                return actionBody;
+            }
+
+            private final Body actionBody;
+
+            private SwitchCase(Kind caseKind, Body predicateBody, Body actionBody) {
                 this.caseKind = caseKind;
-                this.predicateBuilder = predicateBuilder;
-                this.actionBuilder = actionBuilder;
+                this.predicateBody = predicateBody;
+                this.actionBody = actionBody;
             }
 
             /**
-             * {@return a new case null label, with given action body builder}
-             * @param actionBuilder the builder for the action body
+             * A builder for switch case labels
              */
-            public static SwitchCase ofNull(Body.Builder actionBuilder) {
-                return new SwitchCase(Kind.NULL,
-                        nullPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
-            }
+            public static final class Builder {
+                private final Body.Builder predicateBuilder, actionBuilder;
+                private final Kind caseKind;
 
-            /**
-             * {@return a new default label, with given action body builder}
-             * @param actionBuilder the builder for the action body
-             */
-            public static SwitchCase ofDefault(Body.Builder actionBuilder) {
-                return new SwitchCase(Kind.DEFAULT,
-                        defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
-            }
 
-            /**
-             * {@return a new null-default label, with given action body builder}
-             * @param actionBuilder the builder for the action body
-             */
-            public static SwitchCase ofNullDefault(Body.Builder actionBuilder) {
-                return new SwitchCase(Kind.NULL_DEFAULT,
-                        defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
-            }
-
-            /**
-             * {@return a new case label, with given predicate and action body builders}
-             * @param predicateBuilder the builder for the predicate body
-             * @param actionBuilder the builder for the action body
-             */
-            public static SwitchCase of(Body.Builder predicateBuilder, Body.Builder actionBuilder) {
-                return new SwitchCase(Kind.PREDICATE, predicateBuilder, actionBuilder);
-            }
-
-            private static List<SwitchCase> of(ExternalizedOp def) {
-                Optional<Integer> nullBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL, false, Integer.class);
-                Optional<Integer> defaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_DEFAULT, false, Integer.class);
-                Optional<Integer> nullDefaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT, false, Integer.class);
-                List<SwitchCase> cases = new ArrayList<>();
-                for (int i = 0 ; i < def.bodyDefinitions().size(); ) {
-                    if (defaultBody.isPresent() && defaultBody.get() == i) {
-                        cases.add(SwitchCase.ofDefault(def.bodyDefinitions().get(i)));
-                        i++;
-                    } else if (nullBody.isPresent() && nullBody.get() == i) {
-                        cases.add(SwitchCase.ofNull(def.bodyDefinitions().get(i)));
-                        i++;
-                    } else if (nullDefaultBody.isPresent() && nullDefaultBody.get() == i) {
-                        cases.add(SwitchCase.ofNullDefault(def.bodyDefinitions().get(i)));
-                        i++;
-                    } else {
-                        cases.add(SwitchCase.of(def.bodyDefinitions().get(i), def.bodyDefinitions().get(i + 1)));
-                        i += 2;
-                    }
+                private Builder(Kind caseKind, Body.Builder predicateBuilder, Body.Builder actionBuilder) {
+                    this.caseKind = caseKind;
+                    this.predicateBuilder = predicateBuilder;
+                    this.actionBuilder = actionBuilder;
                 }
-                return List.copyOf(cases);
-            }
 
-            private static Body.Builder nullPredicate(Body.Builder parent) {
-                var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN, JavaType.J_L_OBJECT));
-                var entry = bb.entryBlock();
-                var n = entry.add(CoreOp.constant(J_L_OBJECT, null));
-                var res = entry.add(JavaOp.eq(entry.parameters().getFirst(), n));
-                entry.add(CoreOp.core_yield(res));
-                return bb;
-            }
+                /**
+                 * {@return the new switch case}
+                 * @param op the switch operation
+                 */
+                public SwitchCase build(JavaSwitchOp op) {
+                    return new SwitchCase(caseKind, predicateBuilder.build(op), actionBuilder.build(op));
+                }
 
-            private static Body.Builder defaultPredicate(Body.Builder parent) {
-                var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN));
-                var entry = bb.entryBlock();
-                var t = entry.add(CoreOp.constant(JavaType.BOOLEAN, true));
-                entry.add(CoreOp.core_yield(t));
-                return bb;
+                /**
+                 * {@return a new case null label, with given action body builder}
+                 * @param actionBuilder the builder for the action body
+                 */
+                public static Builder ofNull(Body.Builder actionBuilder) {
+                    return new Builder(Kind.NULL,
+                            nullPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+                }
+
+                /**
+                 * {@return a new default label, with given action body builder}
+                 * @param actionBuilder the builder for the action body
+                 */
+                public static Builder ofDefault(Body.Builder actionBuilder) {
+                    return new Builder(Kind.DEFAULT,
+                            defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+                }
+
+                /**
+                 * {@return a new null-default label, with given action body builder}
+                 * @param actionBuilder the builder for the action body
+                 */
+                public static Builder ofNullDefault(Body.Builder actionBuilder) {
+                    return new Builder(Kind.NULL_DEFAULT,
+                            defaultPredicate(actionBuilder.connectedAncestorBody()), actionBuilder);
+                }
+
+                /**
+                 * {@return a new case label, with given predicate and action body builders}
+                 * @param predicateBuilder the builder for the predicate body
+                 * @param actionBuilder the builder for the action body
+                 */
+                public static Builder of(Body.Builder predicateBuilder, Body.Builder actionBuilder) {
+                    return new Builder(Kind.PREDICATE, predicateBuilder, actionBuilder);
+                }
+
+                private static List<SwitchCase.Builder> of(ExternalizedOp def) {
+                    Optional<Integer> nullBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL, false, Integer.class);
+                    Optional<Integer> defaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_DEFAULT, false, Integer.class);
+                    Optional<Integer> nullDefaultBody = StructuralPreconditions.optionalAttribute(def, ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT, false, Integer.class);
+                    List<SwitchCase.Builder> cases = new ArrayList<>();
+                    for (int i = 0; i < def.bodyDefinitions().size(); ) {
+                        if (defaultBody.isPresent() && defaultBody.get() == i) {
+                            cases.add(SwitchCase.Builder.ofDefault(def.bodyDefinitions().get(i)));
+                            i++;
+                        } else if (nullBody.isPresent() && nullBody.get() == i) {
+                            cases.add(SwitchCase.Builder.ofNull(def.bodyDefinitions().get(i)));
+                            i++;
+                        } else if (nullDefaultBody.isPresent() && nullDefaultBody.get() == i) {
+                            cases.add(SwitchCase.Builder.ofNullDefault(def.bodyDefinitions().get(i)));
+                            i++;
+                        } else {
+                            cases.add(SwitchCase.Builder.of(def.bodyDefinitions().get(i), def.bodyDefinitions().get(i + 1)));
+                            i += 2;
+                        }
+                    }
+                    return List.copyOf(cases);
+                }
+
+                private static Body.Builder nullPredicate(Body.Builder parent) {
+                    var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN, JavaType.J_L_OBJECT));
+                    var entry = bb.entryBlock();
+                    var n = entry.add(CoreOp.constant(J_L_OBJECT, null));
+                    var res = entry.add(JavaOp.eq(entry.parameters().getFirst(), n));
+                    entry.add(CoreOp.core_yield(res));
+                    return bb;
+                }
+
+                private static Body.Builder defaultPredicate(Body.Builder parent) {
+                    var bb = Body.Builder.of(parent, CoreType.functionType(JavaType.BOOLEAN));
+                    var entry = bb.entryBlock();
+                    var t = entry.add(CoreOp.constant(JavaType.BOOLEAN, true));
+                    entry.add(CoreOp.core_yield(t));
+                    return bb;
+                }
             }
         }
 
-        final List<Body> bodies;
-        final List<Kind> caseKinds;
+        final List<SwitchCase> cases;
 
         /**
          * The externalized attribute key for a switch that handles nulls.
@@ -3563,53 +3613,46 @@ public sealed abstract class JavaOp extends Op {
             super(that, cc);
 
             // Copy body
-            this.bodies = that.bodies.stream()
-                    .map(b -> b.transform(cc, ct).build(this)).toList();
-            this.caseKinds = that.caseKinds;
+            this.cases = that.cases.stream()
+                    .map(c -> new SwitchCase(
+                            c.caseKind,
+                            c.predicateBody.transform(cc, ct).build(this),
+                            c.actionBody.transform(cc, ct).build(this)))
+                    .toList();
         }
 
-        JavaSwitchOp(Value target, List<SwitchCase> cases) {
+        JavaSwitchOp(Value target, List<SwitchCase.Builder> cases) {
             super(List.of(target));
 
             // Each case is modeled as a contiguous pair of bodies
             // The first body models the case labels, and the second models the case statements
             // The labels body has a parameter whose type is target operand's type and returns a boolean value
             // The action body has no parameters and returns void
-            List<Body> bodies = new ArrayList<>();
-            List<Kind> caseKinds = new ArrayList<>();
-            for (SwitchCase c : cases) {
-                bodies.add(c.predicateBuilder.build(this));
-                bodies.add(c.actionBuilder.build(this));
-                caseKinds.add(c.caseKind);
-            }
-            this.bodies = List.copyOf(bodies);
-            this.caseKinds = List.copyOf(caseKinds);
+            this.cases = cases.stream().map(cb -> cb.build(this)).toList();
+        }
+
+        /**
+         * {@return the list of cases associated with this switch operation}
+         */
+        public List<SwitchCase> cases() {
+            return cases;
         }
 
         @Override
         public List<Body> bodies() {
-            List<Body> filteredBodies = new ArrayList<>(bodies);
-            for (int i = caseKinds.size() - 1 ; i >= 0 ; i--) {
-                if (caseKinds.get(i) != Kind.PREDICATE) {
-                    filteredBodies.remove(i * 2);
-                }
-            }
-            return List.copyOf(filteredBodies);
-        }
-
-        /**
-         * {@return the list of predicate/action body pairs of this switch operation}
-         */
-        public List<Body> normalizedBodies() {
-            return bodies;
+            return cases.stream().flatMap(c ->
+                c.caseKind == Kind.PREDICATE ?
+                        Stream.of(c.predicateBody, c.actionBody) :
+                        Stream.of(c.actionBody)
+            ).toList();
         }
 
         @Override
         public Map<String, Object> externalize() {
             int bodyIndex = 0;
             Map<String, Object> attributes = new HashMap<>();
-            for (Kind caseKind : caseKinds) {
-                switch (caseKind) {
+            for (SwitchCase c : cases) {
+                switch (c.caseKind) {
                     case PREDICATE -> bodyIndex += 2;
                     case NULL_DEFAULT -> {
                         attributes.put(ATTRIBUTE_SWITCH_CASE_NULL_DEFAULT, bodyIndex);
@@ -3634,8 +3677,11 @@ public sealed abstract class JavaOp extends Op {
 
             // @@@ we can add this during model generation
             // if no case null, add one that throws NPE
-            boolean handleNulls = caseKinds.stream()
-                    .anyMatch(k -> k == Kind.NULL_DEFAULT || k == Kind.NULL);
+            List<Body> bodies = cases.stream()
+                    .flatMap(c -> Stream.of(c.predicateBody, c.actionBody))
+                    .toList();
+            boolean handleNulls = cases.stream()
+                    .anyMatch(c -> c.caseKind == Kind.NULL_DEFAULT || c.caseKind == Kind.NULL);
             if (!(selectorExpression.type() instanceof PrimitiveType) && !handleNulls) {
                 Block.Builder throwBlock = b.block();
                 throwBlock.add(throw_(
@@ -3773,7 +3819,7 @@ public sealed abstract class JavaOp extends Op {
         final CodeType resultType;
 
         SwitchExpressionOp(ExternalizedOp def) {
-            this(def.resultType(), requireSingleOperand(def), SwitchCase.of(def));
+            this(def.resultType(), requireSingleOperand(def), SwitchCase.Builder.of(def));
         }
 
         SwitchExpressionOp(SwitchExpressionOp that, CodeContext cc, CodeTransformer ct) {
@@ -3787,9 +3833,9 @@ public sealed abstract class JavaOp extends Op {
             return new SwitchExpressionOp(this, cc, ct);
         }
 
-        SwitchExpressionOp(CodeType resultType, Value target, List<SwitchCase> cases) {
+        SwitchExpressionOp(CodeType resultType, Value target, List<SwitchCase.Builder> cases) {
             super(target, cases);
-            this.resultType = resultType == null ? bodies.get(1).yieldType() : resultType;
+            this.resultType = resultType == null ? this.cases.get(0).actionBody.yieldType() : resultType;
         }
 
         @Override
@@ -3813,7 +3859,7 @@ public sealed abstract class JavaOp extends Op {
         static final String NAME = "java.switch.statement";
 
         SwitchStatementOp(ExternalizedOp def) {
-            this(requireSingleOperand(def), SwitchCase.of(def));
+            this(requireSingleOperand(def), SwitchCase.Builder.of(def));
         }
 
         SwitchStatementOp(SwitchStatementOp that, CodeContext cc, CodeTransformer ct) {
@@ -3825,7 +3871,7 @@ public sealed abstract class JavaOp extends Op {
             return new SwitchStatementOp(this, cc, ct);
         }
 
-        SwitchStatementOp(Value target, List<SwitchCase> cases) {
+        SwitchStatementOp(Value target, List<SwitchCase.Builder> cases) {
             super(target, cases);
         }
 
@@ -7241,48 +7287,41 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
-     * Creates a switch expression operation.
+     * Creates a switch expression operation from a list of switch case builders.
      * <p>
-     * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
-     * second is the corresponding action body. The result type of the operation will be derived from the yield type of
-     * the first action body.
+     * The result type of the operation will be derived from the yield type of
+     * the first switch case's action body.
      *
      * @param target the switch target value
-     * @param cases the switch cases
+     * @param cases the builders for the switch cases
      * @return the switch expression operation
      */
-    public static SwitchExpressionOp switchExpression(Value target, List<SwitchCase> cases) {
+    public static SwitchExpressionOp switchExpression(Value target, List<SwitchCase.Builder> cases) {
         return new SwitchExpressionOp(null, target, cases);
     }
 
     /**
-     * Creates a switch expression operation.
-     * <p>
-     * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
-     * second is the corresponding action body.
+     * Creates a switch expression operation from a list of switch case builders
      *
      * @param resultType the result type of the expression
      * @param target     the switch target value
-     * @param cases     the switch cases
+     * @param cases      the builders for the switch cases
      * @return the switch expression operation
      */
     public static SwitchExpressionOp switchExpression(CodeType resultType, Value target,
-                                                      List<SwitchCase> cases) {
+                                                      List<SwitchCase.Builder> cases) {
         Objects.requireNonNull(resultType);
         return new SwitchExpressionOp(resultType, target, cases);
     }
 
     /**
-     * Creates a switch statement operation.
-     * <p>
-     * Case bodies are provided as pairs of bodies, where the first body of each pair is the predicate body and the
-     * second is the corresponding action body.
+     * Creates a switch statement operation from a list of switch case builders
      *
      * @param target the switch target value
-     * @param cases the switch cases
+     * @param cases the builders for the switch cases
      * @return the switch statement operation
      */
-    public static SwitchStatementOp switchStatement(Value target, List<SwitchCase> cases) {
+    public static SwitchStatementOp switchStatement(Value target, List<SwitchCase.Builder> cases) {
         return new SwitchStatementOp(target, cases);
     }
 

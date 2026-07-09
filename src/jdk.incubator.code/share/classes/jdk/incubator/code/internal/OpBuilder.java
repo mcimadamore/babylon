@@ -402,7 +402,7 @@ public class OpBuilder {
             String followUpBuilderName = EXTER_TYPE_BUILDER_F_NAME + (methodCounter + 1);
             funcs.add(func(EXTER_TYPE_BUILDER_F_NAME + (methodCounter > 0 ? methodCounter : ""), EXTER_TYPE_BUILDER_F_TYPE).body(b -> {
                 Block.Parameter i = b.parameter(INT);
-                List<SwitchCase> swCases = new ArrayList<>();
+                List<SwitchCase.Builder> swCases = new ArrayList<>();
                 for (int counter = 0; counter < TYPE_LIMIT && typesEnntryIterator.hasNext();) {
                     Map.Entry<ExternalizedCodeType, List<Integer>> e = typesEnntryIterator.next();
                     counter += e.getValue().size();
@@ -433,7 +433,7 @@ public class OpBuilder {
                     }
                     expr.entryBlock().add(core_yield(type));
 
-                    swCases.add(SwitchCase.of(l, expr));
+                    swCases.add(SwitchCase.Builder.of(l, expr));
                 }
 
                 // default case
@@ -445,7 +445,7 @@ public class OpBuilder {
                     // throw
                     de.entryBlock().add(throw_(de.entryBlock().add(new_(MethodRef.constructor(IllegalStateException.class)))));
                 }
-                swCases.add(SwitchCase.ofDefault(de));
+                swCases.add(SwitchCase.Builder.ofDefault(de));
 
                 var r = b.add(switchExpression(i, swCases));
                 b.add(return_(r));

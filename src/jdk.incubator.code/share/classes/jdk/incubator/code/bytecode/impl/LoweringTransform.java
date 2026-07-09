@@ -40,6 +40,7 @@ import jdk.incubator.code.Value;
 import jdk.incubator.code.dialect.core.CoreOp;
 import jdk.incubator.code.dialect.java.ClassType;
 import jdk.incubator.code.dialect.java.JavaOp;
+import jdk.incubator.code.dialect.java.JavaOp.JavaSwitchOp.SwitchCase;
 import jdk.incubator.code.dialect.java.JavaType;
 import jdk.incubator.code.dialect.java.MethodRef;
 import jdk.incubator.code.dialect.java.PrimitiveType;
@@ -153,14 +154,14 @@ public final class LoweringTransform {
         }
         var labels = new ArrayList<Integer>();
         var targets = new ArrayList<Block>();
-        for (int i = 0; i < swOp.normalizedBodies().size(); i += 2) {
-            Body label = swOp.normalizedBodies().get(i);
+        for (SwitchCase c : swOp.cases()) {
+            Body label = c.predicateBody();
             List<Integer> ls = isCaseConstantLabel(lookup, label);
             if (ls.isEmpty()) {
                 return Optional.empty();
             }
             labels.addAll(ls);
-            targets.addAll(Collections.nCopies(ls.size(), swOp.normalizedBodies().get(i + 1).entryBlock()));
+            targets.addAll(Collections.nCopies(ls.size(), c.actionBody().entryBlock()));
         }
         return Optional.of(new LabelsAndTargets(labels, targets));
     }

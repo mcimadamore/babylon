@@ -1607,7 +1607,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             Type switchType = adaptBottom(tree.type);
             FunctionType caseBodyType = CoreType.functionType(typeToCodeType(switchType));
 
-            List<SwitchCase> switchCases = visitSwitchStatAndExpr(tree, target, tree.cases, caseBodyType,
+            List<SwitchCase.Builder> switchCases = visitSwitchStatAndExpr(tree, target, tree.cases, caseBodyType,
                     !tree.hasUnconditionalPattern);
 
             result = append(JavaOp.switchExpression(caseBodyType.returnType(), target, switchCases));
@@ -1619,20 +1619,20 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
             FunctionType actionType = CoreType.FUNCTION_TYPE_VOID;
 
-            List<SwitchCase> switchCases = visitSwitchStatAndExpr(tree, target, tree.cases, actionType,
+            List<SwitchCase.Builder> switchCases = visitSwitchStatAndExpr(tree, target, tree.cases, actionType,
                     tree.patternSwitch && !tree.hasUnconditionalPattern);
 
             result = append(JavaOp.switchStatement(target, switchCases));
         }
 
-        private List<SwitchCase> visitSwitchStatAndExpr(JCTree tree, Value target,
+        private List<SwitchCase.Builder> visitSwitchStatAndExpr(JCTree tree, Value target,
                                                           List<JCTree.JCCase> cases, FunctionType caseBodyType,
                                                           boolean isDefaultCaseNeeded) {
-            List<SwitchCase> switchCases = new ArrayList<>();
+            List<SwitchCase.Builder> switchCases = new ArrayList<>();
             boolean hasDefaultCase = false;
 
             for (JCTree.JCCase c : cases) {
-                SwitchCase switchCase = visitSwitchCase(tree, target, caseBodyType, c, cases.getLast() == c);
+                SwitchCase.Builder switchCase = visitSwitchCase(tree, target, caseBodyType, c, cases.getLast() == c);
                 hasDefaultCase |= isDefault(c);
                 switchCases.add(switchCase);
             }
@@ -1646,7 +1646,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 ));
                 defaultBody = stack.body;
                 popBody();
-                switchCases.add(SwitchCase.ofDefault(defaultBody));
+                switchCases.add(SwitchCase.Builder.ofDefault(defaultBody));
             }
 
             return switchCases;
@@ -1676,7 +1676,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             }
         }
 
-        private SwitchCase visitSwitchCase(JCTree tree, Value target, FunctionType caseBodyType,
+        private SwitchCase.Builder visitSwitchCase(JCTree tree, Value target, FunctionType caseBodyType,
                                            JCTree.JCCase c, boolean isLast) {
             Body.Builder body;
             FunctionType caseLabelType = CoreType.functionType(JavaType.BOOLEAN, target.type());
@@ -1685,8 +1685,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
             if (isDefault(c)) {
                 Body.Builder action = visitCaseBody(tree, c, caseBodyType, isLast);
                 return c.labels.head instanceof JCDefaultCaseLabel ?
-                        SwitchCase.ofDefault(action) :
-                        SwitchCase.ofNullDefault(action);
+                        SwitchCase.Builder.ofDefault(action) :
+                        SwitchCase.Builder.ofNullDefault(action);
             } else if (headCl instanceof JCTree.JCPatternCaseLabel pcl) {
                 boolean isMultiLabel = c.labels.size() > 1;
 
@@ -1742,7 +1742,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             } else if (headCl instanceof JCTree.JCConstantCaseLabel ccl) {
                 if (c.labels.size() == 1 && TreeInfo.isNull(ccl.expr)) {
                     Body.Builder action = visitCaseBody(tree, c, caseBodyType, isLast);
-                    return SwitchCase.ofNull(action);
+                    return SwitchCase.Builder.ofNull(action);
                 }
 
                 pushBody(headCl, caseLabelType);
@@ -1779,7 +1779,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             }
 
             Body.Builder action = visitCaseBody(tree, c, caseBodyType, isLast);
-            return SwitchCase.of(body, action);
+            return SwitchCase.Builder.of(body, action);
         }
 
         private Body.Builder visitCaseBody(JCTree tree, JCTree.JCCase c, FunctionType caseBodyType, boolean isLastCase) {
