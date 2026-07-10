@@ -130,6 +130,7 @@ import java.lang.invoke.MethodHandles;
 import javax.tools.JavaFileManager;
 import javax.tools.StandardLocation;
 import jdk.incubator.code.bytecode.BytecodeGenerator;
+import jdk.incubator.code.dialect.java.ImplicitConversionTransformer;
 
 /**
  * This a tree translator that adds the code model to all method declaration marked
@@ -232,7 +233,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 // create a static method that returns the op
                 Name methodName = methodName(symbolToMethodRef(tree.sym));
                 opMethodDecls.add(opMethodDecl(methodName));
-                ops.put(methodName.toString(), funcOp);
+                ops.put(methodName.toString(), lowerImplicitConversions(funcOp));
             }
         }
         boolean prevCodeReflectionEnabled = codeReflectionEnabled;
@@ -329,7 +330,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             Name lambdaName = lambdaName();
             JCMethodDecl opMethod = opMethodDecl(lambdaName);
             opMethodDecls.add(opMethod);
-            ops.put(lambdaName.toString(), funcOp);
+            ops.put(lambdaName.toString(), lowerImplicitConversions(funcOp));
 
             // leave the lambda in place, but also leave a trail for LambdaToMethod
             tree.codeReflectionInfo = new CodeReflectionInfo(opMethod.sym, crSyms.reflectableLambdaMetafactory);
@@ -365,7 +366,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             }
             // create a method that returns the FuncOp representing the lambda
             Name lambdaName = lambdaName();
-            ops.put(lambdaName.toString(), funcOp);
+            ops.put(lambdaName.toString(), lowerImplicitConversions(funcOp));
             JCMethodDecl opMethod = opMethodDecl(lambdaName);
             opMethodDecls.add(opMethod);
             tree.codeReflectionInfo = new CodeReflectionInfo(opMethod.sym, crSyms.reflectableLambdaMetafactory);
@@ -375,6 +376,10 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
     Name lambdaName() {
         return names.fromString("lambda").append('$', names.fromString(String.valueOf(lambdaCount++)));
+    }
+
+    private static CoreOp.FuncOp lowerImplicitConversions(CoreOp.FuncOp funcOp) {
+        return funcOp.transform(new ImplicitConversionTransformer());
     }
 
     Name methodName(MethodRef method) {
@@ -752,11 +757,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
         }
 
         Value coerce(Value sourceValue, Type sourceType, Type targetType) {
-            if (sourceType.isReference() && targetType.isReference() &&
-                    !types.isSubtype(types.erasure(sourceType), types.erasure(targetType))) {
-                return append(JavaOp.cast(typeToCodeType(targetType), sourceValue));
-            }
-            return convert(sourceValue, targetType);
+            return sourceValue;
         }
 
         Value boxIfNeeded(Value exprVal) {
@@ -772,6 +773,12 @@ public class ReflectMethods extends TreeTranslatorPrev {
         }
 
         Value convert(Value exprVal, Type target) {
+            // Implicit conversions are deliberately not reflected here.  The source
+            // model retains the types of the original expressions and
+            // ImplicitConversionTransformer reconstructs the conversions from the
+            // surrounding model when the model is consumed.
+            return exprVal;
+            /*
             Type source = codeTypeToType(exprVal.type());
             boolean sourcePrimitive = source.isPrimitive();
             boolean targetPrimitive = target.isPrimitive();
@@ -799,6 +806,30 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 }
             } else {
                 // we need to unbox
+                return unbox(exprVal, source, target, types.unboxedType(source));
+            }
+             */
+        }
+
+        Value explicitConvert(Value exprVal, Type target) {
+            Type source = codeTypeToType(exprVal.type());
+            boolean sourcePrimitive = source.isPrimitive();
+            boolean targetPrimitive = target.isPrimitive();
+            if (sourcePrimitive == targetPrimitive) {
+                if (!sourcePrimitive || types.isSameType(source, target)) {
+                    return exprVal;
+                }
+                return append(JavaOp.conv(typeToCodeType(target), exprVal));
+            } else if (sourcePrimitive) {
+                Type unboxedTarget = types.unboxedType(target);
+                if (!unboxedTarget.hasTag(NONE)) {
+                    if (!types.isConvertible(source, unboxedTarget)) {
+                        exprVal = explicitConvert(exprVal, unboxedTarget);
+                    }
+                    return box(exprVal, target);
+                }
+                return box(exprVal, types.boxedClass(source).type);
+            } else {
                 return unbox(exprVal, source, target, types.unboxedType(source));
             }
         }
@@ -1252,7 +1283,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     result = append(JavaOp.conv(typeToCodeType(type), v));
                 }
             } else if (expressionType.isPrimitive() || type.isPrimitive()) {
-                result = convert(v, tree.type);
+                result = explicitConvert(v, tree.type);
             } else if (!expressionType.hasTag(BOT) &&
                     types.isAssignable(expressionType, type)) {
                 // Redundant cast

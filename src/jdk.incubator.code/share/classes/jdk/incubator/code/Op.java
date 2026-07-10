@@ -36,6 +36,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Context;
 import jdk.incubator.code.dialect.core.CoreType;
 import jdk.incubator.code.dialect.java.JavaOp;
+import jdk.incubator.code.dialect.java.ImplicitConversionTransformer;
 import jdk.incubator.code.internal.ReflectMethods;
 import jdk.incubator.code.dialect.core.CoreOp.FuncOp;
 import jdk.incubator.code.dialect.core.FunctionType;
@@ -811,7 +812,7 @@ public non-sealed abstract class Op implements CodeElement<Op, Body> {
                             return null;
                         }
                     });
-            return Optional.ofNullable(op);
+            return Optional.ofNullable(op).map(o -> o.transform(new ImplicitConversionTransformer()));
         } catch (RuntimeException ex) {  // ReflectMethods.UnsupportedASTException
             // some other error occurred when attempting to attribute the method
             // @@@ better report of error
