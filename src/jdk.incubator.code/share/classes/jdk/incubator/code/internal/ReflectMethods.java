@@ -218,15 +218,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             } else {
                 // if the method is annotated, scan it
                 BodyScanner bodyScanner = new BodyScanner(tree);
-                CoreOp.FuncOp funcOp;
-                try {
-                    funcOp = bodyScanner.scanMethod();
-                } catch (UnsupportedASTException e) {
-                    log.warning(tree, Warnings.ReflectableMethodUnsupported(currentClassSym.enclClass(), e.toString()));
-                    super.visitMethodDef(tree);
-                    return;
-                }
-                funcOp = lowerImplicitConversions(funcOp);
+                CoreOp.FuncOp funcOp = lowerImplicitConversions(bodyScanner.scanMethod());
                 if (dumpIR) {
                     // dump the method IR if requested
                     log.note(Notes.ReflectableMethodIrDump(tree.sym.enclClass(), tree.sym, funcOp.toText()));
@@ -315,15 +307,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
             // quoted lambda - scan it
             BodyScanner bodyScanner = new BodyScanner(tree);
-            CoreOp.FuncOp funcOp;
-            try {
-                funcOp = bodyScanner.scanLambda();
-            } catch (UnsupportedASTException e) {
-                log.warning(tree, Warnings.ReflectableLambdaUnsupported(currentClassSym.enclClass(), e.toString()));
-                super.visitLambda(tree);
-                return;
-            }
-            funcOp = lowerImplicitConversions(funcOp);
+            CoreOp.FuncOp funcOp = lowerImplicitConversions(bodyScanner.scanLambda());
             if (dumpIR) {
                 // dump the method IR if requested
                 log.note(Notes.ReflectableLambdaIrDump(funcOp.toText()));
@@ -958,8 +942,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Type lhsType = tree.operator.type.getParameterTypes().head;
                     Type rhsType = tree.operator.type.getParameterTypes().tail.head;
 
-                    Value rhs = toValue(tree.rhs, rhsType);
                     lhs = convert(lhs, lhsType);
+                    Value rhs = toValue(tree.rhs, rhsType);
 
                     Value assignOpResult = switch (tree.getTag()) {
 
@@ -1238,7 +1222,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     break;
                 }
                 default:
-                    unsupported(meth);
+                    throw unreachable();
             }
         }
 
@@ -1598,8 +1582,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 // Push if condition
                 pushBody(cond,
                         CoreType.functionType(JavaType.BOOLEAN));
-                Value last = toValue(cond);
-                last = convert(last, codeTypeToType(JavaType.BOOLEAN));
+                Value last = toValue(cond, syms.booleanType);
                 // Yield the boolean result of the condition
                 append(CoreOp.core_yield(last));
                 bodies.add(stack.body);
@@ -1788,7 +1771,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     }
 
                     pushBody(c.guard, CoreType.functionType(JavaType.BOOLEAN));
-                    append(CoreOp.core_yield(toValue(c.guard)));
+                    append(CoreOp.core_yield(toValue(c.guard, syms.booleanType)));
                     clBodies.add(stack.body);
                     popBody();
 
@@ -1908,9 +1891,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
             // Push while condition
             pushBody(cond, CoreType.functionType(JavaType.BOOLEAN));
-            Value last = toValue(cond);
+            Value last = toValue(cond, syms.booleanType);
             // Yield the boolean result of the condition
-            last = convert(last, codeTypeToType(JavaType.BOOLEAN));
             append(CoreOp.core_yield(last));
             Body.Builder condition = stack.body;
 
@@ -1946,8 +1928,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
             // Push while condition
             pushBody(cond, CoreType.functionType(JavaType.BOOLEAN));
-            Value last = toValue(cond);
-            last = convert(last, codeTypeToType(JavaType.BOOLEAN));
+            Value last = toValue(cond, syms.booleanType);
             // Yield the boolean result of the condition
             append(CoreOp.core_yield(last));
             Body.Builder condition = stack.body;
@@ -2075,7 +2056,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             if (tree.cond != null) {
                 vds.mapVarsToBlockArguments();
 
-                Value last = toValue(tree.cond);
+                Value last = toValue(tree.cond, syms.booleanType);
                 // Yield the boolean result of the condition
                 append(CoreOp.core_yield(last));
             } else {
@@ -2124,7 +2105,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // Push condition
             pushBody(cond,
                     CoreType.functionType(JavaType.BOOLEAN));
-            Value condVal = toValue(cond);
+            Value condVal = toValue(cond, syms.booleanType);
             // Yield the boolean result of the condition
             append(CoreOp.core_yield(condVal));
             Body.Builder predicateBody = stack.body;
@@ -2189,7 +2170,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // Push condition
             pushBody(cond,
                     CoreType.functionType(JavaType.BOOLEAN));
-            Value condVal = toValue(cond);
+            Value condVal = toValue(cond, syms.booleanType);
 
             // Yield the boolean result of the condition
             append(CoreOp.core_yield(condVal));
@@ -2383,8 +2364,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                             // which doesn't make sense for the model
                             opType = syms.intType;
                         }
-                        Value one = append(numericOneValue(opType));
                         Value lhsConv = convert(lhs, opType);
+                        Value one = append(numericOneValue(opType));
                         FunctionType operatorType = CoreType.functionType(
                                 typeToCodeType(opType), typeToCodeType(opType), typeToCodeType(opType));
 
@@ -2430,7 +2411,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
                 // Push lhs
                 pushBody(tree.lhs, CoreType.functionType(JavaType.BOOLEAN));
-                Value lhs = toValue(tree.lhs);
+                Value lhs = toValue(tree.lhs, syms.booleanType);
                 // Yield the boolean result of the condition
                 append(CoreOp.core_yield(lhs));
                 Body.Builder bodyLhs = stack.body;
@@ -2440,7 +2421,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
                 // Push rhs
                 pushBody(tree.rhs, CoreType.functionType(JavaType.BOOLEAN));
-                Value rhs = toValue(tree.rhs);
+                Value rhs = toValue(tree.rhs, syms.booleanType);
                 // Yield the boolean result of the condition
                 append(CoreOp.core_yield(rhs));
                 Body.Builder bodyRhs = stack.body;
@@ -2550,10 +2531,6 @@ public class ReflectMethods extends TreeTranslatorPrev {
             computeCapturesIfNeeded(tree);
         }
 
-        UnsupportedASTException unsupported(JCTree tree) {
-            return new UnsupportedASTException(tree);
-        }
-
         AssertionError unreachable() {
             return new AssertionError("Should not reach here!");
         }
@@ -2598,24 +2575,6 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 case DOUBLE -> CoreOp.constant(typeToCodeType(t), 1d);
                 default -> throw new UnsupportedOperationException(t.toString());
             };
-        }
-    }
-
-    /**
-     * An exception thrown when an unsupported AST node is found when building a method IR.
-     */
-    static class UnsupportedASTException extends RuntimeException {
-
-        private static final long serialVersionUID = 0;
-        transient final JCTree tree;
-
-        public UnsupportedASTException(JCTree tree) {
-            this.tree = tree;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + ":" + tree;
         }
     }
 
