@@ -256,8 +256,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
             default -> List.of();
         };
         if (operand >= targets.size()) return output;
-        if (consumer instanceof JavaOp.ArithmeticOperation arithmetic &&
-                operand == 0 && isCompoundStoreback(arithmetic)) return output;
         CodeType target = targets.get(operand);
         return target != null && requiresConversion(output.type(), target)
                 ? convert(block, output, target) : output;
@@ -294,28 +292,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     private static boolean requiresConversion(CodeType source, CodeType target) {
         return !source.equals(target) && (source instanceof PrimitiveType || target instanceof PrimitiveType);
-    }
-
-    private static boolean isCompoundStoreback(JavaOp.ArithmeticOperation op) {
-        return switch (op.operands().getFirst()) {
-            case Op.Result result when result.op() instanceof CoreOp.VarAccessOp.VarLoadOp load ->
-                    op.result().uses().stream().anyMatch(use ->
-                            use.op() instanceof CoreOp.VarAccessOp.VarStoreOp store &&
-                                    store.storeOperand() == op.result() && store.varOperand() == load.varOperand());
-            case Op.Result result when result.op() instanceof JavaOp.FieldAccessOp.FieldLoadOp load ->
-                    op.result().uses().stream().anyMatch(use ->
-                            use.op() instanceof JavaOp.FieldAccessOp.FieldStoreOp store &&
-                                    store.valueOperand() == op.result() &&
-                                    store.fieldReference().equals(load.fieldReference()) &&
-                                    store.receiverOperand() == load.receiverOperand());
-            case Op.Result result when result.op() instanceof JavaOp.ArrayAccessOp.ArrayLoadOp load ->
-                    op.result().uses().stream().anyMatch(use ->
-                            use.op() instanceof JavaOp.ArrayAccessOp.ArrayStoreOp store &&
-                                    store.valueOperand() == op.result() &&
-                                    store.arrayOperand() == load.arrayOperand() &&
-                                    store.indexOperand() == load.indexOperand());
-            default -> false;
-        };
     }
 
     private static Value unbox(Block.Builder block, Value value, PrimitiveType primitive) {

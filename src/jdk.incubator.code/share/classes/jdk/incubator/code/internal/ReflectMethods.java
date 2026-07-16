@@ -226,6 +226,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     super.visitMethodDef(tree);
                     return;
                 }
+                funcOp = lowerImplicitConversions(funcOp);
                 if (dumpIR) {
                     // dump the method IR if requested
                     log.note(Notes.ReflectableMethodIrDump(tree.sym.enclClass(), tree.sym, funcOp.toText()));
@@ -233,7 +234,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 // create a static method that returns the op
                 Name methodName = methodName(symbolToMethodRef(tree.sym));
                 opMethodDecls.add(opMethodDecl(methodName));
-                ops.put(methodName.toString(), lowerImplicitConversions(funcOp));
+                ops.put(methodName.toString(), funcOp);
             }
         }
         boolean prevCodeReflectionEnabled = codeReflectionEnabled;
@@ -322,6 +323,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 super.visitLambda(tree);
                 return;
             }
+            funcOp = lowerImplicitConversions(funcOp);
             if (dumpIR) {
                 // dump the method IR if requested
                 log.note(Notes.ReflectableLambdaIrDump(funcOp.toText()));
@@ -330,7 +332,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             Name lambdaName = lambdaName();
             JCMethodDecl opMethod = opMethodDecl(lambdaName);
             opMethodDecls.add(opMethod);
-            ops.put(lambdaName.toString(), lowerImplicitConversions(funcOp));
+            ops.put(lambdaName.toString(), funcOp);
 
             // leave the lambda in place, but also leave a trail for LambdaToMethod
             tree.codeReflectionInfo = new CodeReflectionInfo(opMethod.sym, crSyms.reflectableLambdaMetafactory);
@@ -360,13 +362,14 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // quoted lambda - scan it
             BodyScanner bodyScanner = new BodyScanner(lambdaTree);
             CoreOp.FuncOp funcOp = bodyScanner.scanLambda();
+            funcOp = lowerImplicitConversions(funcOp);
             if (dumpIR) {
                 // dump the method IR if requested
                 log.note(Notes.ReflectableMrefIrDump(funcOp.toText()));
             }
             // create a method that returns the FuncOp representing the lambda
             Name lambdaName = lambdaName();
-            ops.put(lambdaName.toString(), lowerImplicitConversions(funcOp));
+            ops.put(lambdaName.toString(), funcOp);
             JCMethodDecl opMethod = opMethodDecl(lambdaName);
             opMethodDecls.add(opMethod);
             tree.codeReflectionInfo = new CodeReflectionInfo(opMethod.sym, crSyms.reflectableLambdaMetafactory);
