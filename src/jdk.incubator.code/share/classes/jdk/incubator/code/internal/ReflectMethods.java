@@ -757,49 +757,12 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     exprVal : convert(exprVal, types.boxedTypeOrType(source));
         }
 
-        Value unboxIfNeeded(Value exprVal) {
-            Type source = codeTypeToType(exprVal.type());
-            return source.hasTag(NONE) ?
-                    exprVal : convert(exprVal, types.unboxedTypeOrType(source));
-        }
-
         Value convert(Value exprVal, Type target) {
             // Implicit conversions are deliberately not reflected here.  The source
             // model retains the types of the original expressions and
             // ImplicitConversionTransformer reconstructs the conversions from the
             // surrounding model when the model is consumed.
             return exprVal;
-            /*
-            Type source = codeTypeToType(exprVal.type());
-            boolean sourcePrimitive = source.isPrimitive();
-            boolean targetPrimitive = target.isPrimitive();
-            if (target.hasTag(NONE)) {
-                return exprVal;
-            } else if (sourcePrimitive == targetPrimitive) {
-                if (!sourcePrimitive || types.isSameType(source, target)) {
-                    return exprVal;
-                } else {
-                    // implicit primitive conversion
-                    return append(JavaOp.conv(typeToCodeType(target), exprVal));
-                }
-            } else if (sourcePrimitive) {
-                // we need to box
-                Type unboxedTarget = types.unboxedType(target);
-                if (!unboxedTarget.hasTag(NONE)) {
-                    // non-Object target
-                    if (!types.isConvertible(source, unboxedTarget)) {
-                        exprVal = convert(exprVal, unboxedTarget);
-                    }
-                    return box(exprVal, target);
-                } else {
-                    // Object target
-                    return box(exprVal, types.boxedClass(source).type);
-                }
-            } else {
-                // we need to unbox
-                return unbox(exprVal, source, target, types.unboxedType(source));
-            }
-             */
         }
 
         Value explicitConvert(Value exprVal, Type target) {
@@ -2445,11 +2408,10 @@ public class ReflectMethods extends TreeTranslatorPrev {
             }
             else {
                 FunctionType operatorType = typeToFunctionType(tree.operator.type);
-                Type opType = tree.operator.type.getParameterTypes().getFirst();
-                // @@@ potentially handle shift input conversion like other binary ops
-                boolean isShift = tag == Tag.SL || tag == Tag.SR || tag == Tag.USR;
-                Value lhs = toValue(tree.lhs, opType);
-                Value rhs = toValue(tree.rhs, isShift ? tree.operator.type.getParameterTypes().getLast() : opType);
+                Type lhsType = tree.operator.type.getParameterTypes().head;
+                Type rhsType = tree.operator.type.getParameterTypes().tail.head;
+                Value lhs = toValue(tree.lhs, lhsType);
+                Value rhs = toValue(tree.rhs, rhsType);
 
                 result = switch (tag) {
                     // Arithmetic operations

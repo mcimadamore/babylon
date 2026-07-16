@@ -220,10 +220,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
             ClassType wrapper = primitive.box().orElseThrow();
             value = block.add(JavaOp.invoke(MethodRef.method(wrapper, "valueOf", wrapper, primitive), value));
         }
-        // The model does not provide an assignability relation for reference
-        // descriptors.  In particular, erasure-compatible and widening
-        // conversions need no cast.  Preserve an explicit Java cast emitted by
-        // ReflectMethods, but do not invent one for an implicit conversion.
         return value;
     }
 
