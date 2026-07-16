@@ -73,6 +73,20 @@ public class TestBinops {
     }
 
     @Reflect
+    public static int pos(int a) {
+        return +a;
+    }
+
+    @Test
+    public void testPos() {
+        CoreOp.FuncOp f = getFuncOp("pos");
+
+        System.out.println(f.toText());
+
+        Assertions.assertEquals(pos(42), Interpreter.invoke(MethodHandles.lookup(), f, 42));
+    }
+
+    @Reflect
     public static int compl(int a) {
         return ~a;
     }

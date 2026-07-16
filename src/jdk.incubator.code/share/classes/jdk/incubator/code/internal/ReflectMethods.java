@@ -757,6 +757,10 @@ public class ReflectMethods extends TreeTranslatorPrev {
         }
 
         Value coerce(Value sourceValue, Type sourceType, Type targetType) {
+            if (sourceType.isReference() && targetType.isReference() &&
+                    !types.isSubtype(types.erasure(sourceType), types.erasure(targetType))) {
+                return append(JavaOp.cast(typeToCodeType(targetType), sourceValue));
+            }
             return sourceValue;
         }
 
@@ -947,6 +951,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             } else {
                 // arithmetic op
                 applyCompoundAssign(tree.lhs, lhs -> {
+                    FunctionType operatorType = typeToFunctionType(tree.operator.type);
                     Type lhsType = tree.operator.type.getParameterTypes().head;
                     Type rhsType = tree.operator.type.getParameterTypes().tail.head;
 
@@ -956,21 +961,21 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Value assignOpResult = switch (tree.getTag()) {
 
                         // Arithmetic operations
-                        case PLUS_ASG -> append(JavaOp.add(lhs, rhs));
-                        case MINUS_ASG -> append(JavaOp.sub(lhs, rhs));
-                        case MUL_ASG -> append(JavaOp.mul(lhs, rhs));
-                        case DIV_ASG -> append(JavaOp.div(lhs, rhs));
-                        case MOD_ASG -> append(JavaOp.mod(lhs, rhs));
+                        case PLUS_ASG -> append(JavaOp.add(operatorType, lhs, rhs));
+                        case MINUS_ASG -> append(JavaOp.sub(operatorType, lhs, rhs));
+                        case MUL_ASG -> append(JavaOp.mul(operatorType, lhs, rhs));
+                        case DIV_ASG -> append(JavaOp.div(operatorType, lhs, rhs));
+                        case MOD_ASG -> append(JavaOp.mod(operatorType, lhs, rhs));
 
                         // Bitwise operations (including their boolean variants)
-                        case BITOR_ASG -> append(JavaOp.or(lhs, rhs));
-                        case BITAND_ASG -> append(JavaOp.and(lhs, rhs));
-                        case BITXOR_ASG -> append(JavaOp.xor(lhs, rhs));
+                        case BITOR_ASG -> append(JavaOp.or(operatorType, lhs, rhs));
+                        case BITAND_ASG -> append(JavaOp.and(operatorType, lhs, rhs));
+                        case BITXOR_ASG -> append(JavaOp.xor(operatorType, lhs, rhs));
 
                         // Shift operations
-                        case SL_ASG -> append(JavaOp.lshl(lhs, rhs));
-                        case SR_ASG -> append(JavaOp.ashr(lhs, rhs));
-                        case USR_ASG -> append(JavaOp.lshr(lhs, rhs));
+                        case SL_ASG -> append(JavaOp.lshl(operatorType, lhs, rhs));
+                        case SR_ASG -> append(JavaOp.ashr(operatorType, lhs, rhs));
+                        case USR_ASG -> append(JavaOp.lshr(operatorType, lhs, rhs));
 
 
                         default -> throw unreachable();
@@ -1724,7 +1729,15 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 Value expr = toValue(label.expr);
                 // conversion may be needed for primitive, e.g. label (byte) 1 and selector of type int
                 expr = convert(expr, codeTypeToType(target.type()));
-                return append(JavaOp.eq(target, expr));
+                CodeType comparisonType = target.type();
+                if (comparisonType instanceof ClassType ct && ct.unbox().isPresent()) {
+                    comparisonType = ct.unbox().get();
+                }
+                CodeType rightComparisonType = label.expr.type.hasTag(BOT)
+                        ? expr.type() : comparisonType;
+                FunctionType operatorType = CoreType.functionType(
+                        JavaType.BOOLEAN, comparisonType, rightComparisonType);
+                return append(JavaOp.eq(operatorType, target, expr));
             }
         }
 
@@ -2369,10 +2382,12 @@ public class ReflectMethods extends TreeTranslatorPrev {
                         }
                         Value one = append(numericOneValue(opType));
                         Value lhsConv = convert(lhs, opType);
+                        FunctionType operatorType = CoreType.functionType(
+                                typeToCodeType(opType), typeToCodeType(opType), typeToCodeType(opType));
 
                         Value lhsPlusOne = (tag == Tag.PREINC || tag ==  Tag.POSTINC) ?
-                            append(JavaOp.add(lhsConv, one)) :
-                            append(JavaOp.sub(lhsConv, one));
+                            append(JavaOp.add(operatorType, lhsConv, one)) :
+                            append(JavaOp.sub(operatorType, lhsConv, one));
                         lhsPlusOne = convert(lhsPlusOne, tree.type);
 
                         // Assign expression result
@@ -2385,19 +2400,19 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 }
                 case NEG -> {
                     Value rhs = toValue(tree.arg, tree.type);
-                    result = append(JavaOp.neg(rhs));
+                    result = append(JavaOp.neg(typeToFunctionType(tree.operator.type), rhs));
                 }
                 case NOT -> {
                     Value rhs = toValue(tree.arg, tree.type);
-                    result = append(JavaOp.not(rhs));
+                    result = append(JavaOp.not(typeToFunctionType(tree.operator.type), rhs));
                 }
                 case COMPL -> {
                     Value rhs = toValue(tree.arg, tree.type);
-                    result = append(JavaOp.compl(rhs));
+                    result = append(JavaOp.compl(typeToFunctionType(tree.operator.type), rhs));
                 }
                 case POS -> {
-                    // Result is value of the operand
-                    result = toValue(tree.arg, tree.type);
+                    Value rhs = toValue(tree.arg, tree.type);
+                    result = append(JavaOp.pos(typeToFunctionType(tree.operator.type), rhs));
                 }
                 default -> throw unreachable(); // NULLCHK not possible
             }
@@ -2445,6 +2460,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 result = append(JavaOp.concat(lhs, rhs));
             }
             else {
+                FunctionType operatorType = typeToFunctionType(tree.operator.type);
                 Type opType = tree.operator.type.getParameterTypes().getFirst();
                 // @@@ potentially handle shift input conversion like other binary ops
                 boolean isShift = tag == Tag.SL || tag == Tag.SR || tag == Tag.USR;
@@ -2453,30 +2469,30 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
                 result = switch (tag) {
                     // Arithmetic operations
-                    case PLUS -> append(JavaOp.add(lhs, rhs));
-                    case MINUS -> append(JavaOp.sub(lhs, rhs));
-                    case MUL -> append(JavaOp.mul(lhs, rhs));
-                    case DIV -> append(JavaOp.div(lhs, rhs));
-                    case MOD -> append(JavaOp.mod(lhs, rhs));
+                    case PLUS -> append(JavaOp.add(operatorType, lhs, rhs));
+                    case MINUS -> append(JavaOp.sub(operatorType, lhs, rhs));
+                    case MUL -> append(JavaOp.mul(operatorType, lhs, rhs));
+                    case DIV -> append(JavaOp.div(operatorType, lhs, rhs));
+                    case MOD -> append(JavaOp.mod(operatorType, lhs, rhs));
 
                     // Test operations
-                    case EQ -> append(JavaOp.eq(lhs, rhs));
-                    case NE -> append(JavaOp.neq(lhs, rhs));
+                    case EQ -> append(JavaOp.eq(operatorType, lhs, rhs));
+                    case NE -> append(JavaOp.neq(operatorType, lhs, rhs));
                     //
-                    case LT -> append(JavaOp.lt(lhs, rhs));
-                    case LE -> append(JavaOp.le(lhs, rhs));
-                    case GT -> append(JavaOp.gt(lhs, rhs));
-                    case GE -> append(JavaOp.ge(lhs, rhs));
+                    case LT -> append(JavaOp.lt(operatorType, lhs, rhs));
+                    case LE -> append(JavaOp.le(operatorType, lhs, rhs));
+                    case GT -> append(JavaOp.gt(operatorType, lhs, rhs));
+                    case GE -> append(JavaOp.ge(operatorType, lhs, rhs));
 
                     // Bitwise operations (including their boolean variants)
-                    case BITOR -> append(JavaOp.or(lhs, rhs));
-                    case BITAND -> append(JavaOp.and(lhs, rhs));
-                    case BITXOR -> append(JavaOp.xor(lhs, rhs));
+                    case BITOR -> append(JavaOp.or(operatorType, lhs, rhs));
+                    case BITAND -> append(JavaOp.and(operatorType, lhs, rhs));
+                    case BITXOR -> append(JavaOp.xor(operatorType, lhs, rhs));
 
                     // Shift operations
-                    case SL -> append(JavaOp.lshl(lhs, rhs));
-                    case SR -> append(JavaOp.ashr(lhs, rhs));
-                    case USR -> append(JavaOp.lshr(lhs, rhs));
+                    case SL -> append(JavaOp.lshl(operatorType, lhs, rhs));
+                    case SR -> append(JavaOp.ashr(operatorType, lhs, rhs));
+                    case USR -> append(JavaOp.lshr(operatorType, lhs, rhs));
 
                     default -> throw unreachable();
                 };

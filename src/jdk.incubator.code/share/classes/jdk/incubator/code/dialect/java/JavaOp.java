@@ -1925,12 +1925,32 @@ public sealed abstract class JavaOp extends Op {
      */
     public sealed static abstract class ArithmeticOperation extends JavaOp
             implements Pure, JavaExpression {
+        final FunctionType functionType;
+
         ArithmeticOperation(ArithmeticOperation that, CodeContext cc) {
             super(that, cc);
+            this.functionType = that.functionType;
         }
 
-        ArithmeticOperation(List<Value> operands) {
+        ArithmeticOperation(FunctionType functionType, List<Value> operands) {
             super(operands);
+            if (functionType.parameterTypes().size() != operands.size()) {
+                throw structuralException("arithmetic", "operator function type requires %d operands, found %d"
+                        .formatted(functionType.parameterTypes().size(), operands.size()));
+            }
+            this.functionType = functionType;
+        }
+
+        @Override
+        public Map<String, Object> externalize() {
+            return Map.of("", functionType);
+        }
+
+        /**
+         * {@return the resolved Java operator function type}
+         */
+        public FunctionType functionType() {
+            return functionType;
         }
     }
 
@@ -1947,11 +1967,19 @@ public sealed abstract class JavaOp extends Op {
         }
 
         BinaryOp(ExternalizedOp def) {
-            super(requireOperands(def, 2));
+            this(operatorFunctionType(def, 2), requireOperands(def, 2));
+        }
+
+        BinaryOp(FunctionType functionType, Value lhs, Value rhs) {
+            this(functionType, List.of(lhs, rhs));
         }
 
         BinaryOp(Value lhs, Value rhs) {
-            super(List.of(lhs, rhs));
+            this(CoreType.functionType(lhs.type(), lhs.type(), rhs.type()), lhs, rhs);
+        }
+
+        private BinaryOp(FunctionType functionType, List<Value> operands) {
+            super(functionType, operands);
         }
 
         /**
@@ -1970,7 +1998,7 @@ public sealed abstract class JavaOp extends Op {
 
         @Override
         public CodeType resultType() {
-            return operands().get(0).type();
+            return functionType.returnType();
         }
     }
 
@@ -1986,11 +2014,15 @@ public sealed abstract class JavaOp extends Op {
         }
 
         UnaryOp(ExternalizedOp def) {
-            super(requireOperands(def, 1));
+            this(operatorFunctionType(def, 1), requireSingleOperand(def));
+        }
+
+        UnaryOp(FunctionType functionType, Value v) {
+            super(functionType, List.of(v));
         }
 
         UnaryOp(Value v) {
-            super(List.of(v));
+            this(CoreType.functionType(v.type(), v.type()), v);
         }
 
         /**
@@ -2002,7 +2034,7 @@ public sealed abstract class JavaOp extends Op {
 
         @Override
         public CodeType resultType() {
-            return operands().get(0).type();
+            return functionType.returnType();
         }
     }
 
@@ -2017,11 +2049,19 @@ public sealed abstract class JavaOp extends Op {
         }
 
         CompareOp(ExternalizedOp def) {
-            super(requireOperands(def, 2));
+            this(operatorFunctionType(def, 2), requireOperands(def, 2));
+        }
+
+        CompareOp(FunctionType functionType, Value lhs, Value rhs) {
+            this(functionType, List.of(lhs, rhs));
         }
 
         CompareOp(Value lhs, Value rhs) {
-            super(List.of(lhs, rhs));
+            this(CoreType.functionType(BOOLEAN, lhs.type(), rhs.type()), lhs, rhs);
+        }
+
+        private CompareOp(FunctionType functionType, List<Value> operands) {
+            super(functionType, operands);
         }
 
         /**
@@ -2040,8 +2080,14 @@ public sealed abstract class JavaOp extends Op {
 
         @Override
         public CodeType resultType() {
-            return BOOLEAN;
+            return functionType.returnType();
         }
+    }
+
+    private static FunctionType operatorFunctionType(ExternalizedOp def, int arity) {
+        return optionalAttribute(def, "", true, FunctionType.class)
+                .orElseGet(() -> CoreType.functionType(def.resultType(),
+                        def.operands().stream().limit(arity).map(Value::type).toArray(CodeType[]::new)));
     }
 
     /**
@@ -2068,6 +2114,10 @@ public sealed abstract class JavaOp extends Op {
 
         AddOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        AddOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2096,6 +2146,10 @@ public sealed abstract class JavaOp extends Op {
         SubOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        SubOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2122,6 +2176,10 @@ public sealed abstract class JavaOp extends Op {
 
         MulOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        MulOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2150,6 +2208,10 @@ public sealed abstract class JavaOp extends Op {
         DivOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        DivOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2176,6 +2238,10 @@ public sealed abstract class JavaOp extends Op {
 
         ModOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        ModOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2205,6 +2271,10 @@ public sealed abstract class JavaOp extends Op {
         OrOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        OrOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2232,6 +2302,10 @@ public sealed abstract class JavaOp extends Op {
 
         AndOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        AndOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2261,6 +2335,10 @@ public sealed abstract class JavaOp extends Op {
         XorOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        XorOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2287,6 +2365,10 @@ public sealed abstract class JavaOp extends Op {
 
         LshlOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        LshlOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2315,6 +2397,10 @@ public sealed abstract class JavaOp extends Op {
         AshrOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        AshrOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2341,6 +2427,10 @@ public sealed abstract class JavaOp extends Op {
 
         LshrOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        LshrOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2369,6 +2459,41 @@ public sealed abstract class JavaOp extends Op {
         NegOp(Value v) {
             super(v);
         }
+
+        NegOp(FunctionType functionType, Value v) {
+            super(functionType, v);
+        }
+    }
+
+    /**
+     * The unary plus operation for numeric types.
+     *
+     * @jls 15.15.3 Unary Plus Operator {@code +}
+     */
+    @OpDeclaration(PosOp.NAME)
+    public static final class PosOp extends UnaryOp {
+        static final String NAME = "pos";
+
+        PosOp(ExternalizedOp def) {
+            super(def);
+        }
+
+        PosOp(PosOp that, CodeContext cc) {
+            super(that, cc);
+        }
+
+        @Override
+        public PosOp transform(CodeContext cc, CodeTransformer ct) {
+            return new PosOp(this, cc);
+        }
+
+        PosOp(Value v) {
+            super(v);
+        }
+
+        PosOp(FunctionType functionType, Value v) {
+            super(functionType, v);
+        }
     }
 
     /**
@@ -2396,6 +2521,10 @@ public sealed abstract class JavaOp extends Op {
         ComplOp(Value v) {
             super(v);
         }
+
+        ComplOp(FunctionType functionType, Value v) {
+            super(functionType, v);
+        }
     }
 
     /**
@@ -2422,6 +2551,10 @@ public sealed abstract class JavaOp extends Op {
 
         NotOp(Value v) {
             super(v);
+        }
+
+        NotOp(FunctionType functionType, Value v) {
+            super(functionType, v);
         }
     }
 
@@ -2451,6 +2584,10 @@ public sealed abstract class JavaOp extends Op {
         EqOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        EqOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2479,6 +2616,10 @@ public sealed abstract class JavaOp extends Op {
         NeqOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        NeqOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2505,6 +2646,10 @@ public sealed abstract class JavaOp extends Op {
 
         GtOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        GtOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -2534,6 +2679,10 @@ public sealed abstract class JavaOp extends Op {
         GeOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        GeOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2562,6 +2711,10 @@ public sealed abstract class JavaOp extends Op {
         LtOp(Value lhs, Value rhs) {
             super(lhs, rhs);
         }
+
+        LtOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
+        }
     }
 
     /**
@@ -2589,6 +2742,10 @@ public sealed abstract class JavaOp extends Op {
 
         LeOp(Value lhs, Value rhs) {
             super(lhs, rhs);
+        }
+
+        LeOp(FunctionType functionType, Value lhs, Value rhs) {
+            super(functionType, lhs, rhs);
         }
     }
 
@@ -6319,6 +6476,7 @@ public sealed abstract class JavaOp extends Op {
             case "new" -> new NewOp(def);
             case "not" -> new NotOp(def);
             case "or" -> new OrOp(def);
+            case "pos" -> new PosOp(def);
             case "pattern.match" -> new PatternOps.MatchOp(def);
             case "pattern.match.all" -> new PatternOps.MatchAllPatternOp(def);
             case "pattern.record" -> new PatternOps.RecordPatternOp(def);
@@ -6823,6 +6981,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates an add operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static AddOp add(FunctionType functionType, Value lhs, Value rhs) {
+        return new AddOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a sub operation.
      *
      * @param lhs the first operand
@@ -6831,6 +7000,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static SubOp sub(Value lhs, Value rhs) {
         return new SubOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a sub operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static SubOp sub(FunctionType functionType, Value lhs, Value rhs) {
+        return new SubOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6845,6 +7025,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a mul operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static MulOp mul(FunctionType functionType, Value lhs, Value rhs) {
+        return new MulOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a div operation.
      *
      * @param lhs the first operand
@@ -6853,6 +7044,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static DivOp div(Value lhs, Value rhs) {
         return new DivOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a div operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static DivOp div(FunctionType functionType, Value lhs, Value rhs) {
+        return new DivOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6867,6 +7069,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a mod operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static ModOp mod(FunctionType functionType, Value lhs, Value rhs) {
+        return new ModOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a bitwise/logical or operation.
      *
      * @param lhs the first operand
@@ -6875,6 +7088,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static OrOp or(Value lhs, Value rhs) {
         return new OrOp(lhs, rhs);
+    }
+
+    /**
+     * Creates an or operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static OrOp or(FunctionType functionType, Value lhs, Value rhs) {
+        return new OrOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6889,6 +7113,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates an and operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static AndOp and(FunctionType functionType, Value lhs, Value rhs) {
+        return new AndOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a bitwise/logical xor operation.
      *
      * @param lhs the first operand
@@ -6897,6 +7132,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static XorOp xor(Value lhs, Value rhs) {
         return new XorOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a xor operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static XorOp xor(FunctionType functionType, Value lhs, Value rhs) {
+        return new XorOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6911,6 +7157,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a left shift operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static LshlOp lshl(FunctionType functionType, Value lhs, Value rhs) {
+        return new LshlOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a right shift operation.
      *
      * @param lhs the first operand
@@ -6919,6 +7176,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static AshrOp ashr(Value lhs, Value rhs) {
         return new AshrOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a right shift operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static AshrOp ashr(FunctionType functionType, Value lhs, Value rhs) {
+        return new AshrOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6933,6 +7201,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates an unsigned right shift operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static LshrOp lshr(FunctionType functionType, Value lhs, Value rhs) {
+        return new LshrOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a neg operation.
      *
      * @param v the operand
@@ -6940,6 +7219,36 @@ public sealed abstract class JavaOp extends Op {
      */
     public static NegOp neg(Value v) {
         return new NegOp(v);
+    }
+
+    /**
+     * Creates a neg operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param v the operand
+     * @return the operation
+     */
+    public static NegOp neg(FunctionType functionType, Value v) {
+        return new NegOp(functionType, v);
+    }
+
+    /**
+     * Creates a unary plus operation.
+     *
+     * @param v the operand
+     * @return the unary plus operation
+     */
+    public static PosOp pos(Value v) {
+        return new PosOp(v);
+    }
+
+    /**
+     * Creates a unary plus operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param v the operand
+     * @return the operation
+     */
+    public static PosOp pos(FunctionType functionType, Value v) {
+        return new PosOp(functionType, v);
     }
 
     /**
@@ -6953,6 +7262,16 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a complement operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param v the operand
+     * @return the operation
+     */
+    public static ComplOp compl(FunctionType functionType, Value v) {
+        return new ComplOp(functionType, v);
+    }
+
+    /**
      * Creates a not operation.
      *
      * @param v the operand
@@ -6960,6 +7279,16 @@ public sealed abstract class JavaOp extends Op {
      */
     public static NotOp not(Value v) {
         return new NotOp(v);
+    }
+
+    /**
+     * Creates a not operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param v the operand
+     * @return the operation
+     */
+    public static NotOp not(FunctionType functionType, Value v) {
+        return new NotOp(functionType, v);
     }
 
     /**
@@ -6974,6 +7303,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates an equal operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static EqOp eq(FunctionType functionType, Value lhs, Value rhs) {
+        return new EqOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a not equals comparison operation.
      *
      * @param lhs the first operand
@@ -6982,6 +7322,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static NeqOp neq(Value lhs, Value rhs) {
         return new NeqOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a not-equal operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static NeqOp neq(FunctionType functionType, Value lhs, Value rhs) {
+        return new NeqOp(functionType, lhs, rhs);
     }
 
     /**
@@ -6996,6 +7347,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a greater-than operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static GtOp gt(FunctionType functionType, Value lhs, Value rhs) {
+        return new GtOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a greater than or equals to comparison operation.
      *
      * @param lhs the first operand
@@ -7004,6 +7366,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static GeOp ge(Value lhs, Value rhs) {
         return new GeOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a greater-or-equal operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static GeOp ge(FunctionType functionType, Value lhs, Value rhs) {
+        return new GeOp(functionType, lhs, rhs);
     }
 
     /**
@@ -7018,6 +7391,17 @@ public sealed abstract class JavaOp extends Op {
     }
 
     /**
+     * Creates a less-than operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static LtOp lt(FunctionType functionType, Value lhs, Value rhs) {
+        return new LtOp(functionType, lhs, rhs);
+    }
+
+    /**
      * Creates a less than or equals to comparison operation.
      *
      * @param lhs the first operand
@@ -7026,6 +7410,17 @@ public sealed abstract class JavaOp extends Op {
      */
     public static LeOp le(Value lhs, Value rhs) {
         return new LeOp(lhs, rhs);
+    }
+
+    /**
+     * Creates a less-or-equal operation with a resolved operator type.
+     * @param functionType the operator type
+     * @param lhs the first operand
+     * @param rhs the second operand
+     * @return the operation
+     */
+    public static LeOp le(FunctionType functionType, Value lhs, Value rhs) {
+        return new LeOp(functionType, lhs, rhs);
     }
 
     /**
