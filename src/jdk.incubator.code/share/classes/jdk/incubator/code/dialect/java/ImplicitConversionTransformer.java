@@ -7,6 +7,20 @@
  * published by the Free Software Foundation.  Oracle designates this
  * particular file as subject to the "Classpath" exception as provided
  * by Oracle in the LICENSE file that accompanied this code.
+ *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
+ *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 package jdk.incubator.code.dialect.java;
@@ -17,9 +31,7 @@ import jdk.incubator.code.CodeTransformer;
 import jdk.incubator.code.Op;
 import jdk.incubator.code.Value;
 import jdk.incubator.code.dialect.core.CoreOp;
-import jdk.incubator.code.dialect.core.VarType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,6 +41,11 @@ import java.util.List;
  * variable, field, array component, invocation signature, or enclosing body.
  * Operator conversion targets are obtained from the resolved function type
  * carried by each unary and binary operation.
+ * <p>
+ * This transformer is intended for javac-generated, high-level Java models
+ * containing {@link JavaOp Java operations}.  Contextual conversions are added
+ * when a value has one unambiguous direct operand use; values with multiple
+ * uses are left unchanged.
  */
 public final class ImplicitConversionTransformer implements CodeTransformer {
 
@@ -37,15 +54,17 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     @Override
     public void acceptBlock(Block.Builder block, Block input) {
-        for (Op op : input.ops()) {
-            if (!(op instanceof JavaOp.ArithmeticOperation arithmetic)) continue;
-            List<CodeType> targets = arithmetic.functionType().parameterTypes();
-            for (int i = 0; i < op.operands().size(); i++) {
-                Value operand = op.operands().get(i);
-                if (!(operand instanceof Block.Parameter) ||
-                        !requiresConversion(operand.type(), targets.get(i))) continue;
-                Value value = block.context().getValue(operand);
-                block.context().mapValue(operand, convert(block, value, targets.get(i)));
+        // Block parameters have no producer operation where a conversion can
+        // otherwise be appended, so convert them at block entry from their use.
+        for (Block.Parameter parameter : input.parameters()) {
+            Op consumer = singleUse(parameter);
+            if (consumer == null) continue;
+            int operand = operandIndex(parameter, consumer);
+            if (operand == -1) continue;
+            CodeType target = conversionTarget(consumer, operand);
+            if (target != null && requiresConversion(parameter.type(), target)) {
+                Value value = block.context().getValue(parameter);
+                block.context().mapValue(parameter, convert(block, value, target));
             }
         }
         CodeTransformer.super.acceptBlock(block, input);
@@ -53,160 +72,34 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     @Override
     public Block.Builder acceptOp(Block.Builder block, Op op) {
-        List<Value> values = op.operands().stream()
-                .map(v -> block.context().getValue(v)).toList();
-        Op replacement = switch (op) {
-            case CoreOp.VarOp v when !v.isUninitialized() -> var(block, v, values.getFirst());
-            case CoreOp.VarAccessOp.VarStoreOp v ->
-                    CoreOp.varStore(values.getFirst(), convert(block, values.get(1), v.varType().valueType()));
-            case CoreOp.ReturnOp r when !values.isEmpty() ->
-                    CoreOp.return_(convert(block, values.getFirst(), block.parentBody().bodySignature().returnType()));
-            case CoreOp.YieldOp y when !values.isEmpty() ->
-                    CoreOp.core_yield(convertYield(block, values.getFirst(), block.parentBody().bodySignature().returnType()));
-            case JavaOp.YieldOp y ->
-                    JavaOp.java_yield(convertYield(block, values.getFirst(), block.parentBody().bodySignature().returnType()));
-            case JavaOp.FieldAccessOp.FieldStoreOp f -> fieldStore(block, f, values);
-            case JavaOp.ArrayAccessOp.ArrayStoreOp a -> JavaOp.arrayStoreOp(
-                    values.get(0), convert(block, values.get(1), JavaType.INT),
-                    convert(block, values.get(2), ((ArrayType) values.get(0).type()).componentType()));
-            case JavaOp.ArrayAccessOp.ArrayLoadOp a -> JavaOp.arrayLoadOp(
-                    values.get(0), convert(block, values.get(1), JavaType.INT), a.resultType());
-            case JavaOp.InvokeOp i -> invoke(block, i, values);
-            case JavaOp.NewOp n -> new_(block, n, values);
-            case JavaOp.PatternOps.MatchOp m -> match(block, m, values.getFirst());
-            case JavaOp.BinaryOp b -> binary(block, b, values);
-            case JavaOp.CompareOp c -> binary(block, c, values);
-            case JavaOp.UnaryOp u -> unary(block, u, values.getFirst());
-            default -> op;
-        };
-        Op.Result output = block.add(replacement);
-        block.context().mapValue(op.result(), preconvert(block, op, output));
+        Op.Result output = block.add(op);
+        block.context().mapValue(op.result(), convert(block, op, output));
         return block;
     }
 
-    private static Op fieldStore(Block.Builder block, JavaOp.FieldAccessOp.FieldStoreOp op, List<Value> values) {
-        Value value = convert(block, values.getLast(), op.fieldReference().type());
-        return values.size() == 1 ? JavaOp.fieldStore(op.fieldReference(), value) :
-                JavaOp.fieldStore(op.fieldReference(), values.getFirst(), value);
+    private Value convert(Block.Builder block, Op producer, Value output) {
+        // A source temporary has one direct operand use.
+        Op consumer = singleUse(producer.result());
+        if (consumer == null) return output;
+        if (consumer.ancestorBlock() != producer.ancestorBlock()) return output;
+
+        int operand = operandIndex(producer.result(), consumer);
+        if (operand == -1) return output;
+
+        CodeType target = conversionTarget(consumer, operand);
+        return target != null && requiresConversion(output.type(), target)
+                ? convert(block, output, target) : output;
     }
 
-    private static Op var(Block.Builder block, CoreOp.VarOp op, Value init) {
-        CodeType type = yieldedVariableType(op);
-        return CoreOp.var(op.varName(), type, convert(block, init, type));
-    }
-
-    private static CodeType yieldedVariableType(CoreOp.VarOp op) {
-        var body = op.ancestorBlock().ancestorBody();
-        if (body.parent() instanceof JavaOp.EnhancedForOp enhancedFor && enhancedFor.initBody() == body) {
-            CodeType type = enhancedFor.loopBody().entryBlock().parameters().getFirst().type();
-            if (type instanceof VarType variable) return variable.valueType();
-        }
-        for (Op.Result use : op.result().uses()) {
-            if (use.op() instanceof CoreOp.YieldOp) {
-                CodeType type = use.op().ancestorBlock().ancestorBody().yieldType();
-                if (type instanceof VarType variable) return variable.valueType();
-            }
-        }
-        return op.varValueType();
-    }
-
-    private Op invoke(Block.Builder block, JavaOp.InvokeOp op, List<Value> values) {
-        List<Value> args = new ArrayList<>(values);
-        int offset = op.hasReceiver() ? 1 : 0;
-        if (op.hasReceiver()) {
-            args.set(0, convert(block, args.getFirst(), op.invokeReference().refType()));
-        }
-        List<CodeType> parameters = op.invokeReference().signature().parameterTypes();
-        for (int i = offset; i < args.size(); i++) {
-            CodeType target = parameters.get(Math.min(i - offset, parameters.size() - 1));
-            if (op.isVarArgs() && i - offset >= parameters.size() - 1) {
-                target = ((ArrayType) target).componentType();
-            }
-            args.set(i, convertedOperand(block, op, i, args.get(i), target));
-        }
-        return JavaOp.invoke(op.invokeKind(), op.isVarArgs(), op.resultType(), op.invokeReference(), args);
-    }
-
-    private Op new_(Block.Builder block, JavaOp.NewOp op, List<Value> values) {
-        List<Value> args = new ArrayList<>(values);
-        List<CodeType> parameters = op.constructorReference().signature().parameterTypes();
-        for (int i = 0; i < args.size(); i++) {
-            CodeType target = parameters.get(Math.min(i, parameters.size() - 1));
-            if (op.isVarargs() && i >= parameters.size() - 1) {
-                target = ((ArrayType) target).componentType();
-            }
-            args.set(i, convertedOperand(block, op, i, args.get(i), target));
-        }
-        return JavaOp.new_(op.isVarargs(), op.resultType(), op.constructorReference(), args);
-    }
-
-    private Op match(Block.Builder block, JavaOp.PatternOps.MatchOp op, Value value) {
-        CodeType target = patternTarget(op);
-        value = convertedOperand(block, op, 0, value, target);
-        return JavaOp.match(value,
-                op.patternBody().transform(block.context(), this),
-                op.matchBody().transform(block.context(), this));
-    }
-
-    private static CodeType patternTarget(JavaOp.PatternOps.MatchOp op) {
-        CoreOp.YieldOp yield = (CoreOp.YieldOp) op.patternBody().entryBlock().terminatingOp();
-        if (!(yield.yieldValue() instanceof Op.Result result)) return null;
-        CodeType target = switch (result.op()) {
-            case JavaOp.PatternOps.TypePatternOp pattern -> pattern.targetType();
-            case JavaOp.PatternOps.RecordPatternOp pattern -> pattern.targetType();
-            default -> null;
-        };
-        return target instanceof ClassType ? target : null;
-    }
-
-    private Op binary(Block.Builder block, JavaOp.ArithmeticOperation op, List<Value> values) {
-        List<CodeType> targets = op.functionType().parameterTypes();
-        Value left = convertedOperand(block, op, 0, values.get(0), targets.get(0));
-        Value right = convertedOperand(block, op, 1, values.get(1), targets.get(1));
-        return binary(op, left, right);
-    }
-
-    private Op unary(Block.Builder block, JavaOp.UnaryOp op, Value value) {
-        CodeType target = op.functionType().parameterTypes().getFirst();
-        value = convertedOperand(block, op, 0, value, target);
-        return op instanceof JavaOp.NegOp ? JavaOp.neg(op.functionType(), value) :
-                op instanceof JavaOp.PosOp ? JavaOp.pos(op.functionType(), value) :
-                op instanceof JavaOp.ComplOp ? JavaOp.compl(op.functionType(), value) :
-                JavaOp.not(op.functionType(), value);
-    }
-
-    private static Op binary(JavaOp.ArithmeticOperation op, Value left, Value right) {
-        return switch (op) {
-            case JavaOp.AddOp _ -> JavaOp.add(op.functionType(), left, right);
-            case JavaOp.SubOp _ -> JavaOp.sub(op.functionType(), left, right);
-            case JavaOp.MulOp _ -> JavaOp.mul(op.functionType(), left, right);
-            case JavaOp.DivOp _ -> JavaOp.div(op.functionType(), left, right);
-            case JavaOp.ModOp _ -> JavaOp.mod(op.functionType(), left, right);
-            case JavaOp.OrOp _ -> JavaOp.or(op.functionType(), left, right);
-            case JavaOp.AndOp _ -> JavaOp.and(op.functionType(), left, right);
-            case JavaOp.XorOp _ -> JavaOp.xor(op.functionType(), left, right);
-            case JavaOp.LshlOp _ -> JavaOp.lshl(op.functionType(), left, right);
-            case JavaOp.AshrOp _ -> JavaOp.ashr(op.functionType(), left, right);
-            case JavaOp.LshrOp _ -> JavaOp.lshr(op.functionType(), left, right);
-            case JavaOp.EqOp _ -> JavaOp.eq(op.functionType(), left, right);
-            case JavaOp.NeqOp _ -> JavaOp.neq(op.functionType(), left, right);
-            case JavaOp.LtOp _ -> JavaOp.lt(op.functionType(), left, right);
-            case JavaOp.LeOp _ -> JavaOp.le(op.functionType(), left, right);
-            case JavaOp.GtOp _ -> JavaOp.gt(op.functionType(), left, right);
-            case JavaOp.GeOp _ -> JavaOp.ge(op.functionType(), left, right);
-            default -> throw new IllegalArgumentException("not a binary operation: " + op);
-        };
-    }
-
-    private static PrimitiveType primitiveType(CodeType type) {
-        return switch (type) {
-            case PrimitiveType p -> p;
-            case ClassType c -> c.unbox().orElse(null);
-            default -> null;
-        };
-    }
-
-    private static Value convert(Block.Builder block, Value value, CodeType target) {
+    /**
+     * Emits the Java conversions required to adapt a value to a target type.
+     *
+     * @param block the block receiving any conversion operations
+     * @param value the value to convert
+     * @param target the target type
+     * @return the converted value, or {@code value} if no conversion is required
+     */
+    public static Value convert(Block.Builder block, Value value, CodeType target) {
         if (value.type().equals(target)) return value;
         if (target instanceof PrimitiveType primitive) {
             if (primitive.isVoid()) return value;
@@ -223,71 +116,95 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
         return value;
     }
 
-    private static Value convertYield(Block.Builder block, Value value, CodeType target) {
-        return target instanceof JavaType ? convert(block, value, target) : value;
-    }
-
-    private Value preconvert(Block.Builder block, Op producer, Value output) {
-        // A source temporary has one direct operand use.  Var is a declaration
-        // boundary; its initializer is converted to the variable's type.
-        if (producer.result().uses().size() != 1) return output;
-
-        Op consumer = producer.result().uses().getFirst().op();
-        if (consumer instanceof CoreOp.VarOp || consumer.ancestorBlock() != producer.ancestorBlock()) return output;
-
-        int operand = -1;
-        for (int i = 0; i < consumer.operands().size(); i++) {
-            if (consumer.operands().get(i) != producer.result()) continue;
-            if (operand != -1) return output;
-            operand = i;
-        }
-        if (operand == -1) return output;
-
-        List<CodeType> targets = switch (consumer) {
-            case JavaOp.InvokeOp invoke -> invocationTargets(invoke);
-            case JavaOp.NewOp new_ -> constructorTargets(new_);
-            case JavaOp.PatternOps.MatchOp match ->
-                    java.util.Collections.singletonList(patternTarget(match));
-            case JavaOp.ArithmeticOperation arithmetic -> arithmetic.functionType().parameterTypes();
-            default -> List.of();
+    private static CodeType conversionTarget(Op op, int operand) {
+        return switch (op) {
+            case CoreOp.VarOp var when operand == 0 -> var.varValueType();
+            case CoreOp.VarAccessOp.VarStoreOp store when operand == 1 -> store.varType().valueType();
+            case CoreOp.ReturnOp _ when operand == 0 ->
+                    op.ancestorBlock().ancestorBody().bodySignature().returnType();
+            case CoreOp.YieldOp _ when operand == 0 -> javaYieldTarget(op);
+            case JavaOp.YieldOp _ when operand == 0 -> javaYieldTarget(op);
+            case JavaOp.FieldAccessOp.FieldStoreOp store when operand == op.operands().size() - 1 ->
+                    store.fieldReference().type();
+            case JavaOp.ArrayAccessOp.ArrayStoreOp _ when operand == 1 -> JavaType.INT;
+            case JavaOp.ArrayAccessOp.ArrayStoreOp _ when operand == 2 ->
+                    ((ArrayType) op.operands().getFirst().type()).componentType();
+            case JavaOp.ArrayAccessOp.ArrayLoadOp _ when operand == 1 -> JavaType.INT;
+            case JavaOp.AssignOp assign when operand == op.operands().size() - 1 -> assign.resultType();
+            case JavaOp.ArrayAssignOp _ when operand == 1 -> JavaType.INT;
+            case JavaOp.ArrayCompoundAssignOp _ when operand == 1 -> JavaType.INT;
+            case JavaOp.ArrayUpdateOp _ when operand == 1 -> JavaType.INT;
+            case JavaOp.CompoundAssignOp assign when op.operands().get(operand) == assign.lhsOperand() ->
+                    assign.functionType().parameterTypes().get(0);
+            case JavaOp.CompoundAssignOp assign when op.operands().get(operand) == assign.rhsOperand() ->
+                    assign.functionType().parameterTypes().get(1);
+            case JavaOp.InvokeOp invoke -> invocationTarget(invoke, operand);
+            case JavaOp.NewOp new_ -> constructorTarget(new_, operand);
+            case JavaOp.PatternOps.MatchOp match when operand == 0 -> patternTarget(match);
+            case JavaOp.ArithmeticOperation arithmetic -> arithmetic.functionType().parameterTypes().get(operand);
+            default -> null;
         };
-        if (operand >= targets.size()) return output;
-        CodeType target = targets.get(operand);
-        return target != null && requiresConversion(output.type(), target)
-                ? convert(block, output, target) : output;
     }
 
-    private Value convertedOperand(Block.Builder block, Op op, int index, Value value, CodeType target) {
-        return target == null ? value : convert(block, value, target);
+    private static CodeType javaYieldTarget(Op op) {
+        CodeType target = op.ancestorBlock().ancestorBody().bodySignature().returnType();
+        return target instanceof JavaType ? target : null;
     }
 
-    private static List<CodeType> invocationTargets(JavaOp.InvokeOp op) {
-        List<CodeType> targets = new ArrayList<>();
+    private static CodeType invocationTarget(JavaOp.InvokeOp op, int operand) {
         int offset = op.hasReceiver() ? 1 : 0;
-        if (offset != 0) targets.add(op.invokeReference().refType());
+        if (offset != 0 && operand == 0) return op.invokeReference().refType();
         List<CodeType> parameters = op.invokeReference().signature().parameterTypes();
-        for (int i = offset; i < op.operands().size(); i++) {
-            int argument = i - offset;
-            CodeType target = parameters.get(Math.min(argument, parameters.size() - 1));
-            targets.add(op.isVarArgs() && argument >= parameters.size() - 1
-                    ? ((ArrayType) target).componentType() : target);
-        }
-        return targets;
+        int argument = operand - offset;
+        CodeType target = parameters.get(Math.min(argument, parameters.size() - 1));
+        return op.isVarArgs() && argument >= parameters.size() - 1
+                ? ((ArrayType) target).componentType() : target;
     }
 
-    private static List<CodeType> constructorTargets(JavaOp.NewOp op) {
+    private static CodeType constructorTarget(JavaOp.NewOp op, int operand) {
         List<CodeType> parameters = op.constructorReference().signature().parameterTypes();
-        List<CodeType> targets = new ArrayList<>();
-        for (int i = 0; i < op.operands().size(); i++) {
-            CodeType target = parameters.get(Math.min(i, parameters.size() - 1));
-            targets.add(op.isVarargs() && i >= parameters.size() - 1
-                    ? ((ArrayType) target).componentType() : target);
-        }
-        return targets;
+        CodeType target = parameters.get(Math.min(operand, parameters.size() - 1));
+        return op.isVarargs() && operand >= parameters.size() - 1
+                ? ((ArrayType) target).componentType() : target;
+    }
+
+    private static CodeType patternTarget(JavaOp.PatternOps.MatchOp op) {
+        // A match's input target is declared by the root pattern yielded from
+        // its pattern-producing body.
+        CoreOp.YieldOp yield = (CoreOp.YieldOp) op.patternBody().entryBlock().terminatingOp();
+        if (!(yield.yieldValue() instanceof Op.Result result)) return null;
+        CodeType target = switch (result.op()) {
+            case JavaOp.PatternOps.TypePatternOp pattern -> pattern.targetType();
+            case JavaOp.PatternOps.RecordPatternOp pattern -> pattern.targetType();
+            default -> null;
+        };
+        return target instanceof ClassType ? target : null;
+    }
+
+    private static PrimitiveType primitiveType(CodeType type) {
+        return switch (type) {
+            case PrimitiveType p -> p;
+            case ClassType c -> c.unbox().orElse(null);
+            default -> null;
+        };
     }
 
     private static boolean requiresConversion(CodeType source, CodeType target) {
         return !source.equals(target) && (source instanceof PrimitiveType || target instanceof PrimitiveType);
+    }
+
+    private static Op singleUse(Value value) {
+        return value.uses().size() == 1 ? value.uses().getFirst().op() : null;
+    }
+
+    private static int operandIndex(Value value, Op consumer) {
+        int operand = -1;
+        for (int i = 0; i < consumer.operands().size(); i++) {
+            if (consumer.operands().get(i) != value) continue;
+            if (operand != -1) return -1;
+            operand = i;
+        }
+        return operand;
     }
 
     private static Value unbox(Block.Builder block, Value value, PrimitiveType primitive) {

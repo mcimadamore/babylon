@@ -832,20 +832,20 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     JCIdent assign = (JCIdent) lhs;
 
                     // Scan the rhs, the assign expression result is its input
-                    result = toValue(tree.rhs, target);
+                    Value rhs = toValue(tree.rhs, target);
 
                     Symbol sym = assign.sym;
                     switch (sym.getKind()) {
                         case LOCAL_VARIABLE, PARAMETER, EXCEPTION_PARAMETER -> {
                             Value varOp = varOpValue(sym);
-                            append(CoreOp.varStore(varOp, result));
+                            result = append(JavaOp.varAssign(varOp, rhs));
                         }
                         case FIELD -> {
                             FieldRef fd = symbolToFieldRef(sym, symbolSiteType(sym));
                             if (sym.isStatic()) {
-                                append(JavaOp.fieldStore(fd, result));
+                                result = append(JavaOp.fieldAssign(fd, rhs));
                             } else {
-                                append(JavaOp.fieldStore(fd, thisValue(), result));
+                                result = append(JavaOp.fieldAssign(fd, thisValue(), rhs));
                             }
                         }
                         default -> throw unreachable();
@@ -858,14 +858,14 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Value receiver = toValue(assign.selected);
 
                     // Scan the rhs, the assign expression result is its input
-                    result = toValue(tree.rhs, target);
+                    Value rhs = toValue(tree.rhs, target);
 
                     Symbol sym = assign.sym;
                     FieldRef fr = symbolToFieldRef(sym, assign.selected.type);
                     if (sym.isStatic()) {
-                        append(JavaOp.fieldStore(fr, result));
+                        result = append(JavaOp.fieldAssign(fr, rhs));
                     } else {
-                        append(JavaOp.fieldStore(fr, receiver, result));
+                        result = append(JavaOp.fieldAssign(fr, receiver, rhs));
                     }
                     break;
                 }
@@ -876,9 +876,9 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Value index = toValue(assign.index);
 
                     // Scan the rhs, the assign expression result is its input
-                    result = toValue(tree.rhs, target);
+                    Value rhs = toValue(tree.rhs, target);
 
-                    append(JavaOp.arrayStoreOp(array, index, result));
+                    result = append(JavaOp.arrayAssign(array, index, rhs));
                     break;
                 }
                 default:
@@ -888,54 +888,31 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
         @Override
         public void visitAssignop(JCTree.JCAssignOp tree) {
-            if (tree.operator.opcode == ByteCodes.string_add) {
-                // string concat
-                applyCompoundAssign(tree.lhs, lhs -> {
-                    Type rhsType = tree.rhs.type;
-                    Value rhs = toValue(tree.rhs,
-                            rhsType.hasTag(BOT) ? syms.stringType : rhsType);
-                    // lhs cannot have null type, no target type needed
-                    Value assignOpResult = append(JavaOp.concat(lhs, rhs));
-                    return result = convert(assignOpResult, tree.type);
-                });
-            } else {
-                // arithmetic op
-                applyCompoundAssign(tree.lhs, lhs -> {
-                    FunctionType operatorType = typeToFunctionType(tree.operator.type);
-                    Type lhsType = tree.operator.type.getParameterTypes().head;
-                    Type rhsType = tree.operator.type.getParameterTypes().tail.head;
-
-                    lhs = convert(lhs, lhsType);
-                    Value rhs = toValue(tree.rhs, rhsType);
-
-                    Value assignOpResult = switch (tree.getTag()) {
-
-                        // Arithmetic operations
-                        case PLUS_ASG -> append(JavaOp.add(operatorType, lhs, rhs));
-                        case MINUS_ASG -> append(JavaOp.sub(operatorType, lhs, rhs));
-                        case MUL_ASG -> append(JavaOp.mul(operatorType, lhs, rhs));
-                        case DIV_ASG -> append(JavaOp.div(operatorType, lhs, rhs));
-                        case MOD_ASG -> append(JavaOp.mod(operatorType, lhs, rhs));
-
-                        // Bitwise operations (including their boolean variants)
-                        case BITOR_ASG -> append(JavaOp.or(operatorType, lhs, rhs));
-                        case BITAND_ASG -> append(JavaOp.and(operatorType, lhs, rhs));
-                        case BITXOR_ASG -> append(JavaOp.xor(operatorType, lhs, rhs));
-
-                        // Shift operations
-                        case SL_ASG -> append(JavaOp.lshl(operatorType, lhs, rhs));
-                        case SR_ASG -> append(JavaOp.ashr(operatorType, lhs, rhs));
-                        case USR_ASG -> append(JavaOp.lshr(operatorType, lhs, rhs));
-
-
+            JavaOp.CompoundAssignOp.CompoundAssignmentKind kind = tree.operator.opcode == ByteCodes.string_add
+                    ? JavaOp.CompoundAssignOp.CompoundAssignmentKind.CONCAT
+                    : switch (tree.getTag()) {
+                        case PLUS_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.ADD;
+                        case MINUS_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.SUB;
+                        case MUL_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.MUL;
+                        case DIV_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.DIV;
+                        case MOD_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.MOD;
+                        case BITOR_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.OR;
+                        case BITAND_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.AND;
+                        case BITXOR_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.XOR;
+                        case SL_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.LSHL;
+                        case SR_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.ASHR;
+                        case USR_ASG -> JavaOp.CompoundAssignOp.CompoundAssignmentKind.LSHR;
                         default -> throw unreachable();
                     };
-                    return result = convert(assignOpResult, tree.type);
-                });
-            }
+            FunctionType operatorType = typeToFunctionType(tree.operator.type);
+            applyCompoundAssign(tree.lhs, _ -> {
+                Type rhsType = tree.rhs.type;
+                return toValue(tree.rhs, rhsType.hasTag(BOT) ? syms.stringType : rhsType);
+            }, kind, operatorType);
         }
 
-        void applyCompoundAssign(JCTree.JCExpression lhs, Function<Value, Value> scanRhs) {
+        void applyCompoundAssign(JCTree.JCExpression lhs, Function<Value, Value> scanRhs,
+                                 JavaOp.CompoundAssignOp.CompoundAssignmentKind kind, FunctionType operatorType) {
             // Consume top node that applies to access
             lhs = TreeInfo.skipParens(lhs);
             switch (lhs.getTag()) {
@@ -949,9 +926,9 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
                             Op.Result lhsOpValue = append(CoreOp.varLoad(varOp));
                             // Scan the rhs
-                            Value r = scanRhs.apply(lhsOpValue);
-
-                            append(CoreOp.varStore(varOp, r));
+                            Value rhs = scanRhs.apply(lhsOpValue);
+                            result = append(JavaOp.varCompoundAssign(kind, operatorType,
+                                    varOp, lhsOpValue, rhs));
                         }
                         case FIELD -> {
                             FieldRef fr = symbolToFieldRef(sym, symbolSiteType(sym));
@@ -964,13 +941,11 @@ public class ReflectMethods extends TreeTranslatorPrev {
                                 lhsOpValue = append(JavaOp.fieldLoad(resultType, fr, thisValue()));
                             }
                             // Scan the rhs
-                            Value r = scanRhs.apply(lhsOpValue);
-
-                            if (sym.isStatic()) {
-                                append(JavaOp.fieldStore(fr, r));
-                            } else {
-                                append(JavaOp.fieldStore(fr, thisValue(), r));
-                            }
+                            Value rhs = scanRhs.apply(lhsOpValue);
+                            result = sym.isStatic()
+                                    ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, lhsOpValue, rhs))
+                                    : append(JavaOp.fieldCompoundAssign(kind, operatorType, fr,
+                                            thisValue(), lhsOpValue, rhs));
                         }
                         default -> throw unreachable();
                     }
@@ -991,13 +966,11 @@ public class ReflectMethods extends TreeTranslatorPrev {
                         lhsOpValue = append(JavaOp.fieldLoad(resultType, fr, receiver));
                     }
                     // Scan the rhs
-                    Value r = scanRhs.apply(lhsOpValue);
-
-                    if (sym.isStatic()) {
-                        append(JavaOp.fieldStore(fr, r));
-                    } else {
-                        append(JavaOp.fieldStore(fr, receiver, r));
-                    }
+                    Value rhs = scanRhs.apply(lhsOpValue);
+                    result = sym.isStatic()
+                            ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, lhsOpValue, rhs))
+                            : append(JavaOp.fieldCompoundAssign(kind, operatorType, fr,
+                                    receiver, lhsOpValue, rhs));
                 }
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
@@ -1007,9 +980,61 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
                     Op.Result lhsOpValue = append(JavaOp.arrayLoadOp(array, index));
                     // Scan the rhs
-                    Value r = scanRhs.apply(lhsOpValue);
+                    Value rhs = scanRhs.apply(lhsOpValue);
+                    result = append(JavaOp.arrayCompoundAssign(kind, operatorType,
+                            array, index, lhsOpValue, rhs));
+                }
+                default -> throw unreachable();
+            }
+        }
 
-                    append(JavaOp.arrayStoreOp(array, index, r));
+        void applyUpdate(JCTree.JCExpression lhs, JavaOp.UpdateOp.UpdateKind kind, FunctionType operatorType) {
+            lhs = TreeInfo.skipParens(lhs);
+            switch (lhs.getTag()) {
+                case IDENT -> {
+                    JCIdent assign = (JCIdent) lhs;
+                    Symbol sym = assign.sym;
+                    switch (sym.getKind()) {
+                        case LOCAL_VARIABLE, PARAMETER -> {
+                            Value varOp = varOpValue(sym);
+                            Value oldValue = append(CoreOp.varLoad(varOp));
+                            result = append(JavaOp.varUpdate(kind, operatorType, varOp, oldValue));
+                        }
+                        case FIELD -> {
+                            FieldRef fr = symbolToFieldRef(sym, symbolSiteType(sym));
+                            CodeType resultType = typeToCodeType(sym.type);
+                            if (sym.isStatic()) {
+                                Value oldValue = append(JavaOp.fieldLoad(resultType, fr));
+                                result = append(JavaOp.fieldUpdate(kind, operatorType, fr, oldValue));
+                            } else {
+                                Value receiver = thisValue();
+                                Value oldValue = append(JavaOp.fieldLoad(resultType, fr, receiver));
+                                result = append(JavaOp.fieldUpdate(kind, operatorType, fr, receiver, oldValue));
+                            }
+                        }
+                        default -> throw unreachable();
+                    }
+                }
+                case SELECT -> {
+                    JCFieldAccess assign = (JCFieldAccess) lhs;
+                    Value receiver = toValue(assign.selected);
+                    Symbol sym = assign.sym;
+                    FieldRef fr = symbolToFieldRef(sym, assign.selected.type);
+                    CodeType resultType = typeToCodeType(sym.type);
+                    if (sym.isStatic()) {
+                        Value oldValue = append(JavaOp.fieldLoad(resultType, fr));
+                        result = append(JavaOp.fieldUpdate(kind, operatorType, fr, oldValue));
+                    } else {
+                        Value oldValue = append(JavaOp.fieldLoad(resultType, fr, receiver));
+                        result = append(JavaOp.fieldUpdate(kind, operatorType, fr, receiver, oldValue));
+                    }
+                }
+                case INDEXED -> {
+                    JCArrayAccess assign = (JCArrayAccess) lhs;
+                    Value array = toValue(assign.indexed);
+                    Value index = toValue(assign.index);
+                    Value oldValue = append(JavaOp.arrayLoadOp(array, index));
+                    result = append(JavaOp.arrayUpdate(kind, operatorType, array, index, oldValue));
                 }
                 default -> throw unreachable();
             }
@@ -1932,7 +1957,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             }
             pushBody(var, CoreType.functionType(varEType, typeToCodeType(elemtype)));
             var initVarExpr = convert(stack.block.parameters().get(0), var.type);
-            Op.Result varEResult = append(CoreOp.var(var.name.toString(), initVarExpr));
+            Op.Result varEResult = append(CoreOp.var(var.name.toString(), typeToCodeType(var.type), initVarExpr));
             append(CoreOp.core_yield(varEResult));
             Body.Builder init = stack.body;
             // Pop init
@@ -2317,33 +2342,20 @@ public class ReflectMethods extends TreeTranslatorPrev {
             Tag tag = tree.getTag();
             switch (tag) {
                 case POSTINC, POSTDEC, PREINC, PREDEC -> {
-                    // Capture applying rhs and operation
-                    Function<Value, Value> scanRhs = (lhs) -> {
-                        // arithmetic operators are all of kind (T, T)T
-                        Type opType = tree.operator.type.getReturnType();
-                        if (!opType.hasTag(INT) &&
-                                opType.getTag().isSubRangeOf(INT)) {
-                            // unary ++/-- can use sub-int operator types,
-                            // which doesn't make sense for the model
-                            opType = syms.intType;
-                        }
-                        Value lhsConv = convert(lhs, opType);
-                        Value one = append(numericOneValue(opType));
-                        FunctionType operatorType = CoreType.functionType(
-                                typeToCodeType(opType), typeToCodeType(opType), typeToCodeType(opType));
-
-                        Value lhsPlusOne = (tag == Tag.PREINC || tag ==  Tag.POSTINC) ?
-                            append(JavaOp.add(operatorType, lhsConv, one)) :
-                            append(JavaOp.sub(operatorType, lhsConv, one));
-                        lhsPlusOne = convert(lhsPlusOne, tree.type);
-
-                        // Assign expression result
-                        result = (tag == Tag.POSTINC || tag == Tag.POSTDEC) ?
-                                lhs : lhsPlusOne;
-                        return lhsPlusOne;
+                    Type opType = tree.operator.type.getReturnType();
+                    if (!opType.hasTag(INT) && opType.getTag().isSubRangeOf(INT)) {
+                        opType = syms.intType;
+                    }
+                    CodeType codeType = typeToCodeType(opType);
+                    FunctionType operatorType = CoreType.functionType(codeType, codeType, codeType);
+                    JavaOp.UpdateOp.UpdateKind kind = switch (tag) {
+                        case PREINC -> JavaOp.UpdateOp.UpdateKind.PREINC;
+                        case POSTINC -> JavaOp.UpdateOp.UpdateKind.POSTINC;
+                        case PREDEC -> JavaOp.UpdateOp.UpdateKind.PREDEC;
+                        case POSTDEC -> JavaOp.UpdateOp.UpdateKind.POSTDEC;
+                        default -> throw unreachable();
                     };
-
-                    applyCompoundAssign(tree.arg, scanRhs);
+                    applyUpdate(tree.arg, kind, operatorType);
                 }
                 case NEG -> {
                     Value rhs = toValue(tree.arg, tree.type);
@@ -2528,16 +2540,6 @@ public class ReflectMethods extends TreeTranslatorPrev {
             };
         }
 
-        Op numericOneValue(Type t) {
-            return switch (t.getTag()) {
-                case BYTE, SHORT, INT -> CoreOp.constant(JavaType.INT, 1);
-                case CHAR -> CoreOp.constant(typeToCodeType(t), (char)1);
-                case FLOAT -> CoreOp.constant(typeToCodeType(t), 1f);
-                case LONG -> CoreOp.constant(typeToCodeType(t), 1L);
-                case DOUBLE -> CoreOp.constant(typeToCodeType(t), 1d);
-                default -> throw new UnsupportedOperationException(t.toString());
-            };
-        }
     }
 
     boolean isReflectable(JCMethodDecl tree) {

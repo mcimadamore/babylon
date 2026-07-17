@@ -94,6 +94,7 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @jls 15 Expressions
      */
     public sealed interface JavaExpression permits
+            AssignmentExpressionOp,
             ArithmeticOperation,
             ArrayAccessOp.ArrayLoadOp,
             ArrayAccessOp.ArrayStoreOp,
@@ -341,7 +342,14 @@ public sealed abstract class JavaOp extends AbstractOp {
             return isConstantType(op.varValueType()) &&
                     !op.isUninitialized() &&
                     // @@@ Add to VarOp
-                    op.result().uses().stream().noneMatch(u -> u.op() instanceof CoreOp.VarAccessOp.VarStoreOp);
+                    op.result().uses().stream().noneMatch(u -> isVariableWrite(u.op()));
+        }
+
+        private static boolean isVariableWrite(Op op) {
+            return op instanceof CoreOp.VarAccessOp.VarStoreOp ||
+                    op instanceof VarAssignOp ||
+                    op instanceof VarCompoundAssignOp ||
+                    op instanceof VarUpdateOp;
         }
 
         private static boolean isConstantValue(Object o) {
@@ -363,6 +371,7 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @jls 14.5 Statements
      */
     public sealed interface JavaStatement permits
+            AssignmentExpressionOp,
             ArrayAccessOp.ArrayStoreOp,
             AssertOp,
             FieldAccessOp.FieldStoreOp,
@@ -399,6 +408,7 @@ public sealed abstract class JavaOp extends AbstractOp {
      * An operation that performs access.
      */
     public sealed interface AccessOp permits
+        AssignmentExpressionOp,
         CoreOp.VarAccessOp,
         FieldAccessOp,
         ArrayAccessOp {
@@ -675,7 +685,11 @@ public sealed abstract class JavaOp extends AbstractOp {
             for (Op op : ops) {
                 switch (op) {
                     case VarOp varOp -> {
-                        if (isValueUsedWithOp(varOp.result(), o -> o instanceof VarAccessOp.VarStoreOp)) {
+                        if (isValueUsedWithOp(varOp.result(), o ->
+                                o instanceof VarAccessOp.VarStoreOp ||
+                                o instanceof VarAssignOp ||
+                                o instanceof VarCompoundAssignOp ||
+                                o instanceof VarUpdateOp)) {
                             return null;
                         }
                     }
@@ -1293,6 +1307,602 @@ public sealed abstract class JavaOp extends AbstractOp {
         public CodeType resultType() {
             return resultType;
         }
+    }
+
+    /**
+     * An operation that updates a variable, field, or array component and
+     * produces the value of the Java expression performing the update.
+     * <p>
+     * This covers simple assignment expressions, compound assignment
+     * expressions, and prefix and postfix increment and decrement expressions.
+     * The destination is represented explicitly by each concrete operation.
+     */
+    public sealed abstract static class AssignmentExpressionOp extends JavaOp
+            implements AccessOp, JavaExpression, JavaStatement
+            permits AssignOp, CompoundAssignOp, UpdateOp {
+        static final String ATTRIBUTE_OPERATOR_TYPE = "operator.type";
+        final CodeType resultType;
+
+        AssignmentExpressionOp(AssignmentExpressionOp that, CodeContext cc) {
+            super(that, cc);
+            this.resultType = that.resultType;
+        }
+
+        AssignmentExpressionOp(List<? extends Value> operands, CodeType resultType) {
+            super(operands);
+            this.resultType = resultType;
+        }
+
+        @Override
+        public final CodeType resultType() {
+            return resultType;
+        }
+
+    }
+
+    /**
+     * A simple assignment operation.
+     *
+     * @jls 15.26.1 Simple Assignment Operator {@code =}
+     */
+    public sealed abstract static class AssignOp extends AssignmentExpressionOp
+            implements Op.Lowerable permits VarAssignOp, FieldAssignOp, ArrayAssignOp {
+        AssignOp(AssignOp that, CodeContext cc) {
+            super(that, cc);
+        }
+
+        AssignOp(List<? extends Value> operands, CodeType resultType) {
+            super(operands, resultType);
+        }
+
+        @Override
+        public final Block.Builder lower(Block.Builder block,
+                                         BiFunction<Block.Builder, Op, Block.Builder> inherited) {
+            return lower(block, block.context().getValues(operands()));
+        }
+
+        abstract Block.Builder lower(Block.Builder block, List<Value> operands);
+    }
+
+    /** An assignment to a local variable. */
+    @OpDeclaration(VarAssignOp.NAME)
+    public static final class VarAssignOp extends AssignOp {
+        static final String NAME = "var.assign";
+
+        VarAssignOp(ExternalizedOp def) {
+            this(requireOperands(def, 2).get(0), def.operands().get(1));
+        }
+
+        VarAssignOp(VarAssignOp that, CodeContext cc) {
+            super(that, cc);
+        }
+
+        VarAssignOp(Value var, Value value) {
+            super(List.of(var, value), ((VarType) var.type()).valueType());
+        }
+
+        /** {@return the variable being assigned} */
+        public Value varOperand() {
+            return operands().get(0);
+        }
+
+        @Override
+        public VarAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new VarAssignOp(this, cc);
+        }
+
+        @Override
+        Block.Builder lower(Block.Builder block, List<Value> operands) {
+            Value value = operands.get(1);
+            block.add(CoreOp.varStore(operands.get(0), value));
+            if (result() != null) block.context().mapValue(result(), value);
+            return block;
+        }
+    }
+
+    /** An assignment to a field. */
+    @OpDeclaration(FieldAssignOp.NAME)
+    public static final class FieldAssignOp extends AssignOp implements ReflectiveOp {
+        static final String NAME = "field.assign";
+        final FieldRef fieldReference;
+
+        FieldAssignOp(ExternalizedOp def) {
+            this(requireAttribute(def, FieldAccessOp.ATTRIBUTE_FIELD_REF, true, FieldRef.class),
+                    requireOperands(def, 1, 2));
+        }
+
+        FieldAssignOp(FieldAssignOp that, CodeContext cc) {
+            super(that, cc);
+            this.fieldReference = that.fieldReference;
+        }
+
+        private FieldAssignOp(FieldRef fieldRef, List<Value> operands) {
+            super(operands, fieldRef.type());
+            this.fieldReference = fieldRef;
+        }
+
+        FieldAssignOp(FieldRef fieldRef, Value receiver, Value value) {
+            this(fieldRef, List.of(receiver, value));
+        }
+
+        FieldAssignOp(FieldRef fieldRef, Value value) {
+            this(fieldRef, List.of(value));
+        }
+
+        /** {@return the assigned field} */
+        public FieldRef fieldReference() {
+            return fieldReference;
+        }
+
+        /** {@return the receiver, or {@code null} for a static field} */
+        public Value receiverOperand() {
+            return operands().size() == 1 ? null : operands().get(0);
+        }
+
+        @Override
+        public Map<String, Object> externalize() {
+            return Map.of("", fieldReference);
+        }
+
+        @Override
+        public FieldAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new FieldAssignOp(this, cc);
+        }
+
+        @Override
+        Block.Builder lower(Block.Builder block, List<Value> operands) {
+            Value value = operands.getLast();
+            block.add(receiverOperand() == null
+                    ? JavaOp.fieldStore(fieldReference, value)
+                    : JavaOp.fieldStore(fieldReference, operands.getFirst(), value));
+            if (result() != null) block.context().mapValue(result(), value);
+            return block;
+        }
+    }
+
+    /** An assignment to an array component. */
+    @OpDeclaration(ArrayAssignOp.NAME)
+    public static final class ArrayAssignOp extends AssignOp {
+        static final String NAME = "array.assign";
+
+        ArrayAssignOp(ExternalizedOp def) {
+            this(requireOperands(def, 3).get(0), def.operands().get(1), def.operands().get(2));
+        }
+
+        ArrayAssignOp(ArrayAssignOp that, CodeContext cc) {
+            super(that, cc);
+        }
+
+        ArrayAssignOp(Value array, Value index, Value value) {
+            super(List.of(array, index, value), ((ArrayType) array.type()).componentType());
+        }
+
+        /** {@return the assigned array} */
+        public Value arrayOperand() {
+            return operands().get(0);
+        }
+
+        /** {@return the assigned array index} */
+        public Value indexOperand() {
+            return operands().get(1);
+        }
+
+        @Override
+        public ArrayAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new ArrayAssignOp(this, cc);
+        }
+
+        @Override
+        Block.Builder lower(Block.Builder block, List<Value> operands) {
+            Value value = operands.get(2);
+            block.add(JavaOp.arrayStoreOp(operands.get(0), operands.get(1), value));
+            if (result() != null) block.context().mapValue(result(), value);
+            return block;
+        }
+    }
+
+    /**
+     * A compound assignment operation.
+     *
+     * @jls 15.26.2 Compound Assignment Operators
+     */
+    public sealed abstract static class CompoundAssignOp extends AssignmentExpressionOp
+            implements Op.Lowerable
+            permits VarCompoundAssignOp, FieldCompoundAssignOp, ArrayCompoundAssignOp {
+        /** The operator represented by a compound assignment. */
+        public enum CompoundAssignmentKind {
+            /** Addition. */ ADD,
+            /** Subtraction. */ SUB,
+            /** Multiplication. */ MUL,
+            /** Division. */ DIV,
+            /** Remainder. */ MOD,
+            /** Bitwise or logical OR. */ OR,
+            /** Bitwise or logical AND. */ AND,
+            /** Bitwise or logical XOR. */ XOR,
+            /** Left shift. */ LSHL,
+            /** Arithmetic right shift. */ ASHR,
+            /** Logical right shift. */ LSHR,
+            /** String concatenation. */ CONCAT
+        }
+
+        static final String ATTRIBUTE_KIND = "compound.kind";
+        final CompoundAssignmentKind kind;
+        final FunctionType functionType;
+
+        CompoundAssignOp(CompoundAssignOp that, CodeContext cc) {
+            super(that, cc);
+            this.kind = that.kind;
+            this.functionType = that.functionType;
+        }
+
+        CompoundAssignOp(List<? extends Value> operands, CodeType resultType,
+                         CompoundAssignmentKind kind, FunctionType functionType) {
+            super(operands, resultType);
+            this.kind = kind;
+            this.functionType = functionType;
+        }
+
+        /** {@return the compound assignment kind} */
+        public CompoundAssignmentKind kind() {
+            return kind;
+        }
+
+        /** {@return the resolved binary operator type} */
+        public FunctionType functionType() {
+            return functionType;
+        }
+
+        /** {@return the previously loaded destination value} */
+        public abstract Value lhsOperand();
+
+        /** {@return the right-hand operand} */
+        public abstract Value rhsOperand();
+
+        abstract AssignOp toAssign(List<Value> operands, Value value);
+
+        JavaOp operator(Value lhs, Value rhs) {
+            return switch (kind) {
+                case ADD -> add(functionType, lhs, rhs);
+                case SUB -> sub(functionType, lhs, rhs);
+                case MUL -> mul(functionType, lhs, rhs);
+                case DIV -> div(functionType, lhs, rhs);
+                case MOD -> mod(functionType, lhs, rhs);
+                case OR -> or(functionType, lhs, rhs);
+                case AND -> and(functionType, lhs, rhs);
+                case XOR -> xor(functionType, lhs, rhs);
+                case LSHL -> lshl(functionType, lhs, rhs);
+                case ASHR -> ashr(functionType, lhs, rhs);
+                case LSHR -> lshr(functionType, lhs, rhs);
+                case CONCAT -> concat(lhs, rhs);
+            };
+        }
+
+        @Override
+        public Block.Builder lower(Block.Builder block,
+                                   BiFunction<Block.Builder, Op, Block.Builder> inherited) {
+            List<Value> operands = block.context().getValues(operands());
+            Value result = block.add(operator(
+                    block.context().getValue(lhsOperand()),
+                    block.context().getValue(rhsOperand())));
+            result = ImplicitConversionTransformer.convert(block, result, resultType());
+            AssignOp assignment = toAssign(operands, result);
+            assignment.lower(block, assignment.operands());
+            block.context().mapValue(result(), result);
+            return block;
+        }
+
+        @Override
+        public Map<String, Object> externalize() {
+            return Map.of(ATTRIBUTE_OPERATOR_TYPE, functionType, ATTRIBUTE_KIND, kind.name());
+        }
+
+    }
+
+    /** A compound assignment to a local variable. */
+    @OpDeclaration(VarCompoundAssignOp.NAME)
+    public static final class VarCompoundAssignOp extends CompoundAssignOp {
+        static final String NAME = "var.compound.assign";
+
+        VarCompoundAssignOp(ExternalizedOp def) {
+            this(requireOperands(def, 3), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+        }
+
+        private VarCompoundAssignOp(List<Value> operands, CompoundAssignmentKind kind, FunctionType functionType) {
+            this(operands.get(0), operands.get(1), operands.get(2), kind, functionType);
+        }
+
+        VarCompoundAssignOp(VarCompoundAssignOp that, CodeContext cc) {
+            super(that, cc);
+        }
+
+        VarCompoundAssignOp(Value var, Value lhs, Value rhs,
+                            CompoundAssignmentKind kind, FunctionType functionType) {
+            super(List.of(var, lhs, rhs), ((VarType) var.type()).valueType(), kind, functionType);
+        }
+
+        /** {@return the variable being assigned} */
+        public Value varOperand() { return operands().get(0); }
+        @Override public Value lhsOperand() { return operands().get(1); }
+        @Override public Value rhsOperand() { return operands().get(2); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return new VarAssignOp(operands.get(0), value);
+        }
+        @Override public VarCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new VarCompoundAssignOp(this, cc);
+        }
+    }
+
+    /** A compound assignment to a field. */
+    @OpDeclaration(FieldCompoundAssignOp.NAME)
+    public static final class FieldCompoundAssignOp extends CompoundAssignOp implements ReflectiveOp {
+        static final String NAME = "field.compound.assign";
+        final FieldRef fieldReference;
+
+        FieldCompoundAssignOp(ExternalizedOp def) {
+            this(requireAttribute(def, FieldAccessOp.ATTRIBUTE_FIELD_REF, true, FieldRef.class),
+                    requireOperands(def, 2, 3), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+        }
+
+        private FieldCompoundAssignOp(FieldRef fieldRef, List<Value> operands,
+                                      CompoundAssignmentKind kind, FunctionType functionType) {
+            super(operands, fieldRef.type(), kind, functionType);
+            this.fieldReference = fieldRef;
+        }
+
+        FieldCompoundAssignOp(FieldCompoundAssignOp that, CodeContext cc) {
+            super(that, cc);
+            this.fieldReference = that.fieldReference;
+        }
+
+        FieldCompoundAssignOp(FieldRef fieldRef, Value receiver, Value lhs, Value rhs,
+                              CompoundAssignmentKind kind, FunctionType functionType) {
+            this(fieldRef, List.of(receiver, lhs, rhs), kind, functionType);
+        }
+
+        FieldCompoundAssignOp(FieldRef fieldRef, Value lhs, Value rhs,
+                              CompoundAssignmentKind kind, FunctionType functionType) {
+            this(fieldRef, List.of(lhs, rhs), kind, functionType);
+        }
+
+        /** {@return the assigned field} */
+        public FieldRef fieldReference() { return fieldReference; }
+        /** {@return the receiver, or {@code null} for a static field} */
+        public Value receiverOperand() { return operands().size() == 2 ? null : operands().get(0); }
+        @Override public Value lhsOperand() { return operands().get(operands().size() - 2); }
+        @Override public Value rhsOperand() { return operands().getLast(); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return receiverOperand() == null ? new FieldAssignOp(fieldReference, value) :
+                    new FieldAssignOp(fieldReference, operands.get(0), value);
+        }
+        @Override public Map<String, Object> externalize() {
+            HashMap<String, Object> attributes = new HashMap<>(super.externalize());
+            attributes.put("", fieldReference);
+            return Collections.unmodifiableMap(attributes);
+        }
+        @Override public FieldCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new FieldCompoundAssignOp(this, cc);
+        }
+    }
+
+    /** A compound assignment to an array component. */
+    @OpDeclaration(ArrayCompoundAssignOp.NAME)
+    public static final class ArrayCompoundAssignOp extends CompoundAssignOp {
+        static final String NAME = "array.compound.assign";
+
+        ArrayCompoundAssignOp(ExternalizedOp def) {
+            this(requireOperands(def, 4), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+        }
+
+        private ArrayCompoundAssignOp(List<Value> operands, CompoundAssignmentKind kind, FunctionType functionType) {
+            this(operands.get(0), operands.get(1), operands.get(2), operands.get(3), kind, functionType);
+        }
+
+        ArrayCompoundAssignOp(ArrayCompoundAssignOp that, CodeContext cc) { super(that, cc); }
+
+        ArrayCompoundAssignOp(Value array, Value index, Value lhs, Value rhs,
+                              CompoundAssignmentKind kind, FunctionType functionType) {
+            super(List.of(array, index, lhs, rhs), ((ArrayType) array.type()).componentType(), kind, functionType);
+        }
+
+        /** {@return the assigned array} */
+        public Value arrayOperand() { return operands().get(0); }
+        /** {@return the assigned array index} */
+        public Value indexOperand() { return operands().get(1); }
+        @Override public Value lhsOperand() { return operands().get(2); }
+        @Override public Value rhsOperand() { return operands().get(3); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return new ArrayAssignOp(operands.get(0), operands.get(1), value);
+        }
+        @Override public ArrayCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
+            return new ArrayCompoundAssignOp(this, cc);
+        }
+    }
+
+    private static CompoundAssignOp.CompoundAssignmentKind compoundAssignmentKind(ExternalizedOp def) {
+        Object value = requireAttribute(def, CompoundAssignOp.ATTRIBUTE_KIND, false, Object.class);
+        return value instanceof CompoundAssignOp.CompoundAssignmentKind kind ? kind :
+                CompoundAssignOp.CompoundAssignmentKind.valueOf((String) value);
+    }
+
+    private static FunctionType assignmentOperatorFunctionType(ExternalizedOp def) {
+        return requireAttribute(def, AssignmentExpressionOp.ATTRIBUTE_OPERATOR_TYPE, false, FunctionType.class);
+    }
+
+    /**
+     * A prefix or postfix increment or decrement operation.
+     *
+     * @jls 15.14.2 The Postfix Increment Operator {@code ++}
+     * @jls 15.14.3 The Postfix Decrement Operator {@code --}
+     * @jls 15.15.1 The Prefix Increment Operator {@code ++}
+     * @jls 15.15.2 The Prefix Decrement Operator {@code --}
+     */
+    public sealed abstract static class UpdateOp extends AssignmentExpressionOp
+            implements Op.Lowerable permits VarUpdateOp, FieldUpdateOp, ArrayUpdateOp {
+        /** The kind of increment or decrement update. */
+        public enum UpdateKind {
+            /** Prefix increment. */ PREINC,
+            /** Postfix increment. */ POSTINC,
+            /** Prefix decrement. */ PREDEC,
+            /** Postfix decrement. */ POSTDEC;
+
+            /** {@return true if this is a prefix update} */
+            public boolean isPrefix() {
+                return this == PREINC || this == PREDEC;
+            }
+
+            /** {@return true if this is a postfix update} */
+            public boolean isPostfix() {
+                return this == POSTINC || this == POSTDEC;
+            }
+        }
+
+        static final String ATTRIBUTE_KIND = "update.kind";
+        final UpdateKind kind;
+        final FunctionType functionType;
+
+        UpdateOp(UpdateOp that, CodeContext cc) {
+            super(that, cc);
+            this.kind = that.kind;
+            this.functionType = that.functionType;
+        }
+
+        UpdateOp(List<? extends Value> operands, CodeType resultType,
+                 UpdateKind kind, FunctionType functionType) {
+            super(operands, resultType);
+            this.kind = kind;
+            this.functionType = functionType;
+        }
+
+        /** {@return the update kind} */
+        public UpdateKind kind() { return kind; }
+        /** {@return the resolved arithmetic operator type} */
+        public FunctionType functionType() { return functionType; }
+        /** {@return the previously loaded destination value} */
+        public abstract Value oldValueOperand();
+        abstract AssignOp toAssign(List<Value> operands, Value value);
+        JavaOp operator(Value lhs, Value one) {
+            return kind == UpdateKind.PREINC || kind == UpdateKind.POSTINC
+                    ? add(functionType, lhs, one)
+                    : sub(functionType, lhs, one);
+        }
+
+        private CoreOp.ConstantOp one() {
+            CodeType type = functionType.parameterTypes().getFirst();
+            Object value;
+            if (type == INT) value = 1;
+            else if (type == LONG) value = 1L;
+            else if (type == FLOAT) value = 1f;
+            else if (type == DOUBLE) value = 1d;
+            else if (type == CHAR) value = (char) 1;
+            else throw new IllegalArgumentException("not a numeric type: " + type);
+            return constant(type, value);
+        }
+
+        @Override
+        public Block.Builder lower(Block.Builder block,
+                                   BiFunction<Block.Builder, Op, Block.Builder> inherited) {
+            List<Value> operands = block.context().getValues(operands());
+            Value oldValue = block.context().getValue(oldValueOperand());
+            Value arithmeticValue = ImplicitConversionTransformer.convert(block, oldValue,
+                    functionType.parameterTypes().getFirst());
+            Value result = block.add(operator(arithmeticValue, block.add(one())));
+            result = ImplicitConversionTransformer.convert(block, result, resultType());
+            AssignOp assignment = toAssign(operands, result);
+            assignment.lower(block, assignment.operands());
+            block.context().mapValue(result(), kind.isPostfix() ? oldValue : result);
+            return block;
+        }
+        @Override public Map<String, Object> externalize() {
+            return Map.of(ATTRIBUTE_OPERATOR_TYPE, functionType, ATTRIBUTE_KIND, kind.name());
+        }
+    }
+
+    /** An increment or decrement of a local variable. */
+    @OpDeclaration(VarUpdateOp.NAME)
+    public static final class VarUpdateOp extends UpdateOp {
+        static final String NAME = "var.update";
+        VarUpdateOp(ExternalizedOp def) {
+            this(requireOperands(def, 2).get(0), def.operands().get(1), updateKind(def), assignmentOperatorFunctionType(def));
+        }
+        VarUpdateOp(VarUpdateOp that, CodeContext cc) { super(that, cc); }
+        VarUpdateOp(Value var, Value oldValue, UpdateKind kind, FunctionType functionType) {
+            super(List.of(var, oldValue), ((VarType) var.type()).valueType(), kind, functionType);
+        }
+        /** {@return the variable being updated} */
+        public Value varOperand() { return operands().get(0); }
+        @Override public Value oldValueOperand() { return operands().get(1); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return new VarAssignOp(operands.get(0), value);
+        }
+        @Override public VarUpdateOp transform(CodeContext cc, CodeTransformer ct) { return new VarUpdateOp(this, cc); }
+    }
+
+    /** An increment or decrement of a field. */
+    @OpDeclaration(FieldUpdateOp.NAME)
+    public static final class FieldUpdateOp extends UpdateOp implements ReflectiveOp {
+        static final String NAME = "field.update";
+        final FieldRef fieldReference;
+        FieldUpdateOp(ExternalizedOp def) {
+            this(requireAttribute(def, FieldAccessOp.ATTRIBUTE_FIELD_REF, true, FieldRef.class),
+                    requireOperands(def, 1, 2), updateKind(def), assignmentOperatorFunctionType(def));
+        }
+        private FieldUpdateOp(FieldRef fieldRef, List<Value> operands, UpdateKind kind, FunctionType functionType) {
+            super(operands, fieldRef.type(), kind, functionType);
+            this.fieldReference = fieldRef;
+        }
+        FieldUpdateOp(FieldUpdateOp that, CodeContext cc) {
+            super(that, cc);
+            this.fieldReference = that.fieldReference;
+        }
+        FieldUpdateOp(FieldRef fieldRef, Value receiver, Value oldValue, UpdateKind kind, FunctionType functionType) {
+            this(fieldRef, List.of(receiver, oldValue), kind, functionType);
+        }
+        FieldUpdateOp(FieldRef fieldRef, Value oldValue, UpdateKind kind, FunctionType functionType) {
+            this(fieldRef, List.of(oldValue), kind, functionType);
+        }
+        /** {@return the updated field} */
+        public FieldRef fieldReference() { return fieldReference; }
+        /** {@return the receiver, or {@code null} for a static field} */
+        public Value receiverOperand() { return operands().size() == 1 ? null : operands().get(0); }
+        @Override public Value oldValueOperand() { return operands().getLast(); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return receiverOperand() == null ? new FieldAssignOp(fieldReference, value) :
+                    new FieldAssignOp(fieldReference, operands.get(0), value);
+        }
+        @Override public Map<String, Object> externalize() {
+            HashMap<String, Object> attributes = new HashMap<>(super.externalize());
+            attributes.put("", fieldReference);
+            return Collections.unmodifiableMap(attributes);
+        }
+        @Override public FieldUpdateOp transform(CodeContext cc, CodeTransformer ct) { return new FieldUpdateOp(this, cc); }
+    }
+
+    /** An increment or decrement of an array component. */
+    @OpDeclaration(ArrayUpdateOp.NAME)
+    public static final class ArrayUpdateOp extends UpdateOp {
+        static final String NAME = "array.update";
+        ArrayUpdateOp(ExternalizedOp def) {
+            this(requireOperands(def, 3).get(0), def.operands().get(1), def.operands().get(2),
+                    updateKind(def), assignmentOperatorFunctionType(def));
+        }
+        ArrayUpdateOp(ArrayUpdateOp that, CodeContext cc) { super(that, cc); }
+        ArrayUpdateOp(Value array, Value index, Value oldValue, UpdateKind kind, FunctionType functionType) {
+            super(List.of(array, index, oldValue), ((ArrayType) array.type()).componentType(), kind, functionType);
+        }
+        /** {@return the updated array} */
+        public Value arrayOperand() { return operands().get(0); }
+        /** {@return the updated array index} */
+        public Value indexOperand() { return operands().get(1); }
+        @Override public Value oldValueOperand() { return operands().get(2); }
+        @Override AssignOp toAssign(List<Value> operands, Value value) {
+            return new ArrayAssignOp(operands.get(0), operands.get(1), value);
+        }
+        @Override public ArrayUpdateOp transform(CodeContext cc, CodeTransformer ct) { return new ArrayUpdateOp(this, cc); }
+    }
+
+    private static UpdateOp.UpdateKind updateKind(ExternalizedOp def) {
+        Object value = requireAttribute(def, UpdateOp.ATTRIBUTE_KIND, false, Object.class);
+        return value instanceof UpdateOp.UpdateKind kind ? kind : UpdateOp.UpdateKind.valueOf((String) value);
     }
 
     /**
@@ -6425,9 +7035,12 @@ public sealed abstract class JavaOp extends AbstractOp {
         Op op = switch (def.name()) {
             case "add" -> new AddOp(def);
             case "and" -> new AndOp(def);
+            case "array.assign" -> new ArrayAssignOp(def);
+            case "array.compound.assign" -> new ArrayCompoundAssignOp(def);
             case "array.length" -> new ArrayLengthOp(def);
             case "array.load" -> new ArrayAccessOp.ArrayLoadOp(def);
             case "array.store" -> new ArrayAccessOp.ArrayStoreOp(def);
+            case "array.update" -> new ArrayUpdateOp(def);
             case "ashr" -> new AshrOp(def);
             case "assert" -> new AssertOp(def);
             case "cast" -> new CastOp(def);
@@ -6439,7 +7052,10 @@ public sealed abstract class JavaOp extends AbstractOp {
             case "exception.region.enter" -> new ExceptionRegionEnter(def);
             case "exception.region.exit" -> new ExceptionRegionExit(def);
             case "field.load" -> new FieldAccessOp.FieldLoadOp(def);
+            case "field.assign" -> new FieldAssignOp(def);
+            case "field.compound.assign" -> new FieldCompoundAssignOp(def);
             case "field.store" -> new FieldAccessOp.FieldStoreOp(def);
+            case "field.update" -> new FieldUpdateOp(def);
             case "ge" -> new GeOp(def);
             case "gt" -> new GtOp(def);
             case "instanceof" -> new InstanceOfOp(def);
@@ -6484,6 +7100,9 @@ public sealed abstract class JavaOp extends AbstractOp {
             case "sub" -> new SubOp(def);
             case "throw" -> new ThrowOp(def);
             case "xor" -> new XorOp(def);
+            case "var.assign" -> new VarAssignOp(def);
+            case "var.compound.assign" -> new VarCompoundAssignOp(def);
+            case "var.update" -> new VarUpdateOp(def);
             default -> null;
         };
         if (op != null) {
@@ -6824,6 +7443,86 @@ public sealed abstract class JavaOp extends AbstractOp {
     }
 
     /**
+     * Creates an assignment to a local variable.
+     * @param var the variable
+     * @param value the assigned value
+     * @return the assignment operation
+     */
+    public static VarAssignOp varAssign(Value var, Value value) {
+        return new VarAssignOp(var, value);
+    }
+
+    /**
+     * Creates a compound assignment to a local variable.
+     * @param kind the assignment kind
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param lhs the old variable value
+     * @param rhs the right-hand value
+     * @return the compound assignment operation
+     */
+    public static VarCompoundAssignOp varCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
+                                                         Value var, Value lhs, Value rhs) {
+        return new VarCompoundAssignOp(var, lhs, rhs, kind, functionType);
+    }
+
+    /**
+     * Creates an update of a local variable.
+     * @param kind the update kind
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param oldValue the old variable value
+     * @return the update operation
+     */
+    public static VarUpdateOp varUpdate(UpdateOp.UpdateKind kind, FunctionType functionType, Value var, Value oldValue) {
+        return new VarUpdateOp(var, oldValue, kind, functionType);
+    }
+
+    /**
+     * Creates a prefix increment operation for a variable.
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param oldValue the old variable value
+     * @return a prefix increment operation for {@code var}
+     */
+    public static VarUpdateOp varPreInc(FunctionType functionType, Value var, Value oldValue) {
+        return varUpdate(UpdateOp.UpdateKind.PREINC, functionType, var, oldValue);
+    }
+
+    /**
+     * Creates a postfix increment operation for a variable.
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param oldValue the old variable value
+     * @return a postfix increment operation for {@code var}
+     */
+    public static VarUpdateOp varPostInc(FunctionType functionType, Value var, Value oldValue) {
+        return varUpdate(UpdateOp.UpdateKind.POSTINC, functionType, var, oldValue);
+    }
+
+    /**
+     * Creates a prefix decrement operation for a variable.
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param oldValue the old variable value
+     * @return a prefix decrement operation for {@code var}
+     */
+    public static VarUpdateOp varPreDec(FunctionType functionType, Value var, Value oldValue) {
+        return varUpdate(UpdateOp.UpdateKind.PREDEC, functionType, var, oldValue);
+    }
+
+    /**
+     * Creates a postfix decrement operation for a variable.
+     * @param functionType the resolved operator type
+     * @param var the variable
+     * @param oldValue the old variable value
+     * @return a postfix decrement operation for {@code var}
+     */
+    public static VarUpdateOp varPostDec(FunctionType functionType, Value var, Value oldValue) {
+        return varUpdate(UpdateOp.UpdateKind.POSTDEC, functionType, var, oldValue);
+    }
+
+    /**
      * Creates a field load operation to a non-static field.
      *
      * @param fieldRef   the field reference
@@ -6865,6 +7564,175 @@ public sealed abstract class JavaOp extends AbstractOp {
      */
     public static FieldAccessOp.FieldLoadOp fieldLoad(CodeType resultType, FieldRef fieldRef) {
         return new FieldAccessOp.FieldLoadOp(resultType, fieldRef);
+    }
+
+    /**
+     * Creates an assignment to a non-static field.
+     * @param fieldRef the field
+     * @param receiver the receiver
+     * @param value the assigned value
+     * @return the assignment operation
+     */
+    public static FieldAssignOp fieldAssign(FieldRef fieldRef, Value receiver, Value value) {
+        return new FieldAssignOp(fieldRef, receiver, value);
+    }
+
+    /**
+     * Creates an assignment to a static field.
+     * @param fieldRef the field
+     * @param value the assigned value
+     * @return the assignment operation
+     */
+    public static FieldAssignOp fieldAssign(FieldRef fieldRef, Value value) {
+        return new FieldAssignOp(fieldRef, value);
+    }
+
+    /**
+     * Creates a compound assignment to a non-static field.
+     * @param kind the assignment kind
+     * @param functionType the resolved operator type
+     * @param fieldRef the field
+     * @param receiver the receiver
+     * @param lhs the old field value
+     * @param rhs the right-hand value
+     * @return the compound assignment operation
+     */
+    public static FieldCompoundAssignOp fieldCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
+                                                             FieldRef fieldRef, Value receiver, Value lhs, Value rhs) {
+        return new FieldCompoundAssignOp(fieldRef, receiver, lhs, rhs, kind, functionType);
+    }
+
+    /**
+     * Creates a compound assignment to a static field.
+     * @param kind the assignment kind
+     * @param functionType the resolved operator type
+     * @param fieldRef the field
+     * @param lhs the old field value
+     * @param rhs the right-hand value
+     * @return the compound assignment operation
+     */
+    public static FieldCompoundAssignOp fieldCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
+                                                             FieldRef fieldRef, Value lhs, Value rhs) {
+        return new FieldCompoundAssignOp(fieldRef, lhs, rhs, kind, functionType);
+    }
+
+    /**
+     * Creates an update of a non-static field.
+     * @param kind the update kind
+     * @param functionType the resolved operator type
+     * @param fieldRef the field
+     * @param receiver the receiver
+     * @param oldValue the old field value
+     * @return the update operation
+     */
+    public static FieldUpdateOp fieldUpdate(UpdateOp.UpdateKind kind, FunctionType functionType,
+                                             FieldRef fieldRef, Value receiver, Value oldValue) {
+        return new FieldUpdateOp(fieldRef, receiver, oldValue, kind, functionType);
+    }
+
+    /**
+     * Creates an update of a static field.
+     * @param kind the update kind
+     * @param functionType the resolved operator type
+     * @param fieldRef the field
+     * @param oldValue the old field value
+     * @return the update operation
+     */
+    public static FieldUpdateOp fieldUpdate(UpdateOp.UpdateKind kind, FunctionType functionType,
+                                             FieldRef fieldRef, Value oldValue) {
+        return new FieldUpdateOp(fieldRef, oldValue, kind, functionType);
+    }
+
+    /**
+     * Creates a prefix increment operation for a non-static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param receiver the receiver
+     * @param oldValue the old field value
+     * @return a prefix increment operation for the non-static field
+     */
+    public static FieldUpdateOp fieldPreInc(FunctionType type, FieldRef ref, Value receiver, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.PREINC, type, ref, receiver, oldValue);
+    }
+
+    /**
+     * Creates a postfix increment operation for a non-static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param receiver the receiver
+     * @param oldValue the old field value
+     * @return a postfix increment operation for the non-static field
+     */
+    public static FieldUpdateOp fieldPostInc(FunctionType type, FieldRef ref, Value receiver, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.POSTINC, type, ref, receiver, oldValue);
+    }
+
+    /**
+     * Creates a prefix decrement operation for a non-static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param receiver the receiver
+     * @param oldValue the old field value
+     * @return a prefix decrement operation for the non-static field
+     */
+    public static FieldUpdateOp fieldPreDec(FunctionType type, FieldRef ref, Value receiver, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.PREDEC, type, ref, receiver, oldValue);
+    }
+
+    /**
+     * Creates a postfix decrement operation for a non-static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param receiver the receiver
+     * @param oldValue the old field value
+     * @return a postfix decrement operation for the non-static field
+     */
+    public static FieldUpdateOp fieldPostDec(FunctionType type, FieldRef ref, Value receiver, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.POSTDEC, type, ref, receiver, oldValue);
+    }
+
+    /**
+     * Creates a prefix increment operation for a static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param oldValue the old field value
+     * @return a prefix increment operation for the static field
+     */
+    public static FieldUpdateOp fieldPreInc(FunctionType type, FieldRef ref, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.PREINC, type, ref, oldValue);
+    }
+
+    /**
+     * Creates a postfix increment operation for a static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param oldValue the old field value
+     * @return a postfix increment operation for the static field
+     */
+    public static FieldUpdateOp fieldPostInc(FunctionType type, FieldRef ref, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.POSTINC, type, ref, oldValue);
+    }
+
+    /**
+     * Creates a prefix decrement operation for a static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param oldValue the old field value
+     * @return a prefix decrement operation for the static field
+     */
+    public static FieldUpdateOp fieldPreDec(FunctionType type, FieldRef ref, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.PREDEC, type, ref, oldValue);
+    }
+
+    /**
+     * Creates a postfix decrement operation for a static field.
+     * @param type the resolved operator type
+     * @param ref the field
+     * @param oldValue the old field value
+     * @return a postfix decrement operation for the static field
+     */
+    public static FieldUpdateOp fieldPostDec(FunctionType type, FieldRef ref, Value oldValue) {
+        return fieldUpdate(UpdateOp.UpdateKind.POSTDEC, type, ref, oldValue);
     }
 
     /**
@@ -6933,6 +7801,94 @@ public sealed abstract class JavaOp extends AbstractOp {
      */
     public static ArrayAccessOp.ArrayStoreOp arrayStoreOp(Value array, Value index, Value v) {
         return new ArrayAccessOp.ArrayStoreOp(array, index, v);
+    }
+
+    /**
+     * Creates an assignment to an array component.
+     * @param array the array
+     * @param index the index
+     * @param value the assigned value
+     * @return the assignment operation
+     */
+    public static ArrayAssignOp arrayAssign(Value array, Value index, Value value) {
+        return new ArrayAssignOp(array, index, value);
+    }
+
+    /**
+     * Creates a compound assignment to an array component.
+     * @param kind the assignment kind
+     * @param functionType the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param lhs the old component value
+     * @param rhs the right-hand value
+     * @return the compound assignment operation
+     */
+    public static ArrayCompoundAssignOp arrayCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
+                                                             Value array, Value index, Value lhs, Value rhs) {
+        return new ArrayCompoundAssignOp(array, index, lhs, rhs, kind, functionType);
+    }
+
+    /**
+     * Creates an update of an array component.
+     * @param kind the update kind
+     * @param functionType the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param oldValue the old component value
+     * @return the update operation
+     */
+    public static ArrayUpdateOp arrayUpdate(UpdateOp.UpdateKind kind, FunctionType functionType,
+                                             Value array, Value index, Value oldValue) {
+        return new ArrayUpdateOp(array, index, oldValue, kind, functionType);
+    }
+
+    /**
+     * Creates a prefix increment operation for an array component.
+     * @param type the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param oldValue the old component value
+     * @return a prefix increment operation for the array component
+     */
+    public static ArrayUpdateOp arrayPreInc(FunctionType type, Value array, Value index, Value oldValue) {
+        return arrayUpdate(UpdateOp.UpdateKind.PREINC, type, array, index, oldValue);
+    }
+
+    /**
+     * Creates a postfix increment operation for an array component.
+     * @param type the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param oldValue the old component value
+     * @return a postfix increment operation for the array component
+     */
+    public static ArrayUpdateOp arrayPostInc(FunctionType type, Value array, Value index, Value oldValue) {
+        return arrayUpdate(UpdateOp.UpdateKind.POSTINC, type, array, index, oldValue);
+    }
+
+    /**
+     * Creates a prefix decrement operation for an array component.
+     * @param type the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param oldValue the old component value
+     * @return a prefix decrement operation for the array component
+     */
+    public static ArrayUpdateOp arrayPreDec(FunctionType type, Value array, Value index, Value oldValue) {
+        return arrayUpdate(UpdateOp.UpdateKind.PREDEC, type, array, index, oldValue);
+    }
+
+    /**
+     * Creates a postfix decrement operation for an array component.
+     * @param type the resolved operator type
+     * @param array the array
+     * @param index the index
+     * @param oldValue the old component value
+     * @return a postfix decrement operation for the array component
+     */
+    public static ArrayUpdateOp arrayPostDec(FunctionType type, Value array, Value index, Value oldValue) {
+        return arrayUpdate(UpdateOp.UpdateKind.POSTDEC, type, array, index, oldValue);
     }
 
     /**

@@ -55,7 +55,7 @@ public class ImplicitConversionTest {
                 %1 : Var<java.type:"long"> = var @"x";
                 %2 : java.type:"int" = constant @1;
                 %3 : java.type:"long" = conv %2;
-                var.store %1 %3;
+                %4 : java.type:"long" = var.assign %1 %3;
                 return;
             };
             """)
@@ -72,8 +72,8 @@ public class ImplicitConversionTest {
                 %3 : java.type:"long" = var.load %2;
                 %4 : java.type:"int" = constant @1;
                 %5 : java.type:"long" = conv %4;
-                %6 : java.type:"long" = add %3 %5;
-                var.store %2 %6;
+                %6 : java.type:"long" = var.compound.assign %2 %3 %5
+                    @operator.type=func<java.type:"long", java.type:"long", java.type:"long"> @compound.kind="ADD";
                 return;
             };
             """)
@@ -101,7 +101,7 @@ public class ImplicitConversionTest {
                         %8 : java.type:"long" = conv %7;
                         yield %8;
                     };
-                var.store %3 %4;
+                %9 : java.type:"long" = var.assign %3 %4;
                 return;
             };
             """)
@@ -129,7 +129,7 @@ public class ImplicitConversionTest {
                         %8 : java.type:"long" = constant @2;
                         yield %8;
                     };
-                var.store %3 %4;
+                %9 : java.type:"long" = var.assign %3 %4;
                 return;
             };
            """)
@@ -157,7 +157,7 @@ public class ImplicitConversionTest {
                         yield %7;
                     };
                 %8 : java.type:"long" = conv %4;
-                var.store %3 %8;
+                %9 : java.type:"long" = var.assign %3 %8;
                 return;
             };
            """)
@@ -590,8 +590,8 @@ public class ImplicitConversionTest {
                     (%8 : Var<java.type:"int">)java.type:"void" -> {
                         %9 : java.type:"int" = var.load %3;
                         %10 : java.type:"int" = var.load %8;
-                        %11 : java.type:"int" = add %9 %10;
-                        var.store %3 %11;
+                        %11 : java.type:"int" = var.compound.assign %3 %9 %10
+                            @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD";
                         java.continue;
                     };
                 %12 : java.type:"int" = var.load %3;
