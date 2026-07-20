@@ -1223,27 +1223,29 @@ public class SwitchExpressionTest2 {
                         %10 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
                                 %11 : java.type:"int" = constant @2;
-                                %12 : java.type:"boolean" = eq %9 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %12;
+                                %12 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %13 : java.type:"boolean" = eq %12 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %13;
                             }
                             ()java.type:"boolean" -> {
-                                %13 : java.type:"int" = constant @3;
-                                %14 : java.type:"boolean" = eq %9 %13 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %14;
+                                %14 : java.type:"int" = constant @3;
+                                %15 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %16 : java.type:"boolean" = eq %15 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %16;
                             };
                         yield %10;
                     }
                     ()java.type:"java.lang.String" -> {
-                        %15 : java.type:"java.lang.String" = constant @"two or three";
-                        yield %15;
+                        %17 : java.type:"java.lang.String" = constant @"two or three";
+                        yield %17;
                     }
                     ()java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = constant @true;
-                        yield %16;
+                        %18 : java.type:"boolean" = constant @true;
+                        yield %18;
                     }
                     ()java.type:"java.lang.String" -> {
-                        %17 : java.type:"java.lang.String" = constant @"else";
-                        yield %17;
+                        %19 : java.type:"java.lang.String" = constant @"else";
+                        yield %19;
                     };
                 return %3;
             };

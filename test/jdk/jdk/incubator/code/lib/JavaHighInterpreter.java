@@ -51,7 +51,17 @@ public class JavaHighInterpreter extends JavaLowInterpreter {
     public <T extends Op & Op.Invokable> Object interpret(T op, List<Object> argsAndCaptures,
                                                            MethodHandles.Lookup l) {
         if (op instanceof CoreOp.FuncOp func) {
-            return super.interpret((T) func.transform(ASSIGNMENT_LOWERING_TRANSFORMER), argsAndCaptures, l);
+            Op top = func;
+            while (top.ancestorBody() != null) {
+                top = top.ancestorOp();
+            }
+            if (top instanceof CoreOp.ModuleOp module) {
+                CoreOp.ModuleOp transformedModule = module.transform(ASSIGNMENT_LOWERING_TRANSFORMER);
+                func = transformedModule.functionTable().get(func.funcName());
+            } else {
+                func = func.transform(ASSIGNMENT_LOWERING_TRANSFORMER);
+            }
+            return super.interpret((T) func, argsAndCaptures, l);
         }
         return super.interpret(op, argsAndCaptures, l);
     }

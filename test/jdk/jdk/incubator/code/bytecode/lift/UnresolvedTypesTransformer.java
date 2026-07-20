@@ -311,10 +311,45 @@ final class UnresolvedTypesTransformer {
                             cc.queryValue(array).orElse(array),
                             cc.queryValue(index).orElse(index))));
                 }
+                case JavaOp.ArithmeticOperation arithmetic when
+                        arithmetic.functionType().returnType() instanceof UnresolvedType ||
+                        arithmetic.functionType().parameterTypes().stream()
+                                .anyMatch(UnresolvedType.class::isInstance) -> {
+                    // @@@ Should arithmetic op func type be inferred from their operands when transforming?
+                    cc.mapValue(op.result(), block.add(resolvedArithmeticOp(arithmetic,
+                            cc.getValues(op.operands()))));
+                }
                 default ->
                     block.add(op);
             }
             return block;
+        };
+    }
+
+    private static JavaOp resolvedArithmeticOp(JavaOp.ArithmeticOperation op, List<Value> operands) {
+        Value first = operands.getFirst();
+        return switch (op) {
+            case JavaOp.AddOp _ -> JavaOp.add(first, operands.get(1));
+            case JavaOp.SubOp _ -> JavaOp.sub(first, operands.get(1));
+            case JavaOp.MulOp _ -> JavaOp.mul(first, operands.get(1));
+            case JavaOp.DivOp _ -> JavaOp.div(first, operands.get(1));
+            case JavaOp.ModOp _ -> JavaOp.mod(first, operands.get(1));
+            case JavaOp.OrOp _ -> JavaOp.or(first, operands.get(1));
+            case JavaOp.AndOp _ -> JavaOp.and(first, operands.get(1));
+            case JavaOp.XorOp _ -> JavaOp.xor(first, operands.get(1));
+            case JavaOp.LshlOp _ -> JavaOp.lshl(first, operands.get(1));
+            case JavaOp.AshrOp _ -> JavaOp.ashr(first, operands.get(1));
+            case JavaOp.LshrOp _ -> JavaOp.lshr(first, operands.get(1));
+            case JavaOp.NegOp _ -> JavaOp.neg(first);
+            case JavaOp.PosOp _ -> JavaOp.pos(first);
+            case JavaOp.ComplOp _ -> JavaOp.compl(first);
+            case JavaOp.NotOp _ -> JavaOp.not(first);
+            case JavaOp.EqOp _ -> JavaOp.eq(first, operands.get(1));
+            case JavaOp.NeqOp _ -> JavaOp.neq(first, operands.get(1));
+            case JavaOp.GtOp _ -> JavaOp.gt(first, operands.get(1));
+            case JavaOp.GeOp _ -> JavaOp.ge(first, operands.get(1));
+            case JavaOp.LtOp _ -> JavaOp.lt(first, operands.get(1));
+            case JavaOp.LeOp _ -> JavaOp.le(first, operands.get(1));
         };
     }
 
