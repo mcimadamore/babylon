@@ -38,6 +38,7 @@ import jdk.incubator.code.bytecode.BytecodeGenerator;
 import jdk.incubator.code.dialect.core.CoreOp;
 import jdk.incubator.code.dialect.core.CoreType;
 import jdk.incubator.code.dialect.core.FunctionType;
+import jdk.incubator.code.dialect.java.JavaOp;
 import jdk.incubator.code.dialect.java.JavaType;
 import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -275,7 +276,25 @@ public class CoreBinaryOpsTest {
                     ? type
                     : functionType.returnType();
             return CoreOp.func(original.funcName(), CoreType.functionType(retType, type, type))
-                    .body(builder -> builder.transformBody(original.body(), builder.parameters(), CodeTransformer.COPYING_TRANSFORMER)
+                    .body(builder -> builder.transformBody(original.body(), builder.parameters(),
+                            CodeTransformer.opTransformer((opBuilder, op, operands) -> {
+                                // @@@ Should arithmetic op func type be inferred from their operands when transforming?
+                                Op replacement = switch (op) {
+                                    case JavaOp.AddOp _ -> JavaOp.add(operands.get(0), operands.get(1));
+                                    case JavaOp.AndOp _ -> JavaOp.and(operands.get(0), operands.get(1));
+                                    case JavaOp.AshrOp _ -> JavaOp.ashr(operands.get(0), operands.get(1));
+                                    case JavaOp.DivOp _ -> JavaOp.div(operands.get(0), operands.get(1));
+                                    case JavaOp.LshlOp _ -> JavaOp.lshl(operands.get(0), operands.get(1));
+                                    case JavaOp.LshrOp _ -> JavaOp.lshr(operands.get(0), operands.get(1));
+                                    case JavaOp.ModOp _ -> JavaOp.mod(operands.get(0), operands.get(1));
+                                    case JavaOp.MulOp _ -> JavaOp.mul(operands.get(0), operands.get(1));
+                                    case JavaOp.OrOp _ -> JavaOp.or(operands.get(0), operands.get(1));
+                                    case JavaOp.SubOp _ -> JavaOp.sub(operands.get(0), operands.get(1));
+                                    case JavaOp.XorOp _ -> JavaOp.xor(operands.get(0), operands.get(1));
+                                    default -> op;
+                                };
+                                opBuilder.apply(replacement);
+                            }))
                     );
         }
 

@@ -78,41 +78,41 @@ public class BlockTest {
                     ()java.type:"boolean" -> {
                         %3 : java.type:"int" = var.load %2;
                         %4 : java.type:"int" = constant @1;
-                        %5 : java.type:"boolean" = lt %3 %4;
+                        %5 : java.type:"boolean" = lt %3 %4 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                         yield %5;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %6 : java.type:"int" = var.load %2;
-                            %7 : java.type:"int" = constant @1;
-                            %8 : java.type:"int" = add %6 %7;
-                            var.store %2 %8;
+                            %6 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
+                                %7 : java.type:"int" = constant @1;
+                                yield %7;
+                            };
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %9 : java.type:"int" = var.load %2;
-                        %10 : java.type:"int" = constant @2;
-                        %11 : java.type:"boolean" = lt %9 %10;
-                        yield %11;
+                        %8 : java.type:"int" = var.load %2;
+                        %9 : java.type:"int" = constant @2;
+                        %10 : java.type:"boolean" = lt %8 %9 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %10;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %12 : java.type:"int" = var.load %2;
-                            %13 : java.type:"int" = constant @2;
-                            %14 : java.type:"int" = add %12 %13;
-                            var.store %2 %14;
+                            %11 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
+                                %12 : java.type:"int" = constant @2;
+                                yield %12;
+                            };
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %15 : java.type:"int" = var.load %2;
-                            %16 : java.type:"int" = constant @3;
-                            %17 : java.type:"int" = add %15 %16;
-                            var.store %2 %17;
+                            %13 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
+                                %14 : java.type:"int" = constant @3;
+                                yield %14;
+                            };
                             yield;
                         };
                         yield;
@@ -185,9 +185,7 @@ public class BlockTest {
                     (%6 : Var<java.type:"int">)java.type:"void" -> {
                         java.block ()java.type:"void" -> {
                             %7 : java.type:"int" = var.load %6;
-                            %8 : java.type:"int" = constant @1;
-                            %9 : java.type:"int" = add %7 %8;
-                            var.store %6 %9;
+                            %8 : java.type:"int" = var.update %6 %7 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
                             yield;
                         };
                         java.continue;

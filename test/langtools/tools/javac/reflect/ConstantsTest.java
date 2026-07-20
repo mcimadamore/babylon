@@ -89,7 +89,7 @@ public class ConstantsTest {
                 %3 : Var<java.type:"byte"> = var %2 @"v";
                 %4 : java.type:"int" = constant @-42;
                 %5 : java.type:"byte" = conv %4;
-                var.store %3 %5;
+                %6 : java.type:"byte" = var.assign %3 %5;
                 return;
             };
             """)
@@ -106,7 +106,7 @@ public class ConstantsTest {
                 %3 : Var<java.type:"short"> = var %2 @"v";
                 %4 : java.type:"int" = constant @-42;
                 %5 : java.type:"short" = conv %4;
-                var.store %3 %5;
+                %6 : java.type:"short" = var.assign %3 %5;
                 return;
             };
             """)
@@ -121,7 +121,7 @@ public class ConstantsTest {
                 %1 : java.type:"int" = constant @42;
                 %2 : Var<java.type:"int"> = var %1 @"v";
                 %3 : java.type:"int" = constant @-42;
-                var.store %2 %3;
+                %4 : java.type:"int" = var.assign %2 %3;
                 return;
             };
             """)
@@ -133,10 +133,10 @@ public class ConstantsTest {
 
     @IR("""
             func @"test8" (%0 : java.type:"ConstantsTest")java.type:"void" -> {
-                %1 : java.type:"long" = constant @42;
+                %1 : java.type:"long" = constant @42L;
                 %2 : Var<java.type:"long"> = var %1 @"v";
-                %3 : java.type:"long" = constant @-42;
-                var.store %2 %3;
+                %3 : java.type:"long" = constant @-42L;
+                %4 : java.type:"long" = var.assign %2 %3;
                 return;
             };
             """)
@@ -151,8 +151,8 @@ public class ConstantsTest {
                 %1 : java.type:"float" = constant @42.0f;
                 %2 : Var<java.type:"float"> = var %1 @"v";
                 %3 : java.type:"float" = constant @42.0f;
-                %4 : java.type:"float" = neg %3;
-                var.store %2 %4;
+                %4 : java.type:"float" = neg %3 @func<java.type:"float", java.type:"float">;
+                %5 : java.type:"float" = var.assign %2 %4;
                 return;
             };
             """)
@@ -167,8 +167,8 @@ public class ConstantsTest {
                 %1 : java.type:"double" = constant @42.0d;
                 %2 : Var<java.type:"double"> = var %1 @"v";
                 %3 : java.type:"double" = constant @42.0d;
-                %4 : java.type:"double" = neg %3;
-                var.store %2 %4;
+                %4 : java.type:"double" = neg %3 @func<java.type:"double", java.type:"double">;
+                %5 : java.type:"double" = var.assign %2 %4;
                 return;
             };
             """)
@@ -195,7 +195,7 @@ public class ConstantsTest {
                 %1 : java.type:"boolean" = constant @true;
                 %2 : Var<java.type:"boolean"> = var %1 @"b";
                 %3 : java.type:"boolean" = constant @false;
-                var.store %2 %3;
+                %4 : java.type:"boolean" = var.assign %2 %3;
                 return;
             };
             """)

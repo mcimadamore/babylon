@@ -1206,48 +1206,46 @@ public class SwitchExpressionTest2 {
 
     @IR("""
             func @"caseConstantPrimitiveWrapperSelector" (%0 : java.type:"java.lang.Integer")java.type:"java.lang.String" -> {
-                  %1 : Var<java.type:"java.lang.Integer"> = var %0 @"i";
-                  %2 : java.type:"java.lang.Integer" = var.load %1;
-                  %3 : java.type:"java.lang.String" = java.switch.expression %2
-                      (%4 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                          %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
-                          %6 : java.type:"int" = constant @1;
-                          %7 : java.type:"boolean" = eq %5 %6;
-                          yield %7;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %8 : java.type:"java.lang.String" = constant @"one";
-                          yield %8;
-                      }
-                      (%9 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                          %10 : java.type:"boolean" = java.cor
-                              ()java.type:"boolean" -> {
-                                  %11 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                  %12 : java.type:"int" = constant @2;
-                                  %13 : java.type:"boolean" = eq %11 %12;
-                                  yield %13;
-                              }
-                              ()java.type:"boolean" -> {
-                                  %14 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                  %15 : java.type:"int" = constant @3;
-                                  %16 : java.type:"boolean" = eq %14 %15;
-                                  yield %16;
-                              };
-                          yield %10;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %17 : java.type:"java.lang.String" = constant @"two or three";
-                          yield %17;
-                      }
-                      ()java.type:"boolean" -> {
-                          %18 : java.type:"boolean" = constant @true;
-                          yield %18;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %19 : java.type:"java.lang.String" = constant @"else";
-                          yield %19;
-                      };
-                  return %3;
+                %1 : Var<java.type:"java.lang.Integer"> = var %0 @"i";
+                %2 : java.type:"java.lang.Integer" = var.load %1;
+                %3 : java.type:"java.lang.String" = java.switch.expression %2
+                    (%4 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
+                        %6 : java.type:"int" = constant @1;
+                        %7 : java.type:"boolean" = eq %5 %6 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %7;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %8 : java.type:"java.lang.String" = constant @"one";
+                        yield %8;
+                    }
+                    (%9 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %10 : java.type:"boolean" = java.cor
+                            ()java.type:"boolean" -> {
+                                %11 : java.type:"int" = constant @2;
+                                %12 : java.type:"boolean" = eq %9 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %12;
+                            }
+                            ()java.type:"boolean" -> {
+                                %13 : java.type:"int" = constant @3;
+                                %14 : java.type:"boolean" = eq %9 %13 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %14;
+                            };
+                        yield %10;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %15 : java.type:"java.lang.String" = constant @"two or three";
+                        yield %15;
+                    }
+                    ()java.type:"boolean" -> {
+                        %16 : java.type:"boolean" = constant @true;
+                        yield %16;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %17 : java.type:"java.lang.String" = constant @"else";
+                        yield %17;
+                    };
+                return %3;
             };
             """)
     @Reflect
@@ -1348,69 +1346,69 @@ public class SwitchExpressionTest2 {
 
     @IR("""
             func @"casePatternWithCaseConstant" (%0 : java.type:"int")java.type:"java.lang.String" -> {
-                  %1 : Var<java.type:"int"> = var %0 @"i";
-                  %2 : java.type:"int" = var.load %1;
-                  %3 : java.type:"java.lang.Integer" = constant @null;
-                  %4 : Var<java.type:"java.lang.Integer"> = var %3 @"j";
-                  %5 : java.type:"java.lang.Integer" = constant @null;
-                  %6 : Var<java.type:"java.lang.Integer"> = var %5;
-                  %7 : java.type:"java.lang.String" = java.switch.expression %2
-                      (%8 : java.type:"int")java.type:"boolean" -> {
-                          %9 : java.type:"int" = constant @0;
-                          %10 : java.type:"boolean" = eq %8 %9;
-                          yield %10;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %11 : java.type:"java.lang.String" = constant @"zero";
-                          yield %11;
-                      }
-                      (%12 : java.type:"int")java.type:"boolean" -> {
-                          %13 : java.type:"boolean" = java.cand
-                              ()java.type:"boolean" -> {
-                                  %14 : java.type:"java.lang.Integer" = invoke %12 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
-                                  %15 : java.type:"boolean" = pattern.match %14
-                                      ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
-                                          %16 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"j";
-                                          yield %16;
-                                      }
-                                      (%17 : java.type:"java.lang.Integer")java.type:"void" -> {
-                                          var.store %4 %17;
-                                          yield;
-                                      };
-                                  yield %15;
-                              }
-                              ()java.type:"boolean" -> {
-                                  %18 : java.type:"java.lang.Integer" = var.load %4;
-                                  %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Integer::intValue():int";
-                                  %20 : java.type:"int" = constant @0;
-                                  %21 : java.type:"boolean" = gt %19 %20;
-                                  yield %21;
-                              };
-                          yield %13;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %22 : java.type:"java.lang.String" = constant @"positive";
-                          yield %22;
-                      }
-                      (%23 : java.type:"int")java.type:"boolean" -> {
-                          %24 : java.type:"java.lang.Integer" = invoke %23 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
-                          %25 : java.type:"boolean" = pattern.match %24
-                              ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
-                                  %26 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type;
-                                  yield %26;
-                              }
-                              (%27 : java.type:"java.lang.Integer")java.type:"void" -> {
-                                  var.store %6 %27;
-                                  yield;
-                              };
-                          yield %25;
-                      }
-                      ()java.type:"java.lang.String" -> {
-                          %28 : java.type:"java.lang.String" = constant @"negative";
-                          yield %28;
-                      };
-                  return %7;
-              };
+                %1 : Var<java.type:"int"> = var %0 @"i";
+                %2 : java.type:"int" = var.load %1;
+                %3 : java.type:"java.lang.Integer" = constant @null;
+                %4 : Var<java.type:"java.lang.Integer"> = var %3 @"j";
+                %5 : java.type:"java.lang.Integer" = constant @null;
+                %6 : Var<java.type:"java.lang.Integer"> = var %5;
+                %7 : java.type:"java.lang.String" = java.switch.expression %2
+                    (%8 : java.type:"int")java.type:"boolean" -> {
+                        %9 : java.type:"int" = constant @0;
+                        %10 : java.type:"boolean" = eq %8 %9 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %10;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %11 : java.type:"java.lang.String" = constant @"zero";
+                        yield %11;
+                    }
+                    (%12 : java.type:"int")java.type:"boolean" -> {
+                        %13 : java.type:"java.lang.Integer" = invoke %12 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                        %14 : java.type:"boolean" = java.cand
+                            ()java.type:"boolean" -> {
+                                %15 : java.type:"boolean" = pattern.match %13
+                                    ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
+                                        %16 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"j";
+                                        yield %16;
+                                    }
+                                    (%17 : java.type:"java.lang.Integer")java.type:"void" -> {
+                                        var.store %4 %17;
+                                        yield;
+                                    };
+                                yield %15;
+                            }
+                            ()java.type:"boolean" -> {
+                                %18 : java.type:"java.lang.Integer" = var.load %4;
+                                %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Integer::intValue():int";
+                                %20 : java.type:"int" = constant @0;
+                                %21 : java.type:"boolean" = gt %19 %20 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %21;
+                            };
+                        yield %14;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %22 : java.type:"java.lang.String" = constant @"positive";
+                        yield %22;
+                    }
+                    (%23 : java.type:"int")java.type:"boolean" -> {
+                        %24 : java.type:"java.lang.Integer" = invoke %23 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                        %25 : java.type:"boolean" = pattern.match %24
+                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
+                                %26 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type;
+                                yield %26;
+                            }
+                            (%27 : java.type:"java.lang.Integer")java.type:"void" -> {
+                                var.store %6 %27;
+                                yield;
+                            };
+                        yield %25;
+                    }
+                    ()java.type:"java.lang.String" -> {
+                        %28 : java.type:"java.lang.String" = constant @"negative";
+                        yield %28;
+                    };
+                return %7;
+            };
             """)
     @Reflect
     static String casePatternWithCaseConstant(int i) {

@@ -23,6 +23,7 @@
 
 import jdk.incubator.code.Block;
 import jdk.incubator.code.Body;
+import jdk.incubator.code.CodeTransformer;
 import jdk.incubator.code.Op;
 
 import jdk.incubator.code.Value;
@@ -33,7 +34,26 @@ import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 public class JavaHighInterpreter extends JavaLowInterpreter {
+    // @@@ Lower assignment expressions until JavaHighInterpreter executes them directly.
+    private static final CodeTransformer ASSIGNMENT_LOWERING_TRANSFORMER = (block, op) -> {
+        if (op instanceof JavaOp.AssignmentExpressionOp assignment) {
+            return ((Op.Lowerable) assignment).lower(block, null);
+        }
+        block.add(op);
+        return block;
+    };
+
     public JavaHighInterpreter() {
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends Op & Op.Invokable> Object interpret(T op, List<Object> argsAndCaptures,
+                                                           MethodHandles.Lookup l) {
+        if (op instanceof CoreOp.FuncOp func) {
+            return super.interpret((T) func.transform(ASSIGNMENT_LOWERING_TRANSFORMER), argsAndCaptures, l);
+        }
+        return super.interpret(op, argsAndCaptures, l);
     }
 
     @Override
@@ -75,6 +95,7 @@ public class JavaHighInterpreter extends JavaLowInterpreter {
             case JavaOp.LabeledOp o -> executeLabeledOp(o, e);
             case JavaOp.ContinueOp o -> executeContinueOp(o, e);
             case JavaOp.BlockOp o -> executeBlockOp(o, e);
+            // @@@ New high-level operations must be handled here or lowered before reaching JavaLowInterpreter.
             default -> super.executeOp(op, e);
         };
     }

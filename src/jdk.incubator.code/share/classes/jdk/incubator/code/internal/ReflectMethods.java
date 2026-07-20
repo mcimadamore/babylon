@@ -105,7 +105,6 @@ import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.*;
 import java.util.List;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.sun.tools.javac.code.Flags.*;
@@ -905,13 +904,10 @@ public class ReflectMethods extends TreeTranslatorPrev {
                         default -> throw unreachable();
                     };
             FunctionType operatorType = typeToFunctionType(tree.operator.type);
-            applyCompoundAssign(tree.lhs, _ -> {
-                Type rhsType = tree.rhs.type;
-                return toValue(tree.rhs, rhsType.hasTag(BOT) ? syms.stringType : rhsType);
-            }, kind, operatorType);
+            applyCompoundAssign(tree.lhs, tree.rhs, kind, operatorType);
         }
 
-        void applyCompoundAssign(JCTree.JCExpression lhs, Function<Value, Value> scanRhs,
+        void applyCompoundAssign(JCTree.JCExpression lhs, JCTree.JCExpression rhs,
                                  JavaOp.CompoundAssignOp.CompoundAssignmentKind kind, FunctionType operatorType) {
             // Consume top node that applies to access
             lhs = TreeInfo.skipParens(lhs);
@@ -923,29 +919,16 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     switch (sym.getKind()) {
                         case LOCAL_VARIABLE, PARAMETER -> { // exception parameters not valid here!
                             Value varOp = varOpValue(sym);
-
-                            Op.Result lhsOpValue = append(CoreOp.varLoad(varOp));
-                            // Scan the rhs
-                            Value rhs = scanRhs.apply(lhsOpValue);
-                            result = append(JavaOp.varCompoundAssign(kind, operatorType,
-                                    varOp, lhsOpValue, rhs));
+                            Body.Builder rhsBody = compoundAssignmentRhs(rhs, operatorType);
+                            result = append(JavaOp.varCompoundAssign(kind, operatorType, varOp, rhsBody));
                         }
                         case FIELD -> {
                             FieldRef fr = symbolToFieldRef(sym, symbolSiteType(sym));
-
-                            Op.Result lhsOpValue;
-                            CodeType resultType = typeToCodeType(sym.type);
-                            if (sym.isStatic()) {
-                                lhsOpValue = append(JavaOp.fieldLoad(resultType, fr));
-                            } else {
-                                lhsOpValue = append(JavaOp.fieldLoad(resultType, fr, thisValue()));
-                            }
-                            // Scan the rhs
-                            Value rhs = scanRhs.apply(lhsOpValue);
+                            Body.Builder rhsBody = compoundAssignmentRhs(rhs, operatorType);
                             result = sym.isStatic()
-                                    ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, lhsOpValue, rhs))
+                                    ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, rhsBody))
                                     : append(JavaOp.fieldCompoundAssign(kind, operatorType, fr,
-                                            thisValue(), lhsOpValue, rhs));
+                                            thisValue(), rhsBody));
                         }
                         default -> throw unreachable();
                     }
@@ -958,19 +941,11 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Symbol sym = assign.sym;
                     FieldRef fr = symbolToFieldRef(sym, assign.selected.type);
 
-                    Op.Result lhsOpValue;
-                    CodeType resultType = typeToCodeType(sym.type);
-                    if (sym.isStatic()) {
-                        lhsOpValue = append(JavaOp.fieldLoad(resultType, fr));
-                    } else {
-                        lhsOpValue = append(JavaOp.fieldLoad(resultType, fr, receiver));
-                    }
-                    // Scan the rhs
-                    Value rhs = scanRhs.apply(lhsOpValue);
+                    Body.Builder rhsBody = compoundAssignmentRhs(rhs, operatorType);
                     result = sym.isStatic()
-                            ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, lhsOpValue, rhs))
+                            ? append(JavaOp.fieldCompoundAssign(kind, operatorType, fr, rhsBody))
                             : append(JavaOp.fieldCompoundAssign(kind, operatorType, fr,
-                                    receiver, lhsOpValue, rhs));
+                                    receiver, rhsBody));
                 }
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
@@ -978,14 +953,22 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Value array = toValue(assign.indexed);
                     Value index = toValue(assign.index);
 
-                    Op.Result lhsOpValue = append(JavaOp.arrayLoadOp(array, index));
-                    // Scan the rhs
-                    Value rhs = scanRhs.apply(lhsOpValue);
+                    Body.Builder rhsBody = compoundAssignmentRhs(rhs, operatorType);
                     result = append(JavaOp.arrayCompoundAssign(kind, operatorType,
-                            array, index, lhsOpValue, rhs));
+                            array, index, rhsBody));
                 }
                 default -> throw unreachable();
             }
+        }
+
+        Body.Builder compoundAssignmentRhs(JCTree.JCExpression rhs, FunctionType operatorType) {
+            pushBody(rhs, CoreType.functionType(operatorType.parameterTypes().get(1)));
+            Type rhsType = rhs.type;
+            Value rhsValue = toValue(rhs, rhsType.hasTag(BOT) ? syms.stringType : rhsType);
+            append(CoreOp.core_yield(rhsValue));
+            Body.Builder rhsBody = stack.body;
+            popBody();
+            return rhsBody;
         }
 
         void applyUpdate(JCTree.JCExpression lhs, JavaOp.UpdateOp.UpdateKind kind, FunctionType operatorType) {

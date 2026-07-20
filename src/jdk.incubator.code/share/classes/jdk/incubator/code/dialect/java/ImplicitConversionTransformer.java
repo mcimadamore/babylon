@@ -26,8 +26,9 @@
 package jdk.incubator.code.dialect.java;
 
 import jdk.incubator.code.Block;
-import jdk.incubator.code.CodeType;
+import jdk.incubator.code.CodeContext;
 import jdk.incubator.code.CodeTransformer;
+import jdk.incubator.code.CodeType;
 import jdk.incubator.code.Op;
 import jdk.incubator.code.Value;
 import jdk.incubator.code.dialect.core.CoreOp;
@@ -43,9 +44,11 @@ import java.util.List;
  * carried by each unary and binary operation.
  * <p>
  * This transformer is intended for javac-generated, high-level Java models
- * containing {@link JavaOp Java operations}.  Contextual conversions are added
- * when a value has one unambiguous direct operand use; values with multiple
- * uses are left unchanged.
+ * containing {@link JavaOp Java operations}.  A contextual conversion is
+ * appended to a producer when its result has one unambiguous direct use in the
+ * same block, preserving subexpression evaluation order.  Otherwise it is
+ * prepended to each consuming operation, allowing a captured value to be
+ * converted independently in different bodies.
  */
 public final class ImplicitConversionTransformer implements CodeTransformer {
 
@@ -72,9 +75,42 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     @Override
     public Block.Builder acceptOp(Block.Builder block, Op op) {
-        Op.Result output = block.add(op);
+        CodeContext opContext = conversionContext(block, op);
+        Op outputOp = opContext == null ? op : op.transform(opContext, this);
+        Op.Result output = block.add(outputOp);
         block.context().mapValue(op.result(), convert(block, op, output));
         return block;
+    }
+
+    private CodeContext conversionContext(Block.Builder block, Op op) {
+        CodeContext opContext = null;
+        for (int i = 0; i < op.operands().size(); i++) {
+            Value input = op.operands().get(i);
+            CodeType target = conversionTarget(op, i);
+            if (target == null) continue;
+
+            Value output = block.context().getValue(input);
+            if (!requiresConversion(output.type(), target)) continue;
+
+            for (int j = 0; j < op.operands().size(); j++) {
+                if (j == i || op.operands().get(j) != input) continue;
+                if (!target.equals(conversionTarget(op, j))) {
+                    throw new IllegalArgumentException(
+                            "one value cannot be converted differently for multiple operands");
+                }
+                if (j < i) {
+                    target = null;
+                    break;
+                }
+            }
+            if (target == null) continue;
+
+            if (opContext == null) {
+                opContext = CodeContext.create(block.context());
+            }
+            opContext.mapValue(input, convert(block, output, target));
+        }
+        return opContext;
     }
 
     private Value convert(Block.Builder block, Op producer, Value output) {
@@ -134,10 +170,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
             case JavaOp.ArrayAssignOp _ when operand == 1 -> JavaType.INT;
             case JavaOp.ArrayCompoundAssignOp _ when operand == 1 -> JavaType.INT;
             case JavaOp.ArrayUpdateOp _ when operand == 1 -> JavaType.INT;
-            case JavaOp.CompoundAssignOp assign when op.operands().get(operand) == assign.lhsOperand() ->
-                    assign.functionType().parameterTypes().get(0);
-            case JavaOp.CompoundAssignOp assign when op.operands().get(operand) == assign.rhsOperand() ->
-                    assign.functionType().parameterTypes().get(1);
             case JavaOp.InvokeOp invoke -> invocationTarget(invoke, operand);
             case JavaOp.NewOp new_ -> constructorTarget(new_, operand);
             case JavaOp.PatternOps.MatchOp match when operand == 0 -> patternTarget(match);

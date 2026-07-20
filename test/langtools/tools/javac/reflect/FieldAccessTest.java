@@ -46,9 +46,9 @@ public class FieldAccessTest {
     @IR("""
             func @"test1" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = constant @1;
-                field.store %1 @java.ref:"FieldAccessTest::s_f:int";
-                %2 : java.type:"int" = constant @1;
-                field.store %0 %2 @java.ref:"FieldAccessTest::f:int";
+                %2 : java.type:"int" = field.assign %1 @java.ref:"FieldAccessTest::s_f:int";
+                %3 : java.type:"int" = constant @1;
+                %4 : java.type:"int" = field.assign %0 %3 @java.ref:"FieldAccessTest::f:int";
                 return;
             };
             """)
@@ -60,14 +60,14 @@ public class FieldAccessTest {
     @Reflect
     @IR("""
             func @"test1_1" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
-                %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %6 @java.ref:"FieldAccessTest::s_f:int";
+                %1 : java.type:"int" = field.compound.assign %0 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %2 : java.type:"int" = constant @1;
+                    yield %2;
+                };
+                %3 : java.type:"int" = field.compound.assign @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %4 : java.type:"int" = constant @1;
+                    yield %4;
+                };
                 return;
             };
             """)
@@ -80,8 +80,8 @@ public class FieldAccessTest {
     @IR("""
             func @"test2" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = constant @1;
-                field.store %0 %1 @java.ref:"FieldAccessTest::f:int";
-                field.store %1 @java.ref:"FieldAccessTest::s_f:int";
+                %2 : java.type:"int" = field.assign %0 %1 @java.ref:"FieldAccessTest::f:int";
+                %3 : java.type:"int" = field.assign %2 @java.ref:"FieldAccessTest::s_f:int";
                 return;
             };
             """)
@@ -93,7 +93,7 @@ public class FieldAccessTest {
     @IR("""
             func @"test2_1" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = constant @1;
-                field.store %0 %1 @java.ref:"FieldAccessTest::f:int";
+                %2 : java.type:"int" = field.assign %0 %1 @java.ref:"FieldAccessTest::f:int";
                 return;
             };
             """)
@@ -116,7 +116,7 @@ public class FieldAccessTest {
     @IR("""
             func @"test2_3" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = constant @1;
-                field.store %0 %1 @java.ref:"FieldAccessTest::f:int";
+                %2 : java.type:"int" = field.assign %0 %1 @java.ref:"FieldAccessTest::f:int";
                 return;
             };
             """)
@@ -168,7 +168,7 @@ public class FieldAccessTest {
                 %4 : java.type:"FieldAccessTest$B" = field.load %3 @java.ref:"FieldAccessTest$A::b:FieldAccessTest$B";
                 %5 : java.type:"FieldAccessTest$C" = field.load %4 @java.ref:"FieldAccessTest$B::c:FieldAccessTest$C";
                 %6 : java.type:"int" = constant @1;
-                field.store %5 %6 @java.ref:"FieldAccessTest$C::f:int";
+                %7 : java.type:"int" = field.assign %5 %6 @java.ref:"FieldAccessTest$C::f:int";
                 return;
             };
             """)
@@ -196,7 +196,7 @@ public class FieldAccessTest {
     @IR("""
             func @"test6" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = constant @1;
-                field.store %1 @java.ref:"FieldAccessTest$X::s_f:int";
+                %2 : java.type:"int" = field.assign %1 @java.ref:"FieldAccessTest$X::s_f:int";
                 return;
             };
             """)
@@ -208,14 +208,14 @@ public class FieldAccessTest {
     @Reflect
     @IR("""
             func @"test7" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
-                %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %6 @java.ref:"FieldAccessTest::s_f:int";
+                %1 : java.type:"int" = field.compound.assign %0 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %2 : java.type:"int" = constant @1;
+                    yield %2;
+                };
+                %3 : java.type:"int" = field.compound.assign @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %4 : java.type:"int" = constant @1;
+                    yield %4;
+                };
                 return;
             };
             """)
@@ -227,14 +227,14 @@ public class FieldAccessTest {
     @Reflect
     @IR("""
             func @"test8" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
-                %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %6 @java.ref:"FieldAccessTest::s_f:int";
+                %1 : java.type:"int" = field.compound.assign %0 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %2 : java.type:"int" = constant @1;
+                    yield %2;
+                };
+                %3 : java.type:"int" = field.compound.assign @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %4 : java.type:"int" = constant @1;
+                    yield %4;
+                };
                 return;
             };
             """)
@@ -246,10 +246,10 @@ public class FieldAccessTest {
     @Reflect
     @IR("""
             func @"test9" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
-                %1 : java.type:"int" = field.load @java.ref:"FieldAccessTest$X::s_f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %3 @java.ref:"FieldAccessTest$X::s_f:int";
+                %1 : java.type:"int" = field.compound.assign @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$X::s_f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %2 : java.type:"int" = constant @1;
+                    yield %2;
+                };
                 return;
             };
             """)
@@ -260,11 +260,11 @@ public class FieldAccessTest {
     @Reflect
     @IR("""
             func @"test10" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
-                %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                field.store %3 @java.ref:"FieldAccessTest::s_f:int";
+                %1 : java.type:"int" = field.compound.assign %0 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %2 : java.type:"int" = constant @1;
+                    yield %2;
+                };
+                %3 : java.type:"int" = field.assign %1 @java.ref:"FieldAccessTest::s_f:int";
                 return;
             };
             """)
@@ -279,10 +279,10 @@ public class FieldAccessTest {
                 %3 : java.type:"FieldAccessTest$A" = var.load %2;
                 %4 : java.type:"FieldAccessTest$B" = field.load %3 @java.ref:"FieldAccessTest$A::b:FieldAccessTest$B";
                 %5 : java.type:"FieldAccessTest$C" = field.load %4 @java.ref:"FieldAccessTest$B::c:FieldAccessTest$C";
-                %6 : java.type:"int" = field.load %5 @java.ref:"FieldAccessTest$C::f:int";
-                %7 : java.type:"int" = constant @1;
-                %8 : java.type:"int" = add %6 %7;
-                field.store %5 %8 @java.ref:"FieldAccessTest$C::f:int";
+                %6 : java.type:"int" = field.compound.assign %5 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$C::f:int" @compound.kind="ADD" ()java.type:"int" -> {
+                    %7 : java.type:"int" = constant @1;
+                    yield %7;
+                };
                 return;
             };
             """)
@@ -294,15 +294,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test12" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : Var<java.type:"int"> = var %1 @"x";
-                %5 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %0 %7 @java.ref:"FieldAccessTest::f:int";
-                %8 : Var<java.type:"int"> = var %5 @"y";
+                %2 : java.type:"int" = field.update %0 %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="POSTINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
+                %5 : java.type:"int" = field.update %0 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="POSTDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -315,15 +311,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test13" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : Var<java.type:"int"> = var %1 @"x";
-                %5 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %0 %7 @java.ref:"FieldAccessTest::f:int";
-                %8 : Var<java.type:"int"> = var %5 @"y";
+                %2 : java.type:"int" = field.update %0 %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="POSTINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
+                %5 : java.type:"int" = field.update %0 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="POSTDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -336,15 +328,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test14" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %3 @java.ref:"FieldAccessTest::s_f:int";
-                %4 : Var<java.type:"int"> = var %1 @"x";
-                %5 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %7 @java.ref:"FieldAccessTest::s_f:int";
-                %8 : Var<java.type:"int"> = var %5 @"y";
+                %2 : java.type:"int" = field.update %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @update.kind="POSTINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
+                %5 : java.type:"int" = field.update %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @update.kind="POSTDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -359,16 +347,12 @@ public class FieldAccessTest {
                 %2 : Var<java.type:"FieldAccessTest$X"> = var %1 @"h";
                 %3 : java.type:"FieldAccessTest$X" = var.load %2;
                 %4 : java.type:"int" = field.load %3 @java.ref:"FieldAccessTest$X::f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %3 %6 @java.ref:"FieldAccessTest$X::f:int";
-                %7 : Var<java.type:"int"> = var %4 @"x";
-                %8 : java.type:"FieldAccessTest$X" = var.load %2;
-                %9 : java.type:"int" = field.load %8 @java.ref:"FieldAccessTest$X::f:int";
-                %10 : java.type:"int" = constant @1;
-                %11 : java.type:"int" = sub %9 %10;
-                field.store %8 %11 @java.ref:"FieldAccessTest$X::f:int";
-                %12 : Var<java.type:"int"> = var %9 @"y";
+                %5 : java.type:"int" = field.update %3 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$X::f:int" @update.kind="POSTINC";
+                %6 : Var<java.type:"int"> = var %5 @"x";
+                %7 : java.type:"FieldAccessTest$X" = var.load %2;
+                %8 : java.type:"int" = field.load %7 @java.ref:"FieldAccessTest$X::f:int";
+                %9 : java.type:"int" = field.update %7 %8 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$X::f:int" @update.kind="POSTDEC";
+                %10 : Var<java.type:"int"> = var %9 @"y";
                 return;
             };
             """)
@@ -384,15 +368,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test16" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : Var<java.type:"int"> = var %3 @"x";
-                %5 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %0 %7 @java.ref:"FieldAccessTest::f:int";
-                %8 : Var<java.type:"int"> = var %7 @"y";
+                %2 : java.type:"int" = field.update %0 %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="PREINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
+                %5 : java.type:"int" = field.update %0 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="PREDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -405,15 +385,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test17" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %0 %3 @java.ref:"FieldAccessTest::f:int";
-                %4 : Var<java.type:"int"> = var %3 @"x";
-                %5 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %0 %7 @java.ref:"FieldAccessTest::f:int";
-                %8 : Var<java.type:"int"> = var %7 @"y";
+                %2 : java.type:"int" = field.update %0 %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="PREINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest::f:int";
+                %5 : java.type:"int" = field.update %0 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::f:int" @update.kind="PREDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -426,15 +402,11 @@ public class FieldAccessTest {
     @IR("""
             func @"test18" (%0 : java.type:"FieldAccessTest")java.type:"void" -> {
                 %1 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %2 : java.type:"int" = constant @1;
-                %3 : java.type:"int" = add %1 %2;
-                field.store %3 @java.ref:"FieldAccessTest::s_f:int";
-                %4 : Var<java.type:"int"> = var %3 @"x";
-                %5 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = sub %5 %6;
-                field.store %7 @java.ref:"FieldAccessTest::s_f:int";
-                %8 : Var<java.type:"int"> = var %7 @"y";
+                %2 : java.type:"int" = field.update %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @update.kind="PREINC";
+                %3 : Var<java.type:"int"> = var %2 @"x";
+                %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest::s_f:int";
+                %5 : java.type:"int" = field.update %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest::s_f:int" @update.kind="PREDEC";
+                %6 : Var<java.type:"int"> = var %5 @"y";
                 return;
             };
             """)
@@ -449,16 +421,12 @@ public class FieldAccessTest {
                 %2 : Var<java.type:"FieldAccessTest$X"> = var %1 @"h";
                 %3 : java.type:"FieldAccessTest$X" = var.load %2;
                 %4 : java.type:"int" = field.load %3 @java.ref:"FieldAccessTest$X::f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %3 %6 @java.ref:"FieldAccessTest$X::f:int";
-                %7 : Var<java.type:"int"> = var %6 @"x";
-                %8 : java.type:"FieldAccessTest$X" = var.load %2;
-                %9 : java.type:"int" = field.load %8 @java.ref:"FieldAccessTest$X::f:int";
-                %10 : java.type:"int" = constant @1;
-                %11 : java.type:"int" = sub %9 %10;
-                field.store %8 %11 @java.ref:"FieldAccessTest$X::f:int";
-                %12 : Var<java.type:"int"> = var %11 @"y";
+                %5 : java.type:"int" = field.update %3 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$X::f:int" @update.kind="PREINC";
+                %6 : Var<java.type:"int"> = var %5 @"x";
+                %7 : java.type:"FieldAccessTest$X" = var.load %2;
+                %8 : java.type:"int" = field.load %7 @java.ref:"FieldAccessTest$X::f:int";
+                %9 : java.type:"int" = field.update %7 %8 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$X::f:int" @update.kind="PREDEC";
+                %10 : Var<java.type:"int"> = var %9 @"y";
                 return;
             };
             """)
@@ -473,49 +441,45 @@ public class FieldAccessTest {
 
         @Reflect
         @IR("""
-                func @"test" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
+                func @"x_test" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
                     %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest$Y::f:int";
                     %2 : Var<java.type:"int"> = var %1 @"x";
                     %3 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                    var.store %2 %3;
+                    %4 : java.type:"int" = var.assign %2 %3;
                     return;
                 };
                 """)
-        void test() {
+        void x_test() {
             int x = f;
             x = s_f;
         }
 
         @Reflect
         @IR("""
-                func @"test2" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
+                func @"x_test2" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
                     %1 : java.type:"int" = constant @1;
-                    field.store %0 %1 @java.ref:"FieldAccessTest$Y::f:int";
-                    %2 : java.type:"int" = constant @1;
-                    field.store %2 @java.ref:"FieldAccessTest$Y::s_f:int";
+                    %2 : java.type:"int" = field.assign %0 %1 @java.ref:"FieldAccessTest$Y::f:int";
+                    %3 : java.type:"int" = constant @1;
+                    %4 : java.type:"int" = field.assign %3 @java.ref:"FieldAccessTest$Y::s_f:int";
                     return;
                 };
                 """)
-        void test2() {
+        void x_test2() {
             f = 1;
             s_f = 1;
         }
 
         @Reflect
         @IR("""
-                func @"test3" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
+                func @"x_test3" (%0 : java.type:"FieldAccessTest$Y")java.type:"void" -> {
                     %1 : java.type:"int" = field.load %0 @java.ref:"FieldAccessTest$Y::f:int";
-                    %2 : java.type:"int" = constant @1;
-                    %3 : java.type:"int" = add %1 %2;
-                    field.store %0 %3 @java.ref:"FieldAccessTest$Y::f:int";
-                    %4 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                    %5 : java.type:"int" = constant @1;
-                    %6 : java.type:"int" = add %4 %5;
-                    field.store %6 @java.ref:"FieldAccessTest$Y::s_f:int";
+                    %2 : java.type:"int" = field.update %0 %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::f:int" @update.kind="POSTINC";
+                    %3 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
+                    %4 : java.type:"int" = field.update %3 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::s_f:int" @update.kind="POSTINC";
                     return;
                 };
                 """)
-        void test3() {
+        void x_test3() {
             f++;
             s_f++;
         }
@@ -530,17 +494,17 @@ public class FieldAccessTest {
                 %5 : Var<java.type:"int"> = var %4 @"x";
                 %6 : java.type:"FieldAccessTest$Y" = var.load %2;
                 %7 : java.type:"int" = field.load %6 @java.ref:"FieldAccessTest$Y::yf:int";
-                var.store %5 %7;
-                %8 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %9 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
-                var.store %5 %9;
+                %8 : java.type:"int" = var.assign %5 %7;
+                %9 : java.type:"FieldAccessTest$Y" = var.load %2;
                 %10 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
-                var.store %5 %10;
-                %11 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %12 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                var.store %5 %12;
-                %13 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                var.store %5 %13;
+                %11 : java.type:"int" = var.assign %5 %10;
+                %12 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
+                %13 : java.type:"int" = var.assign %5 %12;
+                %14 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %15 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
+                %16 : java.type:"int" = var.assign %5 %15;
+                %17 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
+                %18 : java.type:"int" = var.assign %5 %17;
                 return;
             };
             """)
@@ -559,20 +523,20 @@ public class FieldAccessTest {
                 %2 : Var<java.type:"FieldAccessTest$Y"> = var %1 @"y";
                 %3 : java.type:"FieldAccessTest$Y" = var.load %2;
                 %4 : java.type:"int" = constant @1;
-                field.store %3 %4 @java.ref:"FieldAccessTest$Y::f:int";
-                %5 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %6 : java.type:"int" = constant @1;
-                field.store %5 %6 @java.ref:"FieldAccessTest$Y::yf:int";
-                %7 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %8 : java.type:"int" = constant @1;
-                field.store %8 @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %9 : java.type:"int" = constant @1;
-                field.store %9 @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %10 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %11 : java.type:"int" = constant @1;
-                field.store %11 @java.ref:"FieldAccessTest$Y::s_f:int";
+                %5 : java.type:"int" = field.assign %3 %4 @java.ref:"FieldAccessTest$Y::f:int";
+                %6 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %7 : java.type:"int" = constant @1;
+                %8 : java.type:"int" = field.assign %6 %7 @java.ref:"FieldAccessTest$Y::yf:int";
+                %9 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %10 : java.type:"int" = constant @1;
+                %11 : java.type:"int" = field.assign %10 @java.ref:"FieldAccessTest$Y::s_yf:int";
                 %12 : java.type:"int" = constant @1;
-                field.store %12 @java.ref:"FieldAccessTest$Y::s_f:int";
+                %13 : java.type:"int" = field.assign %12 @java.ref:"FieldAccessTest$Y::s_yf:int";
+                %14 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %15 : java.type:"int" = constant @1;
+                %16 : java.type:"int" = field.assign %15 @java.ref:"FieldAccessTest$Y::s_f:int";
+                %17 : java.type:"int" = constant @1;
+                %18 : java.type:"int" = field.assign %17 @java.ref:"FieldAccessTest$Y::s_f:int";
                 return;
             };
             """)
@@ -591,32 +555,20 @@ public class FieldAccessTest {
                 %2 : Var<java.type:"FieldAccessTest$Y"> = var %1 @"y";
                 %3 : java.type:"FieldAccessTest$Y" = var.load %2;
                 %4 : java.type:"int" = field.load %3 @java.ref:"FieldAccessTest$Y::f:int";
-                %5 : java.type:"int" = constant @1;
-                %6 : java.type:"int" = add %4 %5;
-                field.store %3 %6 @java.ref:"FieldAccessTest$Y::f:int";
-                %7 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %8 : java.type:"int" = field.load %7 @java.ref:"FieldAccessTest$Y::yf:int";
-                %9 : java.type:"int" = constant @1;
-                %10 : java.type:"int" = add %8 %9;
-                field.store %7 %10 @java.ref:"FieldAccessTest$Y::yf:int";
-                %11 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %5 : java.type:"int" = field.update %3 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::f:int" @update.kind="POSTINC";
+                %6 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %7 : java.type:"int" = field.load %6 @java.ref:"FieldAccessTest$Y::yf:int";
+                %8 : java.type:"int" = field.update %6 %7 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::yf:int" @update.kind="POSTINC";
+                %9 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %10 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
+                %11 : java.type:"int" = field.update %10 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::s_yf:int" @update.kind="POSTINC";
                 %12 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %13 : java.type:"int" = constant @1;
-                %14 : java.type:"int" = add %12 %13;
-                field.store %14 @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %15 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %16 : java.type:"int" = constant @1;
-                %17 : java.type:"int" = add %15 %16;
-                field.store %17 @java.ref:"FieldAccessTest$Y::s_yf:int";
-                %18 : java.type:"FieldAccessTest$Y" = var.load %2;
-                %19 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                %20 : java.type:"int" = constant @1;
-                %21 : java.type:"int" = add %19 %20;
-                field.store %21 @java.ref:"FieldAccessTest$Y::s_f:int";
-                %22 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
-                %23 : java.type:"int" = constant @1;
-                %24 : java.type:"int" = add %22 %23;
-                field.store %24 @java.ref:"FieldAccessTest$Y::s_f:int";
+                %13 : java.type:"int" = field.update %12 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::s_yf:int" @update.kind="POSTINC";
+                %14 : java.type:"FieldAccessTest$Y" = var.load %2;
+                %15 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
+                %16 : java.type:"int" = field.update %15 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::s_f:int" @update.kind="POSTINC";
+                %17 : java.type:"int" = field.load @java.ref:"FieldAccessTest$Y::s_f:int";
+                %18 : java.type:"int" = field.update %17 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"FieldAccessTest$Y::s_f:int" @update.kind="POSTINC";
                 return;
             };
             """)
@@ -636,9 +588,9 @@ public class FieldAccessTest {
                 %1 : java.type:"int" = field.load @java.ref:"java.util.Spliterator$OfInt::CONCURRENT:int";
                 %2 : Var<java.type:"int"> = var %1 @"x";
                 %3 : java.type:"int" = field.load @java.ref:"java.util.Spliterator$OfInt::CONCURRENT:int";
-                var.store %2 %3;
-                %4 : java.type:"int" = field.load @java.ref:"java.util.Spliterator$OfInt::CONCURRENT:int";
-                var.store %2 %4;
+                %4 : java.type:"int" = var.assign %2 %3;
+                %5 : java.type:"int" = field.load @java.ref:"java.util.Spliterator$OfInt::CONCURRENT:int";
+                %6 : java.type:"int" = var.assign %2 %5;
                 return;
             };
             """)

@@ -71,7 +71,7 @@ public class ArrayAccessTest {
                 %3 : java.type:"int[]" = var.load %2;
                 %4 : java.type:"int" = constant @0;
                 %5 : java.type:"int" = constant @1;
-                array.store %3 %4 %5;
+                %6 : java.type:"int" = array.assign %3 %4 %5;
                 return;
             };
             """)
@@ -87,9 +87,9 @@ public class ArrayAccessTest {
                 %5 : java.type:"int[]" = var.load %3;
                 %6 : java.type:"int" = var.load %4;
                 %7 : java.type:"int" = constant @1;
-                %8 : java.type:"int" = add %6 %7;
+                %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
                 %9 : java.type:"int" = constant @1;
-                array.store %5 %8 %9;
+                %10 : java.type:"int" = array.assign %5 %8 %9;
                 return;
             };
             """)
@@ -126,13 +126,13 @@ public class ArrayAccessTest {
                 %5 : java.type:"int[][]" = var.load %3;
                 %6 : java.type:"int" = var.load %4;
                 %7 : java.type:"int" = constant @1;
-                %8 : java.type:"int" = add %6 %7;
+                %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
                 %9 : java.type:"int[]" = array.load %5 %8;
                 %10 : java.type:"int" = var.load %4;
                 %11 : java.type:"int" = constant @2;
-                %12 : java.type:"int" = add %10 %11;
+                %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
                 %13 : java.type:"int" = constant @1;
-                array.store %9 %12 %13;
+                %14 : java.type:"int" = array.assign %9 %12 %13;
                 return;
             };
             """)
@@ -195,7 +195,7 @@ public class ArrayAccessTest {
                 %4 : java.type:"int" = constant @0;
                 %5 : java.type:"ArrayAccessTest$A" = array.load %3 %4;
                 %6 : java.type:"int" = constant @1;
-                field.store %5 %6 @java.ref:"ArrayAccessTest$A::i:int";
+                %7 : java.type:"int" = field.assign %5 %6 @java.ref:"ArrayAccessTest$A::i:int";
                 return;
             };
             """)
@@ -209,10 +209,10 @@ public class ArrayAccessTest {
                 %2 : Var<java.type:"int[]"> = var %1 @"ia";
                 %3 : java.type:"int[]" = var.load %2;
                 %4 : java.type:"int" = constant @0;
-                %5 : java.type:"int" = array.load %3 %4;
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = add %5 %6;
-                array.store %3 %4 %7;
+                %5 : java.type:"int" = array.compound.assign %3 %4 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
+                    %6 : java.type:"int" = constant @1;
+                    yield %6;
+                };
                 return;
             };
             """)
@@ -230,12 +230,12 @@ public class ArrayAccessTest {
                 %7 : java.type:"int[]" = var.load %3;
                 %8 : java.type:"int" = var.load %4;
                 %9 : java.type:"int" = constant @2;
-                %10 : java.type:"int" = add %8 %9;
-                %11 : java.type:"int" = array.load %7 %10;
-                %12 : java.type:"int" = constant @1;
-                %13 : java.type:"int" = add %11 %12;
-                array.store %7 %10 %13;
-                array.store %5 %6 %13;
+                %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %11 : java.type:"int" = array.compound.assign %7 %10 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
+                    %12 : java.type:"int" = constant @1;
+                    yield %12;
+                };
+                %13 : java.type:"int" = array.assign %5 %6 %11;
                 return;
             };
             """)
@@ -250,17 +250,17 @@ public class ArrayAccessTest {
                 %4 : Var<java.type:"int"> = var %2 @"i";
                 %5 : java.type:"int[]" = var.load %3;
                 %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = array.load %5 %6;
-                %8 : java.type:"int[]" = var.load %3;
-                %9 : java.type:"int" = var.load %4;
-                %10 : java.type:"int" = constant @2;
-                %11 : java.type:"int" = add %9 %10;
-                %12 : java.type:"int" = array.load %8 %11;
-                %13 : java.type:"int" = constant @1;
-                %14 : java.type:"int" = add %12 %13;
-                array.store %8 %11 %14;
-                %15 : java.type:"int" = add %7 %14;
-                array.store %5 %6 %15;
+                %7 : java.type:"int" = array.compound.assign %5 %6 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
+                    %8 : java.type:"int[]" = var.load %3;
+                    %9 : java.type:"int" = var.load %4;
+                    %10 : java.type:"int" = constant @2;
+                    %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                    %12 : java.type:"int" = array.compound.assign %8 %11 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
+                        %13 : java.type:"int" = constant @1;
+                        yield %13;
+                    };
+                    yield %12;
+                };
                 return;
             };
             """)
@@ -276,17 +276,13 @@ public class ArrayAccessTest {
                 %3 : java.type:"int[]" = var.load %2;
                 %4 : java.type:"int" = constant @0;
                 %5 : java.type:"int" = array.load %3 %4;
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = add %5 %6;
-                array.store %3 %4 %7;
-                %8 : Var<java.type:"int"> = var %5 @"x";
-                %9 : java.type:"int[]" = var.load %2;
-                %10 : java.type:"int" = constant @0;
-                %11 : java.type:"int" = array.load %9 %10;
-                %12 : java.type:"int" = constant @1;
-                %13 : java.type:"int" = sub %11 %12;
-                array.store %9 %10 %13;
-                %14 : Var<java.type:"int"> = var %11 @"y";
+                %6 : java.type:"int" = array.update %3 %4 %5 @update.kind="POSTINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                %7 : Var<java.type:"int"> = var %6 @"x";
+                %8 : java.type:"int[]" = var.load %2;
+                %9 : java.type:"int" = constant @0;
+                %10 : java.type:"int" = array.load %8 %9;
+                %11 : java.type:"int" = array.update %8 %9 %10 @update.kind="POSTDEC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                %12 : Var<java.type:"int"> = var %11 @"y";
                 return;
             };
             """)
@@ -302,17 +298,13 @@ public class ArrayAccessTest {
                 %3 : java.type:"int[]" = var.load %2;
                 %4 : java.type:"int" = constant @0;
                 %5 : java.type:"int" = array.load %3 %4;
-                %6 : java.type:"int" = constant @1;
-                %7 : java.type:"int" = add %5 %6;
-                array.store %3 %4 %7;
-                %8 : Var<java.type:"int"> = var %7 @"x";
-                %9 : java.type:"int[]" = var.load %2;
-                %10 : java.type:"int" = constant @0;
-                %11 : java.type:"int" = array.load %9 %10;
-                %12 : java.type:"int" = constant @1;
-                %13 : java.type:"int" = sub %11 %12;
-                array.store %9 %10 %13;
-                %14 : Var<java.type:"int"> = var %13 @"y";
+                %6 : java.type:"int" = array.update %3 %4 %5 @update.kind="PREINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                %7 : Var<java.type:"int"> = var %6 @"x";
+                %8 : java.type:"int[]" = var.load %2;
+                %9 : java.type:"int" = constant @0;
+                %10 : java.type:"int" = array.load %8 %9;
+                %11 : java.type:"int" = array.update %8 %9 %10 @update.kind="PREDEC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                %12 : Var<java.type:"int"> = var %11 @"y";
                 return;
             };
             """)

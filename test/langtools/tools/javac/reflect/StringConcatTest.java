@@ -51,10 +51,11 @@ public class StringConcatTest {
             func @"test2" (%0 : java.type:"java.lang.String", %1 : java.type:"char")java.type:"java.lang.String" -> {
                 %2 : Var<java.type:"java.lang.String"> = var %0 @"a";
                 %3 : Var<java.type:"char"> = var %1 @"b";
-                %4 : java.type:"java.lang.String" = var.load %2;
-                %5 : java.type:"char" = var.load %3;
-                %6 : java.type:"java.lang.String" = concat %4 %5;
-                var.store %2 %6;
+                %4 : java.type:"java.lang.String" = var.compound.assign %2 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
+                    %5 : java.type:"char" = var.load %3;
+                    %6 : java.type:"int" = conv %5;
+                    yield %6;
+                };
                 %7 : java.type:"java.lang.String" = var.load %2;
                 return %7;
             };
@@ -72,9 +73,9 @@ public class StringConcatTest {
                 %4 : java.type:"java.lang.String" = var.load %2;
                 %5 : java.type:"float" = var.load %3;
                 %6 : java.type:"java.lang.String" = concat %4 %5;
-                var.store %2 %6;
-                %7 : java.type:"java.lang.String" = var.load %2;
-                return %7;
+                %7 : java.type:"java.lang.String" = var.assign %2 %6;
+                %8 : java.type:"java.lang.String" = var.load %2;
+                return %8;
             };
             """)
     @Reflect

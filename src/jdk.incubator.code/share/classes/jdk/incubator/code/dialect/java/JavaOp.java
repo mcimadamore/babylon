@@ -1503,11 +1503,17 @@ public sealed abstract class JavaOp extends AbstractOp {
 
     /**
      * A compound assignment operation.
+     * <p>
+     * A compound assignment operation features one expression body, modeling
+     * the right-hand operand expression. The expression body accepts no
+     * arguments and yields a value whose type is the second parameter type of
+     * the resolved binary operator. The destination value is loaded before
+     * the expression body is evaluated.
      *
      * @jls 15.26.2 Compound Assignment Operators
      */
     public sealed abstract static class CompoundAssignOp extends AssignmentExpressionOp
-            implements Op.Lowerable
+            implements Op.Lowerable, Op.Nested
             permits VarCompoundAssignOp, FieldCompoundAssignOp, ArrayCompoundAssignOp {
         /** The operator represented by a compound assignment. */
         public enum CompoundAssignmentKind {
@@ -1528,18 +1534,22 @@ public sealed abstract class JavaOp extends AbstractOp {
         static final String ATTRIBUTE_KIND = "compound.kind";
         final CompoundAssignmentKind kind;
         final FunctionType functionType;
+        final Body rhsBody;
 
-        CompoundAssignOp(CompoundAssignOp that, CodeContext cc) {
+        CompoundAssignOp(CompoundAssignOp that, CodeContext cc, CodeTransformer ct) {
             super(that, cc);
             this.kind = that.kind;
             this.functionType = that.functionType;
+            this.rhsBody = that.rhsBody.transform(cc, ct).build(this);
         }
 
         CompoundAssignOp(List<? extends Value> operands, CodeType resultType,
-                         CompoundAssignmentKind kind, FunctionType functionType) {
+                         CompoundAssignmentKind kind, FunctionType functionType, Body.Builder rhsBody) {
             super(operands, resultType);
             this.kind = kind;
             this.functionType = functionType;
+            this.rhsBody = requireBodySignature("compound assignment rhs", rhsBody,
+                    CoreType.functionType(functionType.parameterTypes().get(1))).build(this);
         }
 
         /** {@return the compound assignment kind} */
@@ -1552,13 +1562,14 @@ public sealed abstract class JavaOp extends AbstractOp {
             return functionType;
         }
 
-        /** {@return the previously loaded destination value} */
-        public abstract Value lhsOperand();
+        @Override
+        public List<Body> bodies() {
+            return List.of(rhsBody);
+        }
 
-        /** {@return the right-hand operand} */
-        public abstract Value rhsOperand();
+        abstract Value load(Block.Builder block, List<Value> operands);
 
-        abstract AssignOp toAssign(List<Value> operands, Value value);
+        abstract void store(Block.Builder block, List<Value> operands, Value value);
 
         JavaOp operator(Value lhs, Value rhs) {
             return switch (kind) {
@@ -1581,14 +1592,26 @@ public sealed abstract class JavaOp extends AbstractOp {
         public Block.Builder lower(Block.Builder block,
                                    BiFunction<Block.Builder, Op, Block.Builder> inherited) {
             List<Value> operands = block.context().getValues(operands());
-            Value result = block.add(operator(
-                    block.context().getValue(lhsOperand()),
-                    block.context().getValue(rhsOperand())));
-            result = ImplicitConversionTransformer.convert(block, result, resultType());
-            AssignOp assignment = toAssign(operands, result);
-            assignment.lower(block, assignment.operands());
-            block.context().mapValue(result(), result);
-            return block;
+            Value lhs = load(block, operands);
+            Value convertedLhs = ImplicitConversionTransformer.convert(block, lhs,
+                    functionType.parameterTypes().getFirst());
+            Value rhsVar = block.add(CoreOp.var(rhsBody.bodySignature().returnType()));
+            Block.Builder exit = block.block();
+            block.transformBody(rhsBody, List.of(), loweringTransformer(inherited, (b, op) -> {
+                if (op instanceof CoreOp.YieldOp yield) {
+                    Value rhs = b.context().getValue(yield.yieldValue());
+                    b.add(CoreOp.varStore(rhsVar, rhs));
+                    b.add(CoreOp.branch(exit.reference()));
+                    return b;
+                }
+                return null;
+            }));
+            Value rhs = exit.add(CoreOp.varLoad(rhsVar));
+            Value result = exit.add(operator(convertedLhs, rhs));
+            result = ImplicitConversionTransformer.convert(exit, result, resultType());
+            store(exit, operands, result);
+            exit.context().mapValue(result(), result);
+            return exit;
         }
 
         @Override
@@ -1604,31 +1627,29 @@ public sealed abstract class JavaOp extends AbstractOp {
         static final String NAME = "var.compound.assign";
 
         VarCompoundAssignOp(ExternalizedOp def) {
-            this(requireOperands(def, 3), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+            this(requireOperands(def, 1).getFirst(), compoundAssignmentKind(def),
+                    assignmentOperatorFunctionType(def), requireSingleBody(def));
         }
 
-        private VarCompoundAssignOp(List<Value> operands, CompoundAssignmentKind kind, FunctionType functionType) {
-            this(operands.get(0), operands.get(1), operands.get(2), kind, functionType);
+        VarCompoundAssignOp(VarCompoundAssignOp that, CodeContext cc, CodeTransformer ct) {
+            super(that, cc, ct);
         }
 
-        VarCompoundAssignOp(VarCompoundAssignOp that, CodeContext cc) {
-            super(that, cc);
-        }
-
-        VarCompoundAssignOp(Value var, Value lhs, Value rhs,
-                            CompoundAssignmentKind kind, FunctionType functionType) {
-            super(List.of(var, lhs, rhs), ((VarType) var.type()).valueType(), kind, functionType);
+        VarCompoundAssignOp(Value var, CompoundAssignmentKind kind, FunctionType functionType,
+                            Body.Builder rhsBody) {
+            super(List.of(var), ((VarType) var.type()).valueType(), kind, functionType, rhsBody);
         }
 
         /** {@return the variable being assigned} */
         public Value varOperand() { return operands().get(0); }
-        @Override public Value lhsOperand() { return operands().get(1); }
-        @Override public Value rhsOperand() { return operands().get(2); }
-        @Override AssignOp toAssign(List<Value> operands, Value value) {
-            return new VarAssignOp(operands.get(0), value);
+        @Override Value load(Block.Builder block, List<Value> operands) {
+            return block.add(CoreOp.varLoad(operands.getFirst()));
+        }
+        @Override void store(Block.Builder block, List<Value> operands, Value value) {
+            block.add(CoreOp.varStore(operands.getFirst(), value));
         }
         @Override public VarCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new VarCompoundAssignOp(this, cc);
+            return new VarCompoundAssignOp(this, cc, ct);
         }
     }
 
@@ -1640,39 +1661,43 @@ public sealed abstract class JavaOp extends AbstractOp {
 
         FieldCompoundAssignOp(ExternalizedOp def) {
             this(requireAttribute(def, FieldAccessOp.ATTRIBUTE_FIELD_REF, true, FieldRef.class),
-                    requireOperands(def, 2, 3), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+                    requireOperands(def, 0, 1), compoundAssignmentKind(def), assignmentOperatorFunctionType(def),
+                    requireSingleBody(def));
         }
 
         private FieldCompoundAssignOp(FieldRef fieldRef, List<Value> operands,
-                                      CompoundAssignmentKind kind, FunctionType functionType) {
-            super(operands, fieldRef.type(), kind, functionType);
+                                      CompoundAssignmentKind kind, FunctionType functionType, Body.Builder rhsBody) {
+            super(operands, fieldRef.type(), kind, functionType, rhsBody);
             this.fieldReference = fieldRef;
         }
 
-        FieldCompoundAssignOp(FieldCompoundAssignOp that, CodeContext cc) {
-            super(that, cc);
+        FieldCompoundAssignOp(FieldCompoundAssignOp that, CodeContext cc, CodeTransformer ct) {
+            super(that, cc, ct);
             this.fieldReference = that.fieldReference;
         }
 
-        FieldCompoundAssignOp(FieldRef fieldRef, Value receiver, Value lhs, Value rhs,
-                              CompoundAssignmentKind kind, FunctionType functionType) {
-            this(fieldRef, List.of(receiver, lhs, rhs), kind, functionType);
+        FieldCompoundAssignOp(FieldRef fieldRef, Value receiver, CompoundAssignmentKind kind,
+                              FunctionType functionType, Body.Builder rhsBody) {
+            this(fieldRef, List.of(receiver), kind, functionType, rhsBody);
         }
 
-        FieldCompoundAssignOp(FieldRef fieldRef, Value lhs, Value rhs,
-                              CompoundAssignmentKind kind, FunctionType functionType) {
-            this(fieldRef, List.of(lhs, rhs), kind, functionType);
+        FieldCompoundAssignOp(FieldRef fieldRef, CompoundAssignmentKind kind,
+                              FunctionType functionType, Body.Builder rhsBody) {
+            this(fieldRef, List.of(), kind, functionType, rhsBody);
         }
 
         /** {@return the assigned field} */
         public FieldRef fieldReference() { return fieldReference; }
         /** {@return the receiver, or {@code null} for a static field} */
-        public Value receiverOperand() { return operands().size() == 2 ? null : operands().get(0); }
-        @Override public Value lhsOperand() { return operands().get(operands().size() - 2); }
-        @Override public Value rhsOperand() { return operands().getLast(); }
-        @Override AssignOp toAssign(List<Value> operands, Value value) {
-            return receiverOperand() == null ? new FieldAssignOp(fieldReference, value) :
-                    new FieldAssignOp(fieldReference, operands.get(0), value);
+        public Value receiverOperand() { return operands().isEmpty() ? null : operands().getFirst(); }
+        @Override Value load(Block.Builder block, List<Value> operands) {
+            return operands.isEmpty()
+                    ? block.add(JavaOp.fieldLoad(fieldReference.type(), fieldReference))
+                    : block.add(JavaOp.fieldLoad(fieldReference.type(), fieldReference, operands.getFirst()));
+        }
+        @Override void store(Block.Builder block, List<Value> operands, Value value) {
+            block.add(operands.isEmpty() ? JavaOp.fieldStore(fieldReference, value) :
+                    JavaOp.fieldStore(fieldReference, operands.getFirst(), value));
         }
         @Override public Map<String, Object> externalize() {
             HashMap<String, Object> attributes = new HashMap<>(super.externalize());
@@ -1680,7 +1705,7 @@ public sealed abstract class JavaOp extends AbstractOp {
             return Collections.unmodifiableMap(attributes);
         }
         @Override public FieldCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new FieldCompoundAssignOp(this, cc);
+            return new FieldCompoundAssignOp(this, cc, ct);
         }
     }
 
@@ -1690,31 +1715,31 @@ public sealed abstract class JavaOp extends AbstractOp {
         static final String NAME = "array.compound.assign";
 
         ArrayCompoundAssignOp(ExternalizedOp def) {
-            this(requireOperands(def, 4), compoundAssignmentKind(def), assignmentOperatorFunctionType(def));
+            this(requireOperands(def, 2).get(0), def.operands().get(1), compoundAssignmentKind(def),
+                    assignmentOperatorFunctionType(def), requireSingleBody(def));
         }
 
-        private ArrayCompoundAssignOp(List<Value> operands, CompoundAssignmentKind kind, FunctionType functionType) {
-            this(operands.get(0), operands.get(1), operands.get(2), operands.get(3), kind, functionType);
+        ArrayCompoundAssignOp(ArrayCompoundAssignOp that, CodeContext cc, CodeTransformer ct) {
+            super(that, cc, ct);
         }
 
-        ArrayCompoundAssignOp(ArrayCompoundAssignOp that, CodeContext cc) { super(that, cc); }
-
-        ArrayCompoundAssignOp(Value array, Value index, Value lhs, Value rhs,
-                              CompoundAssignmentKind kind, FunctionType functionType) {
-            super(List.of(array, index, lhs, rhs), ((ArrayType) array.type()).componentType(), kind, functionType);
+        ArrayCompoundAssignOp(Value array, Value index, CompoundAssignmentKind kind,
+                              FunctionType functionType, Body.Builder rhsBody) {
+            super(List.of(array, index), ((ArrayType) array.type()).componentType(), kind, functionType, rhsBody);
         }
 
         /** {@return the assigned array} */
         public Value arrayOperand() { return operands().get(0); }
         /** {@return the assigned array index} */
         public Value indexOperand() { return operands().get(1); }
-        @Override public Value lhsOperand() { return operands().get(2); }
-        @Override public Value rhsOperand() { return operands().get(3); }
-        @Override AssignOp toAssign(List<Value> operands, Value value) {
-            return new ArrayAssignOp(operands.get(0), operands.get(1), value);
+        @Override Value load(Block.Builder block, List<Value> operands) {
+            return block.add(JavaOp.arrayLoadOp(operands.get(0), operands.get(1)));
+        }
+        @Override void store(Block.Builder block, List<Value> operands, Value value) {
+            block.add(JavaOp.arrayStoreOp(operands.get(0), operands.get(1), value));
         }
         @Override public ArrayCompoundAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new ArrayCompoundAssignOp(this, cc);
+            return new ArrayCompoundAssignOp(this, cc, ct);
         }
     }
 
@@ -7457,13 +7482,12 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @param kind the assignment kind
      * @param functionType the resolved operator type
      * @param var the variable
-     * @param lhs the old variable value
-     * @param rhs the right-hand value
+     * @param rhsBody the body producing the right-hand value
      * @return the compound assignment operation
      */
     public static VarCompoundAssignOp varCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
-                                                         Value var, Value lhs, Value rhs) {
-        return new VarCompoundAssignOp(var, lhs, rhs, kind, functionType);
+                                                         Value var, Body.Builder rhsBody) {
+        return new VarCompoundAssignOp(var, kind, functionType, rhsBody);
     }
 
     /**
@@ -7593,13 +7617,12 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @param functionType the resolved operator type
      * @param fieldRef the field
      * @param receiver the receiver
-     * @param lhs the old field value
-     * @param rhs the right-hand value
+     * @param rhsBody the body producing the right-hand value
      * @return the compound assignment operation
      */
     public static FieldCompoundAssignOp fieldCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
-                                                             FieldRef fieldRef, Value receiver, Value lhs, Value rhs) {
-        return new FieldCompoundAssignOp(fieldRef, receiver, lhs, rhs, kind, functionType);
+                                                             FieldRef fieldRef, Value receiver, Body.Builder rhsBody) {
+        return new FieldCompoundAssignOp(fieldRef, receiver, kind, functionType, rhsBody);
     }
 
     /**
@@ -7607,13 +7630,12 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @param kind the assignment kind
      * @param functionType the resolved operator type
      * @param fieldRef the field
-     * @param lhs the old field value
-     * @param rhs the right-hand value
+     * @param rhsBody the body producing the right-hand value
      * @return the compound assignment operation
      */
     public static FieldCompoundAssignOp fieldCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
-                                                             FieldRef fieldRef, Value lhs, Value rhs) {
-        return new FieldCompoundAssignOp(fieldRef, lhs, rhs, kind, functionType);
+                                                             FieldRef fieldRef, Body.Builder rhsBody) {
+        return new FieldCompoundAssignOp(fieldRef, kind, functionType, rhsBody);
     }
 
     /**
@@ -7820,13 +7842,12 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @param functionType the resolved operator type
      * @param array the array
      * @param index the index
-     * @param lhs the old component value
-     * @param rhs the right-hand value
+     * @param rhsBody the body producing the right-hand value
      * @return the compound assignment operation
      */
     public static ArrayCompoundAssignOp arrayCompoundAssign(CompoundAssignOp.CompoundAssignmentKind kind, FunctionType functionType,
-                                                             Value array, Value index, Value lhs, Value rhs) {
-        return new ArrayCompoundAssignOp(array, index, lhs, rhs, kind, functionType);
+                                                             Value array, Value index, Body.Builder rhsBody) {
+        return new ArrayCompoundAssignOp(array, index, kind, functionType, rhsBody);
     }
 
     /**

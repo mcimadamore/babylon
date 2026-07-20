@@ -307,7 +307,7 @@ public class PatternsTest {
                             ()java.type:"boolean" -> {
                                 %9 : java.type:"int" = var.load %7;
                                 %10 : java.type:"int" = constant @10;
-                                %11 : java.type:"boolean" = lt %9 %10;
+                                %11 : java.type:"boolean" = lt %9 %10 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %11;
                             }
                             ()java.type:"boolean" -> {
@@ -326,17 +326,17 @@ public class PatternsTest {
                         yield %8;
                     }
                     (%16 : Var<java.type:"int">)java.type:"void" -> {
-                        %17 : java.type:"int" = var.load %16;
-                        %18 : java.type:"java.lang.Number" = var.load %4;
-                        %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Number::intValue():int";
-                        %20 : java.type:"int" = add %17 %19;
-                        var.store %16 %20;
+                        %17 : java.type:"int" = var.compound.assign %16 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
+                            %18 : java.type:"java.lang.Number" = var.load %4;
+                            %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Number::intValue():int";
+                            yield %19;
+                        };
                         yield;
                     }
-                    (%21 : Var<java.type:"int">)java.type:"void" -> {
-                        %22 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %23 : java.type:"java.lang.Number" = var.load %4;
-                        invoke %22 %23 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
+                    (%20 : Var<java.type:"int">)java.type:"void" -> {
+                        %21 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %22 : java.type:"java.lang.Number" = var.load %4;
+                        invoke %21 %22 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
                         java.continue;
                     };
                 return;

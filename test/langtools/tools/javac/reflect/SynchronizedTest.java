@@ -43,13 +43,11 @@ public class SynchronizedTest {
                     }
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = var.load %2;
-                        %4 : java.type:"int" = constant @1;
-                        %5 : java.type:"int" = add %3 %4;
-                        var.store %2 %5;
+                        %4 : java.type:"int" = var.update %2 %3 @update.kind="POSTINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
                         yield;
                     };
-                %6 : java.type:"int" = var.load %2;
-                return %6;
+                %5 : java.type:"int" = var.load %2;
+                return %5;
             };
             """)
     int test1(int i) {
@@ -74,13 +72,11 @@ public class SynchronizedTest {
                     }
                     ()java.type:"void" -> {
                         %4 : java.type:"int" = var.load %2;
-                        %5 : java.type:"int" = constant @1;
-                        %6 : java.type:"int" = add %4 %5;
-                        var.store %2 %6;
+                        %5 : java.type:"int" = var.update %2 %4 @update.kind="POSTINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
                         yield;
                     };
-                %7 : java.type:"int" = var.load %2;
-                return %7;
+                %6 : java.type:"int" = var.load %2;
+                return %6;
             };
             """)
     int test2(int i) {

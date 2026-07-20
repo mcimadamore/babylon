@@ -67,13 +67,13 @@ public class ImplicitConversionTest {
     @Reflect
     @IR("""
             func @"test3" (%0 : java.type:"ImplicitConversionTest")java.type:"void" -> {
-                %1 : java.type:"long" = constant @0;
+                %1 : java.type:"long" = constant @0L;
                 %2 : Var<java.type:"long"> = var %1 @"x";
-                %3 : java.type:"long" = var.load %2;
-                %4 : java.type:"int" = constant @1;
-                %5 : java.type:"long" = conv %4;
-                %6 : java.type:"long" = var.compound.assign %2 %3 %5
-                    @operator.type=func<java.type:"long", java.type:"long", java.type:"long"> @compound.kind="ADD";
+                %3 : java.type:"long" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"long", java.type:"long", java.type:"long"> ()java.type:"long" -> {
+                    %4 : java.type:"int" = constant @1;
+                    %5 : java.type:"long" = conv %4;
+                    yield %5;
+                };
                 return;
             };
             """)
@@ -93,7 +93,7 @@ public class ImplicitConversionTest {
                         yield %5;
                     }
                     ()java.type:"long" -> {
-                        %6 : java.type:"long" = constant @1;
+                        %6 : java.type:"long" = constant @1L;
                         yield %6;
                     }
                     ()java.type:"long" -> {
@@ -126,13 +126,13 @@ public class ImplicitConversionTest {
                         yield %7;
                     }
                     ()java.type:"long" -> {
-                        %8 : java.type:"long" = constant @2;
+                        %8 : java.type:"long" = constant @2L;
                         yield %8;
                     };
                 %9 : java.type:"long" = var.assign %3 %4;
                 return;
             };
-           """)
+            """)
     void test5(boolean cond) {
         long x;
         x = cond ? 1 : 2L;
@@ -160,7 +160,7 @@ public class ImplicitConversionTest {
                 %9 : java.type:"long" = var.assign %3 %8;
                 return;
             };
-           """)
+            """)
     void test6(boolean cond) {
         long x;
         x = cond ? 1 : 2;
@@ -588,14 +588,14 @@ public class ImplicitConversionTest {
                         yield %7;
                     }
                     (%8 : Var<java.type:"int">)java.type:"void" -> {
-                        %9 : java.type:"int" = var.load %3;
-                        %10 : java.type:"int" = var.load %8;
-                        %11 : java.type:"int" = var.compound.assign %3 %9 %10
-                            @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD";
+                        %9 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
+                            %10 : java.type:"int" = var.load %8;
+                            yield %10;
+                        };
                         java.continue;
                     };
-                %12 : java.type:"int" = var.load %3;
-                return %12;
+                %11 : java.type:"int" = var.load %3;
+                return %11;
             };
             """)
     static int widenForEachArray(byte[] ba) {
