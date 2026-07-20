@@ -2413,15 +2413,15 @@ public class SwitchStatementTest {
                     (%11 : java.type:"java.lang.Integer")java.type:"boolean" -> {
                         %12 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
-                                %13 : java.type:"int" = constant @2;
-                                %14 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
-                                %15 : java.type:"boolean" = eq %14 %13 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                %13 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
+                                %14 : java.type:"int" = constant @2;
+                                %15 : java.type:"boolean" = eq %13 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %15;
                             }
                             ()java.type:"boolean" -> {
-                                %16 : java.type:"int" = constant @3;
-                                %17 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
-                                %18 : java.type:"boolean" = eq %17 %16 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                %16 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
+                                %17 : java.type:"int" = constant @3;
+                                %18 : java.type:"boolean" = eq %16 %17 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %18;
                             };
                         yield %12;

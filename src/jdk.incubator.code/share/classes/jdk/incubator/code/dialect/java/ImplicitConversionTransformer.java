@@ -26,14 +26,19 @@
 package jdk.incubator.code.dialect.java;
 
 import jdk.incubator.code.Block;
-import jdk.incubator.code.CodeContext;
+import jdk.incubator.code.Body;
 import jdk.incubator.code.CodeTransformer;
 import jdk.incubator.code.CodeType;
 import jdk.incubator.code.Op;
 import jdk.incubator.code.Value;
 import jdk.incubator.code.dialect.core.CoreOp;
+import jdk.incubator.code.dialect.core.VarType;
 
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Adds the implicit Java conversions required by a high-level Java code model.
@@ -44,11 +49,12 @@ import java.util.List;
  * carried by each unary and binary operation.
  * <p>
  * This transformer is intended for javac-generated, high-level Java models
- * containing {@link JavaOp Java operations}.  A contextual conversion is
- * appended to a producer when its result has one unambiguous direct use in the
- * same block, preserving subexpression evaluation order.  Otherwise it is
- * prepended to each consuming operation, allowing a captured value to be
- * converted independently in different bodies.
+ * containing {@link JavaOp Java operations}. A contextual conversion is
+ * appended to an operation that produces a value, or prepended to a block
+ * that introduces a parameter, or to the innermost body that directly
+ * captures a value. The first body that directly uses a value determines the
+ * conversion target for all its descendant bodies; independent sibling bodies may
+ * use the same value with different conversion targets.
  */
 public final class ImplicitConversionTransformer implements CodeTransformer {
 
@@ -57,17 +63,28 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     @Override
     public void acceptBlock(Block.Builder block, Block input) {
-        // Block parameters have no producer operation where a conversion can
-        // otherwise be appended, so convert them at block entry from their use.
+        // Block parameters are introduced at block entry.
         for (Block.Parameter parameter : input.parameters()) {
-            Op consumer = singleUse(parameter);
-            if (consumer == null) continue;
-            int operand = operandIndex(parameter, consumer);
-            if (operand == -1) continue;
-            CodeType target = conversionTarget(consumer, operand);
-            if (target != null && requiresConversion(parameter.type(), target)) {
-                Value value = block.context().getValue(parameter);
-                block.context().mapValue(parameter, convert(block, value, target));
+            convertAfterIntroduction(block, input.ancestorBody(), parameter);
+        }
+
+        if (input.isEntryBlock()) {
+            // A captured value is introduced again in the innermost body that
+            // directly uses it, so that body's entry is another producer-side
+            // conversion point.  Uses in nested bodies are handled there.
+            Body body = input.ancestorBody();
+            Set<Value> captures = Collections.newSetFromMap(new IdentityHashMap<>());
+            for (Block bodyBlock : body.blocks()) {
+                for (Op op : bodyBlock.ops()) {
+                    for (Value operand : op.operands()) {
+                        if (operand.declaringBlock().ancestorBody() != body) {
+                            captures.add(operand);
+                        }
+                    }
+                }
+            }
+            for (Value capture : captures) {
+                convertAfterIntroduction(block, body, capture);
             }
         }
         CodeTransformer.super.acceptBlock(block, input);
@@ -75,56 +92,72 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     @Override
     public Block.Builder acceptOp(Block.Builder block, Op op) {
-        CodeContext opContext = conversionContext(block, op);
-        Op outputOp = opContext == null ? op : op.transform(opContext, this);
-        Op.Result output = block.add(outputOp);
-        block.context().mapValue(op.result(), convert(block, op, output));
+        Op.Result output = block.add(op);
+        block.context().mapValue(op.result(), output);
+
+        CodeType target = commonConversionTarget(op.result(), op.ancestorBody());
+        if (target != null && requiresConversion(output.type(), target)) {
+            block.context().mapValue(op.result(), convert(block, output, target));
+        }
         return block;
     }
 
-    private CodeContext conversionContext(Block.Builder block, Op op) {
-        CodeContext opContext = null;
-        for (int i = 0; i < op.operands().size(); i++) {
-            Value input = op.operands().get(i);
-            CodeType target = conversionTarget(op, i);
-            if (target == null) continue;
-
-            Value output = block.context().getValue(input);
-            if (!requiresConversion(output.type(), target)) continue;
-
-            for (int j = 0; j < op.operands().size(); j++) {
-                if (j == i || op.operands().get(j) != input) continue;
-                if (!target.equals(conversionTarget(op, j))) {
-                    throw new IllegalArgumentException(
-                            "one value cannot be converted differently for multiple operands");
-                }
-                if (j < i) {
-                    target = null;
-                    break;
-                }
-            }
-            if (target == null) continue;
-
-            if (opContext == null) {
-                opContext = CodeContext.create(block.context());
-            }
-            opContext.mapValue(input, convert(block, output, target));
+    private static void convertAfterIntroduction(Block.Builder block, Body body, Value value) {
+        CodeType target = commonConversionTarget(value, body);
+        if (target != null) {
+            Value output = block.context().getValue(value);
+            if (!requiresConversion(output.type(), target)) return;
+            block.context().mapValue(value, convert(block, output, target));
         }
-        return opContext;
     }
 
-    private Value convert(Block.Builder block, Op producer, Value output) {
-        // A source temporary has one direct operand use.
-        Op consumer = singleUse(producer.result());
-        if (consumer == null) return output;
-        if (consumer.ancestorBlock() != producer.ancestorBlock()) return output;
+    private static CodeType commonConversionTarget(Value value, Body body) {
+        // A variable is storage, not a Java value.  Its initializer and stores
+        // already conform to its declared type; conversions apply to loads.
+        if (value.type() instanceof VarType) return null;
 
-        int operand = operandIndex(producer.result(), consumer);
-        if (operand == -1) return output;
+        Map<Body, CodeType> targets = new IdentityHashMap<>();
+        for (Op.Result use : value.uses()) {
+            Op consumer = use.op();
+            Body consumingBody = consumer.ancestorBody();
+            for (int i = 0; i < consumer.operands().size(); i++) {
+                if (consumer.operands().get(i) != value) continue;
+                CodeType useTarget = conversionTarget(consumer, i);
+                if (useTarget == null) useTarget = value.type();
+                addConversionTarget(targets, consumingBody, useTarget);
+            }
 
-        CodeType target = conversionTarget(consumer, operand);
-        return target != null && requiresConversion(output.type(), target)
-                ? convert(block, output, target) : output;
+            for (Block.Reference successor : consumer.successors()) {
+                for (int i = 0; i < successor.arguments().size(); i++) {
+                    if (successor.arguments().get(i) != value) continue;
+                    CodeType useTarget = successor.targetBlock().parameters().get(i).type();
+                    addConversionTarget(targets, consumingBody, useTarget);
+                }
+            }
+        }
+
+        for (Map.Entry<Body, CodeType> use : targets.entrySet()) {
+            Body useRoot = use.getKey();
+            for (Body enclosingBody = useRoot.ancestorBody();
+                 enclosingBody != null;
+                 enclosingBody = enclosingBody.ancestorBody()) {
+                if (targets.containsKey(enclosingBody)) useRoot = enclosingBody;
+            }
+            if (!targets.get(useRoot).equals(use.getValue())) {
+                throw new IllegalArgumentException(
+                        "all uses under an initial use body must have the same conversion target");
+            }
+        }
+        return targets.get(body);
+    }
+
+    private static void addConversionTarget(Map<Body, CodeType> targets,
+                                            Body body, CodeType target) {
+        CodeType previous = targets.putIfAbsent(body, target);
+        if (previous != null && !previous.equals(target)) {
+            throw new IllegalArgumentException(
+                    "one value cannot be converted differently for multiple uses in a body");
+        }
     }
 
     /**
@@ -223,20 +256,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     private static boolean requiresConversion(CodeType source, CodeType target) {
         return !source.equals(target) && (source instanceof PrimitiveType || target instanceof PrimitiveType);
-    }
-
-    private static Op singleUse(Value value) {
-        return value.uses().size() == 1 ? value.uses().getFirst().op() : null;
-    }
-
-    private static int operandIndex(Value value, Op consumer) {
-        int operand = -1;
-        for (int i = 0; i < consumer.operands().size(); i++) {
-            if (consumer.operands().get(i) != value) continue;
-            if (operand != -1) return -1;
-            operand = i;
-        }
-        return operand;
     }
 
     private static Value unbox(Block.Builder block, Value value, PrimitiveType primitive) {

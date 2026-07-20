@@ -1222,15 +1222,15 @@ public class SwitchExpressionTest2 {
                     (%9 : java.type:"java.lang.Integer")java.type:"boolean" -> {
                         %10 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
-                                %11 : java.type:"int" = constant @2;
-                                %12 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                %13 : java.type:"boolean" = eq %12 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                %11 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %12 : java.type:"int" = constant @2;
+                                %13 : java.type:"boolean" = eq %11 %12 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %13;
                             }
                             ()java.type:"boolean" -> {
-                                %14 : java.type:"int" = constant @3;
-                                %15 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
-                                %16 : java.type:"boolean" = eq %15 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                %14 : java.type:"int" = invoke %9 @java.ref:"java.lang.Integer::intValue():int";
+                                %15 : java.type:"int" = constant @3;
+                                %16 : java.type:"boolean" = eq %14 %15 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %16;
                             };
                         yield %10;
@@ -1365,10 +1365,10 @@ public class SwitchExpressionTest2 {
                         yield %11;
                     }
                     (%12 : java.type:"int")java.type:"boolean" -> {
-                        %13 : java.type:"java.lang.Integer" = invoke %12 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
-                        %14 : java.type:"boolean" = java.cand
+                        %13 : java.type:"boolean" = java.cand
                             ()java.type:"boolean" -> {
-                                %15 : java.type:"boolean" = pattern.match %13
+                                %14 : java.type:"java.lang.Integer" = invoke %12 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                                %15 : java.type:"boolean" = pattern.match %14
                                     ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
                                         %16 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"j";
                                         yield %16;
@@ -1386,7 +1386,7 @@ public class SwitchExpressionTest2 {
                                 %21 : java.type:"boolean" = gt %19 %20 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %21;
                             };
-                        yield %14;
+                        yield %13;
                     }
                     ()java.type:"java.lang.String" -> {
                         %22 : java.type:"java.lang.String" = constant @"positive";
