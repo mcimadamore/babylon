@@ -183,13 +183,18 @@ public class ForLoopTest {
                     }
                     (%7 : Var<java.type:"int">)java.type:"void" -> {
                         %8 : java.type:"int" = var.load %7;
-                        %9 : java.type:"int" = var.update %7 %8 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
+                        %9 : Var<java.type:"int"> = var %8 @"$old";
+                        %10 : java.type:"int" = var.load %9;
+                        %11 : java.type:"int" = constant @1;
+                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %13 : java.type:"int" = var.assign %7 %12;
+                        %14 : java.type:"int" = var.load %9;
                         yield;
                     }
-                    (%10 : Var<java.type:"int">)java.type:"void" -> {
-                        %11 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %12 : java.type:"int" = var.load %10;
-                        invoke %11 %12 @java.ref:"java.io.PrintStream::println(int):void";
+                    (%15 : Var<java.type:"int">)java.type:"void" -> {
+                        %16 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %17 : java.type:"int" = var.load %15;
+                        invoke %16 %17 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -218,15 +223,20 @@ public class ForLoopTest {
                     }
                     (%7 : Var<java.type:"int">)java.type:"void" -> {
                         %8 : java.type:"int" = var.load %7;
-                        %9 : java.type:"int" = var.update %7 %8 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
+                        %9 : Var<java.type:"int"> = var %8 @"$old";
+                        %10 : java.type:"int" = var.load %9;
+                        %11 : java.type:"int" = constant @1;
+                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %13 : java.type:"int" = var.assign %7 %12;
+                        %14 : java.type:"int" = var.load %9;
                         yield;
                     }
-                    (%10 : Var<java.type:"int">)java.type:"void" -> {
-                        %11 : java.type:"int" = var.load %10;
-                        return %11;
+                    (%15 : Var<java.type:"int">)java.type:"void" -> {
+                        %16 : java.type:"int" = var.load %15;
+                        return %16;
                     };
-                %12 : java.type:"int" = constant @-1;
-                return %12;
+                %17 : java.type:"int" = constant @-1;
+                return %17;
             };
             """)
     int test3_1() {
@@ -551,25 +561,30 @@ public class ForLoopTest {
                     }
                     (%9 : Var<java.type:"int">)java.type:"void" -> {
                         %10 : java.type:"int" = var.load %9;
-                        %11 : java.type:"int" = var.update %9 %10 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
+                        %11 : Var<java.type:"int"> = var %10 @"$old";
+                        %12 : java.type:"int" = var.load %11;
+                        %13 : java.type:"int" = constant @1;
+                        %14 : java.type:"int" = add %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %15 : java.type:"int" = var.assign %9 %14;
+                        %16 : java.type:"int" = var.load %11;
                         yield;
                     }
-                    (%12 : Var<java.type:"int">)java.type:"void" -> {
+                    (%17 : Var<java.type:"int">)java.type:"void" -> {
                         java.if
                             ()java.type:"boolean" -> {
-                                %13 : java.type:"int" = var.load %2;
-                                %14 : java.type:"int" = constant @0;
-                                %15 : java.type:"boolean" = eq %13 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %15;
+                                %18 : java.type:"int" = var.load %2;
+                                %19 : java.type:"int" = constant @0;
+                                %20 : java.type:"boolean" = eq %18 %19 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %20;
                             }
                             ()java.type:"void" -> {
                                 java.break;
                             }
                             ()java.type:"boolean" -> {
-                                %16 : java.type:"int" = var.load %2;
-                                %17 : java.type:"int" = constant @1;
-                                %18 : java.type:"boolean" = eq %16 %17 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %18;
+                                %21 : java.type:"int" = var.load %2;
+                                %22 : java.type:"int" = constant @1;
+                                %23 : java.type:"boolean" = eq %21 %22 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %23;
                             }
                             ()java.type:"void" -> {
                                 java.continue;

@@ -50,7 +50,7 @@ public class TestRemoveFinalVars {
 
     // @@@ Lower assignment expressions until rmFinalVars handles them directly.
     private static final CodeTransformer ASSIGNMENT_LOWERING_TRANSFORMER = (block, op) -> {
-        if (op instanceof JavaOp.AssignmentExpressionOp assignment) {
+        if (op instanceof JavaOp.AssignOp assignment) {
             return ((Op.Lowerable) assignment).lower(block, null);
         }
         block.add(op);

@@ -69,11 +69,11 @@ public class ImplicitConversionTest {
             func @"test3" (%0 : java.type:"ImplicitConversionTest")java.type:"void" -> {
                 %1 : java.type:"long" = constant @0L;
                 %2 : Var<java.type:"long"> = var %1 @"x";
-                %3 : java.type:"long" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"long", java.type:"long", java.type:"long"> ()java.type:"long" -> {
-                    %4 : java.type:"int" = constant @1;
-                    %5 : java.type:"long" = conv %4;
-                    yield %5;
-                };
+                %3 : java.type:"long" = var.load %2;
+                %4 : java.type:"int" = constant @1;
+                %5 : java.type:"long" = conv %4;
+                %6 : java.type:"long" = add %3 %5 @func<java.type:"long", java.type:"long", java.type:"long">;
+                %7 : java.type:"long" = var.assign %2 %6;
                 return;
             };
             """)
@@ -588,14 +588,14 @@ public class ImplicitConversionTest {
                         yield %7;
                     }
                     (%8 : Var<java.type:"int">)java.type:"void" -> {
-                        %9 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                            %10 : java.type:"int" = var.load %8;
-                            yield %10;
-                        };
+                        %9 : java.type:"int" = var.load %3;
+                        %10 : java.type:"int" = var.load %8;
+                        %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %12 : java.type:"int" = var.assign %3 %11;
                         java.continue;
                     };
-                %11 : java.type:"int" = var.load %3;
-                return %11;
+                %13 : java.type:"int" = var.load %3;
+                return %13;
             };
             """)
     static int widenForEachArray(byte[] ba) {

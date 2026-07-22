@@ -48,49 +48,49 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"BAR";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"BAR";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
-                    (%10 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %11 : java.type:"java.lang.String" = constant @"BAR";
-                        %12 : java.type:"boolean" = invoke %10 %11 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %12;
+                    (%12 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %13 : java.type:"java.lang.String" = constant @"BAR";
+                        %14 : java.type:"boolean" = invoke %12 %13 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"BAZ";
-                            yield %14;
-                        };
-                        yield;
-                    }
-                    (%15 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %15 : java.type:"java.lang.String" = var.load %3;
                         %16 : java.type:"java.lang.String" = constant @"BAZ";
-                        %17 : java.type:"boolean" = invoke %15 %16 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %17;
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
+                        yield;
+                    }
+                    (%19 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %20 : java.type:"java.lang.String" = constant @"BAZ";
+                        %21 : java.type:"boolean" = invoke %19 %20 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %21;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"FOO";
-                            yield %19;
-                        };
+                        %22 : java.type:"java.lang.String" = var.load %3;
+                        %23 : java.type:"java.lang.String" = constant @"FOO";
+                        %24 : java.type:"java.lang.String" = concat %22 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %3 %24;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %26 : java.type:"boolean" = constant @true;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"else";
-                            yield %22;
-                        };
+                        %27 : java.type:"java.lang.String" = var.load %3;
+                        %28 : java.type:"java.lang.String" = constant @"else";
+                        %29 : java.type:"java.lang.String" = concat %27 %28;
+                        %30 : java.type:"java.lang.String" = var.assign %3 %29;
                         yield;
                     };
-                %23 : java.type:"java.lang.String" = var.load %3;
-                return %23;
+                %31 : java.type:"java.lang.String" = var.load %3;
+                return %31;
             };
             """)
     @Reflect
@@ -118,49 +118,49 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"BAR";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"BAR";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
-                    (%10 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %11 : java.type:"java.lang.String" = constant @"BAR";
-                        %12 : java.type:"boolean" = invoke %10 %11 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %12;
+                    (%12 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %13 : java.type:"java.lang.String" = constant @"BAR";
+                        %14 : java.type:"boolean" = invoke %12 %13 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"BAZ";
-                            yield %14;
-                        };
-                        yield;
-                    }
-                    (%15 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %15 : java.type:"java.lang.String" = var.load %3;
                         %16 : java.type:"java.lang.String" = constant @"BAZ";
-                        %17 : java.type:"boolean" = invoke %15 %16 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %17;
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
+                        yield;
+                    }
+                    (%19 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %20 : java.type:"java.lang.String" = constant @"BAZ";
+                        %21 : java.type:"boolean" = invoke %19 %20 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %21;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"FOO";
-                            yield %19;
-                        };
+                        %22 : java.type:"java.lang.String" = var.load %3;
+                        %23 : java.type:"java.lang.String" = constant @"FOO";
+                        %24 : java.type:"java.lang.String" = concat %22 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %3 %24;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %26 : java.type:"boolean" = constant @true;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"else";
-                            yield %22;
-                        };
+                        %27 : java.type:"java.lang.String" = var.load %3;
+                        %28 : java.type:"java.lang.String" = constant @"else";
+                        %29 : java.type:"java.lang.String" = concat %27 %28;
+                        %30 : java.type:"java.lang.String" = var.assign %3 %29;
                         yield;
                     };
-                %23 : java.type:"java.lang.String" = var.load %3;
-                return %23;
+                %31 : java.type:"java.lang.String" = var.load %3;
+                return %31;
             };
             """)
     @Reflect
@@ -196,49 +196,49 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"BAR";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"BAR";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         java.break;
                     }
-                    (%10 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %11 : java.type:"java.lang.String" = constant @"BAR";
-                        %12 : java.type:"boolean" = invoke %10 %11 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %12;
+                    (%12 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %13 : java.type:"java.lang.String" = constant @"BAR";
+                        %14 : java.type:"boolean" = invoke %12 %13 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"BAZ";
-                            yield %14;
-                        };
-                        java.break;
-                    }
-                    (%15 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %15 : java.type:"java.lang.String" = var.load %3;
                         %16 : java.type:"java.lang.String" = constant @"BAZ";
-                        %17 : java.type:"boolean" = invoke %15 %16 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %17;
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
+                        java.break;
+                    }
+                    (%19 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %20 : java.type:"java.lang.String" = constant @"BAZ";
+                        %21 : java.type:"boolean" = invoke %19 %20 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %21;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"FOO";
-                            yield %19;
-                        };
+                        %22 : java.type:"java.lang.String" = var.load %3;
+                        %23 : java.type:"java.lang.String" = constant @"FOO";
+                        %24 : java.type:"java.lang.String" = concat %22 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %3 %24;
                         java.break;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %26 : java.type:"boolean" = constant @true;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"else";
-                            yield %22;
-                        };
+                        %27 : java.type:"java.lang.String" = var.load %3;
+                        %28 : java.type:"java.lang.String" = constant @"else";
+                        %29 : java.type:"java.lang.String" = concat %27 %28;
+                        %30 : java.type:"java.lang.String" = var.assign %3 %29;
                         yield;
                     };
-                %23 : java.type:"java.lang.String" = var.load %3;
-                return %23;
+                %31 : java.type:"java.lang.String" = var.load %3;
+                return %31;
             };
             """)
     @Reflect
@@ -298,25 +298,25 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"vowel";
-                            yield %19;
-                        };
+                        %18 : java.type:"java.lang.String" = var.load %3;
+                        %19 : java.type:"java.lang.String" = constant @"vowel";
+                        %20 : java.type:"java.lang.String" = concat %18 %19;
+                        %21 : java.type:"java.lang.String" = var.assign %3 %20;
                         java.break;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %22 : java.type:"boolean" = constant @true;
+                        yield %22;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"consonant";
-                            yield %22;
-                        };
+                        %23 : java.type:"java.lang.String" = var.load %3;
+                        %24 : java.type:"java.lang.String" = constant @"consonant";
+                        %25 : java.type:"java.lang.String" = concat %23 %24;
+                        %26 : java.type:"java.lang.String" = var.assign %3 %25;
                         yield;
                     };
-                %23 : java.type:"java.lang.String" = var.load %3;
-                return %23;
+                %27 : java.type:"java.lang.String" = var.load %3;
+                return %27;
             };
             """)
     @Reflect
@@ -356,25 +356,25 @@ public class SwitchStatementTest {
                         yield %13;
                     }
                     ()java.type:"void" -> {
-                        %14 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %15 : java.type:"java.lang.String" = constant @"Nine";
-                            yield %15;
-                        };
+                        %14 : java.type:"java.lang.String" = var.load %3;
+                        %15 : java.type:"java.lang.String" = constant @"Nine";
+                        %16 : java.type:"java.lang.String" = concat %14 %15;
+                        %17 : java.type:"java.lang.String" = var.assign %3 %16;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = constant @true;
-                        yield %16;
+                        %18 : java.type:"boolean" = constant @true;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %17 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %18 : java.type:"java.lang.String" = constant @"An integer";
-                            yield %18;
-                        };
+                        %19 : java.type:"java.lang.String" = var.load %3;
+                        %20 : java.type:"java.lang.String" = constant @"An integer";
+                        %21 : java.type:"java.lang.String" = concat %19 %20;
+                        %22 : java.type:"java.lang.String" = var.assign %3 %21;
                         yield;
                     };
-                %19 : java.type:"java.lang.String" = var.load %3;
-                return %19;
+                %23 : java.type:"java.lang.String" = var.load %3;
+                return %23;
             };
             """)
     @Reflect
@@ -401,25 +401,25 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"null";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"null";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
+                        %12 : java.type:"boolean" = constant @true;
+                        yield %12;
                     }
                     ()java.type:"void" -> {
-                        %11 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %12 : java.type:"java.lang.String" = constant @"non null";
-                            yield %12;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"non null";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     };
-                %13 : java.type:"java.lang.String" = var.load %3;
-                return %13;
+                %17 : java.type:"java.lang.String" = var.load %3;
+                return %17;
             };
             """)
     @Reflect
@@ -445,25 +445,25 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"alphabet";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"alphabet";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %10 : java.type:"boolean" = constant @true;
-                        yield %10;
+                        %12 : java.type:"boolean" = constant @true;
+                        yield %12;
                     }
                     ()java.type:"void" -> {
-                        %11 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %12 : java.type:"java.lang.String" = constant @"null or default";
-                            yield %12;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"null or default";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     };
-                %13 : java.type:"java.lang.String" = var.load %3;
-                return %13;
+                %17 : java.type:"java.lang.String" = var.load %3;
+                return %17;
             };
             """)
     @Reflect
@@ -497,25 +497,25 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %11 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %12 : java.type:"java.lang.String" = constant @"A or B";
-                            yield %12;
-                        };
+                        %11 : java.type:"java.lang.String" = var.load %3;
+                        %12 : java.type:"java.lang.String" = constant @"A or B";
+                        %13 : java.type:"java.lang.String" = concat %11 %12;
+                        %14 : java.type:"java.lang.String" = var.assign %3 %13;
                         java.break;
                     }
                     ()java.type:"boolean" -> {
-                        %13 : java.type:"boolean" = constant @true;
-                        yield %13;
+                        %15 : java.type:"boolean" = constant @true;
+                        yield %15;
                     }
                     ()java.type:"void" -> {
-                        %14 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %15 : java.type:"java.lang.String" = constant @"Neither A nor B";
-                            yield %15;
-                        };
+                        %16 : java.type:"java.lang.String" = var.load %3;
+                        %17 : java.type:"java.lang.String" = constant @"Neither A nor B";
+                        %18 : java.type:"java.lang.String" = concat %16 %17;
+                        %19 : java.type:"java.lang.String" = var.assign %3 %18;
                         yield;
                     };
-                %16 : java.type:"java.lang.String" = var.load %3;
-                return %16;
+                %20 : java.type:"java.lang.String" = var.load %3;
+                return %20;
             };
             """)
     @Reflect
@@ -562,59 +562,59 @@ public class SwitchStatementTest {
                         yield %6;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %14 : java.type:"int" = constant @6;
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"int" = constant @6;
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%15 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
-                        %16 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::TUE:SwitchStatementTest$Day";
-                        %17 : java.type:"boolean" = eq %15 %16 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
-                        yield %17;
+                    (%17 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
+                        %18 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::TUE:SwitchStatementTest$Day";
+                        %19 : java.type:"boolean" = eq %17 %18 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
+                        yield %19;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %19 : java.type:"int" = constant @7;
-                            yield %19;
-                        };
+                        %20 : java.type:"java.lang.String" = var.load %3;
+                        %21 : java.type:"int" = constant @7;
+                        %22 : java.type:"java.lang.String" = concat %20 %21;
+                        %23 : java.type:"java.lang.String" = var.assign %3 %22;
                         yield;
                     }
-                    (%20 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = java.cor
+                    (%24 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
+                        %25 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
-                                %22 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::THU:SwitchStatementTest$Day";
-                                %23 : java.type:"boolean" = eq %20 %22 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
-                                yield %23;
+                                %26 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::THU:SwitchStatementTest$Day";
+                                %27 : java.type:"boolean" = eq %24 %26 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
+                                yield %27;
                             }
                             ()java.type:"boolean" -> {
-                                %24 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::SAT:SwitchStatementTest$Day";
-                                %25 : java.type:"boolean" = eq %20 %24 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
-                                yield %25;
+                                %28 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::SAT:SwitchStatementTest$Day";
+                                %29 : java.type:"boolean" = eq %24 %28 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
+                                yield %29;
                             };
-                        yield %21;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %26 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %27 : java.type:"int" = constant @8;
-                            yield %27;
-                        };
+                        %30 : java.type:"java.lang.String" = var.load %3;
+                        %31 : java.type:"int" = constant @8;
+                        %32 : java.type:"java.lang.String" = concat %30 %31;
+                        %33 : java.type:"java.lang.String" = var.assign %3 %32;
                         yield;
                     }
-                    (%28 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
-                        %29 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::WED:SwitchStatementTest$Day";
-                        %30 : java.type:"boolean" = eq %28 %29 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
-                        yield %30;
+                    (%34 : java.type:"SwitchStatementTest$Day")java.type:"boolean" -> {
+                        %35 : java.type:"SwitchStatementTest$Day" = field.load @java.ref:"SwitchStatementTest$Day::WED:SwitchStatementTest$Day";
+                        %36 : java.type:"boolean" = eq %34 %35 @func<java.type:"boolean", java.type:"SwitchStatementTest$Day", java.type:"SwitchStatementTest$Day">;
+                        yield %36;
                     }
                     ()java.type:"void" -> {
-                        %31 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %32 : java.type:"int" = constant @9;
-                            yield %32;
-                        };
+                        %37 : java.type:"java.lang.String" = var.load %3;
+                        %38 : java.type:"int" = constant @9;
+                        %39 : java.type:"java.lang.String" = concat %37 %38;
+                        %40 : java.type:"java.lang.String" = var.assign %3 %39;
                         yield;
                     };
-                %33 : java.type:"java.lang.String" = var.load %3;
-                return %33;
+                %41 : java.type:"java.lang.String" = var.load %3;
+                return %41;
             };
             """)
     @Reflect
@@ -649,200 +649,200 @@ public class SwitchStatementTest {
                         yield %11;
                     }
                     ()java.type:"void" -> {
-                        %12 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %13 : java.type:"int" = constant @1;
-                            yield %13;
-                        };
+                        %12 : java.type:"java.lang.String" = var.load %3;
+                        %13 : java.type:"int" = constant @1;
+                        %14 : java.type:"java.lang.String" = concat %12 %13;
+                        %15 : java.type:"java.lang.String" = var.assign %3 %14;
                         yield;
                     }
-                    (%14 : java.type:"int")java.type:"boolean" -> {
-                        %15 : java.type:"int" = constant @4;
-                        %16 : java.type:"int" = constant @1;
-                        %17 : java.type:"int" = ashr %15 %16 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %18 : java.type:"boolean" = eq %14 %17 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %18;
+                    (%16 : java.type:"int")java.type:"boolean" -> {
+                        %17 : java.type:"int" = constant @4;
+                        %18 : java.type:"int" = constant @1;
+                        %19 : java.type:"int" = ashr %17 %18 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %20 : java.type:"boolean" = eq %16 %19 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %20;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"2";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"2";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
-                    (%21 : java.type:"int")java.type:"boolean" -> {
-                        %22 : java.type:"long" = constant @3L;
-                        %23 : java.type:"int" = conv %22;
-                        %24 : java.type:"boolean" = eq %21 %23 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %24;
+                    (%25 : java.type:"int")java.type:"boolean" -> {
+                        %26 : java.type:"long" = constant @3L;
+                        %27 : java.type:"int" = conv %26;
+                        %28 : java.type:"boolean" = eq %25 %27 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %28;
                     }
                     ()java.type:"void" -> {
-                        %25 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %26 : java.type:"int" = constant @3;
-                            yield %26;
-                        };
+                        %29 : java.type:"java.lang.String" = var.load %3;
+                        %30 : java.type:"int" = constant @3;
+                        %31 : java.type:"java.lang.String" = concat %29 %30;
+                        %32 : java.type:"java.lang.String" = var.assign %3 %31;
                         yield;
                     }
-                    (%27 : java.type:"int")java.type:"boolean" -> {
-                        %28 : java.type:"int" = constant @2;
-                        %29 : java.type:"int" = constant @1;
-                        %30 : java.type:"int" = lshl %28 %29 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %31 : java.type:"boolean" = eq %27 %30 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %31;
+                    (%33 : java.type:"int")java.type:"boolean" -> {
+                        %34 : java.type:"int" = constant @2;
+                        %35 : java.type:"int" = constant @1;
+                        %36 : java.type:"int" = lshl %34 %35 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %37 : java.type:"boolean" = eq %33 %36 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %37;
                     }
                     ()java.type:"void" -> {
-                        %32 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %33 : java.type:"int" = constant @4;
-                            yield %33;
-                        };
+                        %38 : java.type:"java.lang.String" = var.load %3;
+                        %39 : java.type:"int" = constant @4;
+                        %40 : java.type:"java.lang.String" = concat %38 %39;
+                        %41 : java.type:"java.lang.String" = var.assign %3 %40;
                         yield;
                     }
-                    (%34 : java.type:"int")java.type:"boolean" -> {
-                        %35 : java.type:"int" = constant @10;
-                        %36 : java.type:"int" = constant @2;
-                        %37 : java.type:"int" = div %35 %36 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %38 : java.type:"boolean" = eq %34 %37 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %38;
+                    (%42 : java.type:"int")java.type:"boolean" -> {
+                        %43 : java.type:"int" = constant @10;
+                        %44 : java.type:"int" = constant @2;
+                        %45 : java.type:"int" = div %43 %44 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %46 : java.type:"boolean" = eq %42 %45 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %46;
                     }
                     ()java.type:"void" -> {
-                        %39 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %40 : java.type:"int" = constant @5;
-                            yield %40;
-                        };
+                        %47 : java.type:"java.lang.String" = var.load %3;
+                        %48 : java.type:"int" = constant @5;
+                        %49 : java.type:"java.lang.String" = concat %47 %48;
+                        %50 : java.type:"java.lang.String" = var.assign %3 %49;
                         yield;
                     }
-                    (%41 : java.type:"int")java.type:"boolean" -> {
-                        %42 : java.type:"int" = constant @12;
-                        %43 : java.type:"int" = constant @6;
-                        %44 : java.type:"int" = sub %42 %43 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %45 : java.type:"boolean" = eq %41 %44 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %45;
+                    (%51 : java.type:"int")java.type:"boolean" -> {
+                        %52 : java.type:"int" = constant @12;
+                        %53 : java.type:"int" = constant @6;
+                        %54 : java.type:"int" = sub %52 %53 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %55 : java.type:"boolean" = eq %51 %54 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %55;
                     }
                     ()java.type:"void" -> {
-                        %46 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %47 : java.type:"int" = constant @6;
-                            yield %47;
-                        };
+                        %56 : java.type:"java.lang.String" = var.load %3;
+                        %57 : java.type:"int" = constant @6;
+                        %58 : java.type:"java.lang.String" = concat %56 %57;
+                        %59 : java.type:"java.lang.String" = var.assign %3 %58;
                         yield;
                     }
-                    (%48 : java.type:"int")java.type:"boolean" -> {
-                        %49 : java.type:"int" = constant @3;
-                        %50 : java.type:"int" = constant @4;
-                        %51 : java.type:"int" = add %49 %50 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %52 : java.type:"boolean" = eq %48 %51 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %52;
+                    (%60 : java.type:"int")java.type:"boolean" -> {
+                        %61 : java.type:"int" = constant @3;
+                        %62 : java.type:"int" = constant @4;
+                        %63 : java.type:"int" = add %61 %62 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %64 : java.type:"boolean" = eq %60 %63 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %64;
                     }
                     ()java.type:"void" -> {
-                        %53 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %54 : java.type:"int" = constant @7;
-                            yield %54;
-                        };
+                        %65 : java.type:"java.lang.String" = var.load %3;
+                        %66 : java.type:"int" = constant @7;
+                        %67 : java.type:"java.lang.String" = concat %65 %66;
+                        %68 : java.type:"java.lang.String" = var.assign %3 %67;
                         yield;
                     }
-                    (%55 : java.type:"int")java.type:"boolean" -> {
-                        %56 : java.type:"int" = constant @2;
-                        %57 : java.type:"int" = constant @2;
-                        %58 : java.type:"int" = mul %56 %57 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %59 : java.type:"int" = constant @2;
-                        %60 : java.type:"int" = mul %58 %59 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %61 : java.type:"boolean" = eq %55 %60 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %61;
+                    (%69 : java.type:"int")java.type:"boolean" -> {
+                        %70 : java.type:"int" = constant @2;
+                        %71 : java.type:"int" = constant @2;
+                        %72 : java.type:"int" = mul %70 %71 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %73 : java.type:"int" = constant @2;
+                        %74 : java.type:"int" = mul %72 %73 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %75 : java.type:"boolean" = eq %69 %74 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %75;
                     }
                     ()java.type:"void" -> {
-                        %62 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %63 : java.type:"int" = constant @8;
-                            yield %63;
-                        };
+                        %76 : java.type:"java.lang.String" = var.load %3;
+                        %77 : java.type:"int" = constant @8;
+                        %78 : java.type:"java.lang.String" = concat %76 %77;
+                        %79 : java.type:"java.lang.String" = var.assign %3 %78;
                         yield;
                     }
-                    (%64 : java.type:"int")java.type:"boolean" -> {
-                        %65 : java.type:"int" = constant @8;
-                        %66 : java.type:"int" = constant @1;
-                        %67 : java.type:"int" = or %65 %66 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %68 : java.type:"boolean" = eq %64 %67 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %68;
+                    (%80 : java.type:"int")java.type:"boolean" -> {
+                        %81 : java.type:"int" = constant @8;
+                        %82 : java.type:"int" = constant @1;
+                        %83 : java.type:"int" = or %81 %82 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %84 : java.type:"boolean" = eq %80 %83 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %84;
                     }
                     ()java.type:"void" -> {
-                        %69 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %70 : java.type:"int" = constant @9;
-                            yield %70;
-                        };
+                        %85 : java.type:"java.lang.String" = var.load %3;
+                        %86 : java.type:"int" = constant @9;
+                        %87 : java.type:"java.lang.String" = concat %85 %86;
+                        %88 : java.type:"java.lang.String" = var.assign %3 %87;
                         yield;
                     }
-                    (%71 : java.type:"int")java.type:"boolean" -> {
-                        %72 : java.type:"int" = constant @10;
-                        %73 : java.type:"boolean" = eq %71 %72 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %73;
+                    (%89 : java.type:"int")java.type:"boolean" -> {
+                        %90 : java.type:"int" = constant @10;
+                        %91 : java.type:"boolean" = eq %89 %90 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %91;
                     }
                     ()java.type:"void" -> {
-                        %74 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %75 : java.type:"int" = constant @10;
-                            yield %75;
-                        };
+                        %92 : java.type:"java.lang.String" = var.load %3;
+                        %93 : java.type:"int" = constant @10;
+                        %94 : java.type:"java.lang.String" = concat %92 %93;
+                        %95 : java.type:"java.lang.String" = var.assign %3 %94;
                         yield;
                     }
-                    (%76 : java.type:"int")java.type:"boolean" -> {
-                        %77 : java.type:"int" = var.load %5;
-                        %78 : java.type:"boolean" = eq %76 %77 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %78;
+                    (%96 : java.type:"int")java.type:"boolean" -> {
+                        %97 : java.type:"int" = var.load %5;
+                        %98 : java.type:"boolean" = eq %96 %97 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %98;
                     }
                     ()java.type:"void" -> {
-                        %79 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %80 : java.type:"int" = constant @11;
-                            yield %80;
-                        };
+                        %99 : java.type:"java.lang.String" = var.load %3;
+                        %100 : java.type:"int" = constant @11;
+                        %101 : java.type:"java.lang.String" = concat %99 %100;
+                        %102 : java.type:"java.lang.String" = var.assign %3 %101;
                         yield;
                     }
-                    (%81 : java.type:"int")java.type:"boolean" -> {
-                        %82 : java.type:"int" = field.load @java.ref:"SwitchStatementTest$Constants::c1:int";
-                        %83 : java.type:"boolean" = eq %81 %82 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %83;
+                    (%103 : java.type:"int")java.type:"boolean" -> {
+                        %104 : java.type:"int" = field.load @java.ref:"SwitchStatementTest$Constants::c1:int";
+                        %105 : java.type:"boolean" = eq %103 %104 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %105;
                     }
                     ()java.type:"void" -> {
-                        %84 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %85 : java.type:"int" = field.load @java.ref:"SwitchStatementTest$Constants::c1:int";
-                            yield %85;
-                        };
+                        %106 : java.type:"java.lang.String" = var.load %3;
+                        %107 : java.type:"int" = field.load @java.ref:"SwitchStatementTest$Constants::c1:int";
+                        %108 : java.type:"java.lang.String" = concat %106 %107;
+                        %109 : java.type:"java.lang.String" = var.assign %3 %108;
                         yield;
                     }
-                    (%86 : java.type:"int")java.type:"boolean" -> {
-                        %87 : java.type:"int" = java.cexpression
+                    (%110 : java.type:"int")java.type:"boolean" -> {
+                        %111 : java.type:"int" = java.cexpression
                             ()java.type:"boolean" -> {
-                                %88 : java.type:"int" = constant @1;
-                                %89 : java.type:"int" = constant @0;
-                                %90 : java.type:"boolean" = gt %88 %89 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %90;
+                                %112 : java.type:"int" = constant @1;
+                                %113 : java.type:"int" = constant @0;
+                                %114 : java.type:"boolean" = gt %112 %113 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %114;
                             }
                             ()java.type:"int" -> {
-                                %91 : java.type:"int" = constant @13;
-                                yield %91;
+                                %115 : java.type:"int" = constant @13;
+                                yield %115;
                             }
                             ()java.type:"int" -> {
-                                %92 : java.type:"int" = constant @133;
-                                yield %92;
+                                %116 : java.type:"int" = constant @133;
+                                yield %116;
                             };
-                        %93 : java.type:"boolean" = eq %86 %87 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %93;
+                        %117 : java.type:"boolean" = eq %110 %111 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %117;
                     }
                     ()java.type:"void" -> {
-                        %94 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %95 : java.type:"int" = constant @13;
-                            yield %95;
-                        };
+                        %118 : java.type:"java.lang.String" = var.load %3;
+                        %119 : java.type:"int" = constant @13;
+                        %120 : java.type:"java.lang.String" = concat %118 %119;
+                        %121 : java.type:"java.lang.String" = var.assign %3 %120;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %96 : java.type:"boolean" = constant @true;
-                        yield %96;
+                        %122 : java.type:"boolean" = constant @true;
+                        yield %122;
                     }
                     ()java.type:"void" -> {
-                        %97 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %98 : java.type:"java.lang.String" = constant @"an int";
-                            yield %98;
-                        };
+                        %123 : java.type:"java.lang.String" = var.load %3;
+                        %124 : java.type:"java.lang.String" = constant @"an int";
+                        %125 : java.type:"java.lang.String" = concat %123 %124;
+                        %126 : java.type:"java.lang.String" = var.assign %3 %125;
                         yield;
                     };
-                %99 : java.type:"java.lang.String" = var.load %3;
-                return %99;
+                %127 : java.type:"java.lang.String" = var.load %3;
+                return %127;
             };
             """)
     @Reflect
@@ -887,51 +887,51 @@ public class SwitchStatementTest {
                         yield %13;
                     }
                     ()java.type:"void" -> {
-                        %14 : java.type:"java.lang.String" = var.compound.assign %9 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %15 : java.type:"java.lang.String" = constant @"one";
-                            yield %15;
-                        };
+                        %14 : java.type:"java.lang.String" = var.load %9;
+                        %15 : java.type:"java.lang.String" = constant @"one";
+                        %16 : java.type:"java.lang.String" = concat %14 %15;
+                        %17 : java.type:"java.lang.String" = var.assign %9 %16;
                         yield;
                     }
-                    (%16 : java.type:"short")java.type:"boolean" -> {
-                        %17 : java.type:"byte" = var.load %7;
-                        %18 : java.type:"short" = conv %17;
-                        %19 : java.type:"boolean" = eq %16 %18 @func<java.type:"boolean", java.type:"short", java.type:"short">;
-                        yield %19;
+                    (%18 : java.type:"short")java.type:"boolean" -> {
+                        %19 : java.type:"byte" = var.load %7;
+                        %20 : java.type:"short" = conv %19;
+                        %21 : java.type:"boolean" = eq %18 %20 @func<java.type:"boolean", java.type:"short", java.type:"short">;
+                        yield %21;
                     }
                     ()java.type:"void" -> {
-                        %20 : java.type:"java.lang.String" = var.compound.assign %9 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %21 : java.type:"java.lang.String" = constant @"two";
-                            yield %21;
-                        };
+                        %22 : java.type:"java.lang.String" = var.load %9;
+                        %23 : java.type:"java.lang.String" = constant @"two";
+                        %24 : java.type:"java.lang.String" = concat %22 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %9 %24;
                         yield;
                     }
-                    (%22 : java.type:"short")java.type:"boolean" -> {
-                        %23 : java.type:"int" = constant @3;
-                        %24 : java.type:"short" = conv %23;
-                        %25 : java.type:"boolean" = eq %22 %24 @func<java.type:"boolean", java.type:"short", java.type:"short">;
-                        yield %25;
+                    (%26 : java.type:"short")java.type:"boolean" -> {
+                        %27 : java.type:"int" = constant @3;
+                        %28 : java.type:"short" = conv %27;
+                        %29 : java.type:"boolean" = eq %26 %28 @func<java.type:"boolean", java.type:"short", java.type:"short">;
+                        yield %29;
                     }
                     ()java.type:"void" -> {
-                        %26 : java.type:"java.lang.String" = var.compound.assign %9 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %27 : java.type:"java.lang.String" = constant @"three";
-                            yield %27;
-                        };
+                        %30 : java.type:"java.lang.String" = var.load %9;
+                        %31 : java.type:"java.lang.String" = constant @"three";
+                        %32 : java.type:"java.lang.String" = concat %30 %31;
+                        %33 : java.type:"java.lang.String" = var.assign %9 %32;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %28 : java.type:"boolean" = constant @true;
-                        yield %28;
+                        %34 : java.type:"boolean" = constant @true;
+                        yield %34;
                     }
                     ()java.type:"void" -> {
-                        %29 : java.type:"java.lang.String" = var.compound.assign %9 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %30 : java.type:"java.lang.String" = constant @"else";
-                            yield %30;
-                        };
+                        %35 : java.type:"java.lang.String" = var.load %9;
+                        %36 : java.type:"java.lang.String" = constant @"else";
+                        %37 : java.type:"java.lang.String" = concat %35 %36;
+                        %38 : java.type:"java.lang.String" = var.assign %9 %37;
                         yield;
                     };
-                %31 : java.type:"java.lang.String" = var.load %9;
-                return %31;
+                %39 : java.type:"java.lang.String" = var.load %9;
+                return %39;
             };
             """)
     @Reflect
@@ -966,38 +966,38 @@ public class SwitchStatementTest {
                         yield %12;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %6 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"one";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %6;
+                        %14 : java.type:"java.lang.String" = constant @"one";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %6 %15;
                         yield;
                     }
-                    (%15 : java.type:"java.lang.Byte")java.type:"boolean" -> {
-                        %16 : java.type:"byte" = invoke %15 @java.ref:"java.lang.Byte::byteValue():byte";
-                        %17 : java.type:"byte" = var.load %4;
-                        %18 : java.type:"boolean" = eq %16 %17 @func<java.type:"boolean", java.type:"byte", java.type:"byte">;
-                        yield %18;
+                    (%17 : java.type:"java.lang.Byte")java.type:"boolean" -> {
+                        %18 : java.type:"byte" = invoke %17 @java.ref:"java.lang.Byte::byteValue():byte";
+                        %19 : java.type:"byte" = var.load %4;
+                        %20 : java.type:"boolean" = eq %18 %19 @func<java.type:"boolean", java.type:"byte", java.type:"byte">;
+                        yield %20;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %6 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"two";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %6;
+                        %22 : java.type:"java.lang.String" = constant @"two";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %6 %23;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.String" = var.compound.assign %6 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %23 : java.type:"java.lang.String" = constant @"default";
-                            yield %23;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %6;
+                        %27 : java.type:"java.lang.String" = constant @"default";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %6 %28;
                         yield;
                     };
-                %24 : java.type:"java.lang.String" = var.load %6;
-                return %24;
+                %30 : java.type:"java.lang.String" = var.load %6;
+                return %30;
             };
             """)
     @Reflect
@@ -1025,26 +1025,26 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"1";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"1";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
-                    (%10 : java.type:"int")java.type:"boolean" -> {
-                        %11 : java.type:"int" = constant @2;
-                        %12 : java.type:"boolean" = eq %10 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %12;
+                    (%12 : java.type:"int")java.type:"boolean" -> {
+                        %13 : java.type:"int" = constant @2;
+                        %14 : java.type:"boolean" = eq %12 %13 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"int"> @compound.kind="CONCAT" ()java.type:"int" -> {
-                            %14 : java.type:"int" = constant @2;
-                            yield %14;
-                        };
+                        %15 : java.type:"java.lang.String" = var.load %3;
+                        %16 : java.type:"int" = constant @2;
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
                         yield;
                     };
-                %15 : java.type:"java.lang.String" = var.load %3;
-                return %15;
+                %19 : java.type:"java.lang.String" = var.load %3;
+                return %19;
             };
             """)
     @Reflect
@@ -1071,46 +1071,46 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.Object"> @compound.kind="CONCAT" ()java.type:"java.lang.Object" -> {
-                            %9 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::A:SwitchStatementTest$E";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::A:SwitchStatementTest$E";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
-                    (%10 : java.type:"SwitchStatementTest$E")java.type:"boolean" -> {
-                        %11 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::B:SwitchStatementTest$E";
-                        %12 : java.type:"boolean" = eq %10 %11 @func<java.type:"boolean", java.type:"SwitchStatementTest$E", java.type:"SwitchStatementTest$E">;
-                        yield %12;
+                    (%12 : java.type:"SwitchStatementTest$E")java.type:"boolean" -> {
+                        %13 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::B:SwitchStatementTest$E";
+                        %14 : java.type:"boolean" = eq %12 %13 @func<java.type:"boolean", java.type:"SwitchStatementTest$E", java.type:"SwitchStatementTest$E">;
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.Object"> @compound.kind="CONCAT" ()java.type:"java.lang.Object" -> {
-                            %14 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::B:SwitchStatementTest$E";
-                            yield %14;
-                        };
+                        %15 : java.type:"java.lang.String" = var.load %3;
+                        %16 : java.type:"SwitchStatementTest$E" = field.load @java.ref:"SwitchStatementTest$E::B:SwitchStatementTest$E";
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
                         yield;
                     }
-                    (%15 : java.type:"SwitchStatementTest$E")java.type:"boolean" -> {
-                        %16 : java.type:"java.lang.Object" = constant @null;
-                        %17 : java.type:"boolean" = eq %15 %16 @func<java.type:"boolean", java.type:"SwitchStatementTest$E", java.type:"java.lang.Object">;
-                        yield %17;
+                    (%19 : java.type:"SwitchStatementTest$E")java.type:"boolean" -> {
+                        %20 : java.type:"java.lang.Object" = constant @null;
+                        %21 : java.type:"boolean" = eq %19 %20 @func<java.type:"boolean", java.type:"SwitchStatementTest$E", java.type:"java.lang.Object">;
+                        yield %21;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"null";
-                            yield %19;
-                        };
+                        %22 : java.type:"java.lang.String" = var.load %3;
+                        %23 : java.type:"java.lang.String" = constant @"null";
+                        %24 : java.type:"java.lang.String" = concat %22 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %3 %24;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %26 : java.type:"boolean" = constant @true;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
-                        throw %21;
+                        %27 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
+                        throw %27;
                     };
-                %22 : java.type:"java.lang.String" = var.load %3;
-                return %22;
+                %28 : java.type:"java.lang.String" = var.load %3;
+                return %28;
             };
             """)
     @Reflect
@@ -1151,41 +1151,41 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"K";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"K";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%15 : java.type:"SwitchStatementTest$I")java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = pattern.match %15
+                    (%17 : java.type:"SwitchStatementTest$I")java.type:"boolean" -> {
+                        %18 : java.type:"boolean" = pattern.match %17
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<SwitchStatementTest$J>" -> {
-                                %17 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<SwitchStatementTest$J>" = pattern.type @"j";
-                                yield %17;
+                                %19 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<SwitchStatementTest$J>" = pattern.type @"j";
+                                yield %19;
                             }
-                            (%18 : java.type:"SwitchStatementTest$J")java.type:"void" -> {
-                                var.store %8 %18;
+                            (%20 : java.type:"SwitchStatementTest$J")java.type:"void" -> {
+                                var.store %8 %20;
                                 yield;
                             };
-                        yield %16;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"J";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"J";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
-                        throw %22;
+                        %26 : java.type:"java.lang.MatchException" = new @java.ref:"java.lang.MatchException::()";
+                        throw %26;
                     };
-                %23 : java.type:"java.lang.String" = var.load %3;
-                return %23;
+                %27 : java.type:"java.lang.String" = var.load %3;
+                return %27;
             };
             """)
     @Reflect
@@ -1213,33 +1213,33 @@ public class SwitchStatementTest {
                         yield %9;
                     }
                     ()java.type:"void" -> {
-                        %10 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %11 : java.type:"java.lang.String" = constant @"A";
-                            yield %11;
-                        };
+                        %10 : java.type:"java.lang.String" = var.load %3;
+                        %11 : java.type:"java.lang.String" = constant @"A";
+                        %12 : java.type:"java.lang.String" = concat %10 %11;
+                        %13 : java.type:"java.lang.String" = var.assign %3 %12;
                         yield;
                     }
-                    (%12 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %13 : java.type:"boolean" = pattern.match %12
+                    (%14 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %15 : java.type:"boolean" = pattern.match %14
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Object>" -> {
-                                %14 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Object>" = pattern.type @"o";
-                                yield %14;
+                                %16 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Object>" = pattern.type @"o";
+                                yield %16;
                             }
-                            (%15 : java.type:"java.lang.Object")java.type:"void" -> {
-                                var.store %6 %15;
+                            (%17 : java.type:"java.lang.Object")java.type:"void" -> {
+                                var.store %6 %17;
                                 yield;
                             };
-                        yield %13;
+                        yield %15;
                     }
                     ()java.type:"void" -> {
-                        %16 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %17 : java.type:"java.lang.String" = constant @"obj";
-                            yield %17;
-                        };
+                        %18 : java.type:"java.lang.String" = var.load %3;
+                        %19 : java.type:"java.lang.String" = constant @"obj";
+                        %20 : java.type:"java.lang.String" = concat %18 %19;
+                        %21 : java.type:"java.lang.String" = var.assign %3 %20;
                         yield;
                     };
-                %18 : java.type:"java.lang.String" = var.load %3;
-                return %18;
+                %22 : java.type:"java.lang.String" = var.load %3;
+                return %22;
             };
             """)
     @Reflect
@@ -1276,44 +1276,44 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"integer";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"integer";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%15 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = pattern.match %15
+                    (%17 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %18 : java.type:"boolean" = pattern.match %17
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" -> {
-                                %17 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
-                                yield %17;
+                                %19 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
+                                yield %19;
                             }
-                            (%18 : java.type:"java.lang.String")java.type:"void" -> {
-                                var.store %8 %18;
+                            (%20 : java.type:"java.lang.String")java.type:"void" -> {
+                                var.store %8 %20;
                                 yield;
                             };
-                        yield %16;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"string";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"string";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %23 : java.type:"java.lang.String" = constant @"else";
-                            yield %23;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %3;
+                        %27 : java.type:"java.lang.String" = constant @"else";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %3 %28;
                         yield;
                     };
-                %24 : java.type:"java.lang.String" = var.load %3;
-                return %24;
+                %30 : java.type:"java.lang.String" = var.load %3;
+                return %30;
             };
             """)
     @Reflect
@@ -1351,44 +1351,44 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"integer";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"integer";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%15 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = pattern.match %15
+                    (%17 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %18 : java.type:"boolean" = pattern.match %17
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" -> {
-                                %17 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
-                                yield %17;
+                                %19 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
+                                yield %19;
                             }
-                            (%18 : java.type:"java.lang.String")java.type:"void" -> {
-                                var.store %8 %18;
+                            (%20 : java.type:"java.lang.String")java.type:"void" -> {
+                                var.store %8 %20;
                                 yield;
                             };
-                        yield %16;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"string";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"string";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %23 : java.type:"java.lang.String" = constant @"else";
-                            yield %23;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %3;
+                        %27 : java.type:"java.lang.String" = constant @"else";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %3 %28;
                         yield;
                     };
-                %24 : java.type:"java.lang.String" = var.load %3;
-                return %24;
+                %30 : java.type:"java.lang.String" = var.load %3;
+                return %30;
             };
             """)
     @Reflect
@@ -1432,44 +1432,44 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"integer";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"integer";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         java.break;
                     }
-                    (%15 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = pattern.match %15
+                    (%17 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %18 : java.type:"boolean" = pattern.match %17
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" -> {
-                                %17 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
-                                yield %17;
+                                %19 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.String>" = pattern.type @"s";
+                                yield %19;
                             }
-                            (%18 : java.type:"java.lang.String")java.type:"void" -> {
-                                var.store %8 %18;
+                            (%20 : java.type:"java.lang.String")java.type:"void" -> {
+                                var.store %8 %20;
                                 yield;
                             };
-                        yield %16;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"string";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"string";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         java.break;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %23 : java.type:"java.lang.String" = constant @"else";
-                            yield %23;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %3;
+                        %27 : java.type:"java.lang.String" = constant @"else";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %3 %28;
                         yield;
                     };
-                %24 : java.type:"java.lang.String" = var.load %3;
-                return %24;
+                %30 : java.type:"java.lang.String" = var.load %3;
+                return %30;
             };
             """)
     @Reflect
@@ -1528,27 +1528,27 @@ public class SwitchStatementTest {
                         yield %15;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"a string";
-                            yield %19;
-                        };
+                        %18 : java.type:"java.lang.String" = var.load %3;
+                        %19 : java.type:"java.lang.String" = constant @"a string";
+                        %20 : java.type:"java.lang.String" = concat %18 %19;
+                        %21 : java.type:"java.lang.String" = var.assign %3 %20;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %20 : java.type:"boolean" = constant @true;
-                        yield %20;
+                        %22 : java.type:"boolean" = constant @true;
+                        yield %22;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.Object" = var.load %1;
-                            %23 : java.type:"java.lang.Class<?>" = invoke %22 @java.ref:"java.lang.Object::getClass():java.lang.Class";
-                            %24 : java.type:"java.lang.String" = invoke %23 @java.ref:"java.lang.Class::getName():java.lang.String";
-                            yield %24;
-                        };
+                        %23 : java.type:"java.lang.String" = var.load %3;
+                        %24 : java.type:"java.lang.Object" = var.load %1;
+                        %25 : java.type:"java.lang.Class<?>" = invoke %24 @java.ref:"java.lang.Object::getClass():java.lang.Class";
+                        %26 : java.type:"java.lang.String" = invoke %25 @java.ref:"java.lang.Class::getName():java.lang.String";
+                        %27 : java.type:"java.lang.String" = concat %23 %26;
+                        %28 : java.type:"java.lang.String" = var.assign %3 %27;
                         yield;
                     };
-                %25 : java.type:"java.lang.String" = var.load %3;
-                return %25;
+                %29 : java.type:"java.lang.String" = var.load %3;
+                return %29;
             };
             """)
     @Reflect
@@ -1644,25 +1644,25 @@ public class SwitchStatementTest {
                         yield %16;
                     }
                     ()java.type:"void" -> {
-                        %32 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %33 : java.type:"java.lang.String" = constant @"integral type";
-                            yield %33;
-                        };
+                        %32 : java.type:"java.lang.String" = var.load %3;
+                        %33 : java.type:"java.lang.String" = constant @"integral type";
+                        %34 : java.type:"java.lang.String" = concat %32 %33;
+                        %35 : java.type:"java.lang.String" = var.assign %3 %34;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %34 : java.type:"boolean" = constant @true;
-                        yield %34;
+                        %36 : java.type:"boolean" = constant @true;
+                        yield %36;
                     }
                     ()java.type:"void" -> {
-                        %35 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %36 : java.type:"java.lang.String" = constant @"non integral type";
-                            yield %36;
-                        };
+                        %37 : java.type:"java.lang.String" = var.load %3;
+                        %38 : java.type:"java.lang.String" = constant @"non integral type";
+                        %39 : java.type:"java.lang.String" = concat %37 %38;
+                        %40 : java.type:"java.lang.String" = var.assign %3 %39;
                         yield;
                     };
-                %37 : java.type:"java.lang.String" = var.load %3;
-                return %37;
+                %41 : java.type:"java.lang.String" = var.load %3;
+                return %41;
             };
             """)
     @Reflect
@@ -1755,25 +1755,25 @@ public class SwitchStatementTest {
                         yield %14;
                     }
                     ()java.type:"void" -> {
-                        %33 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %34 : java.type:"java.lang.String" = constant @"integral type";
-                            yield %34;
-                        };
+                        %33 : java.type:"java.lang.String" = var.load %3;
+                        %34 : java.type:"java.lang.String" = constant @"integral type";
+                        %35 : java.type:"java.lang.String" = concat %33 %34;
+                        %36 : java.type:"java.lang.String" = var.assign %3 %35;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %35 : java.type:"boolean" = constant @true;
-                        yield %35;
+                        %37 : java.type:"boolean" = constant @true;
+                        yield %37;
                     }
                     ()java.type:"void" -> {
-                        %36 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %37 : java.type:"java.lang.String" = constant @"non integral type";
-                            yield %37;
-                        };
+                        %38 : java.type:"java.lang.String" = var.load %3;
+                        %39 : java.type:"java.lang.String" = constant @"non integral type";
+                        %40 : java.type:"java.lang.String" = concat %38 %39;
+                        %41 : java.type:"java.lang.String" = var.assign %3 %40;
                         yield;
                     };
-                %38 : java.type:"java.lang.String" = var.load %3;
-                return %38;
+                %42 : java.type:"java.lang.String" = var.load %3;
+                return %42;
             };
             """)
     @Reflect
@@ -1804,85 +1804,85 @@ public class SwitchStatementTest {
                         yield %12;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"forty two";
-                            yield %14;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"forty two";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%15 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                        %16 : java.type:"boolean" = java.cand
+                    (%17 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %18 : java.type:"boolean" = java.cand
                             ()java.type:"boolean" -> {
-                                %17 : java.type:"boolean" = pattern.match %15
+                                %19 : java.type:"boolean" = pattern.match %17
                                     ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
-                                        %18 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"i";
-                                        yield %18;
+                                        %20 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"i";
+                                        yield %20;
                                     }
-                                    (%19 : java.type:"java.lang.Integer")java.type:"void" -> {
-                                        var.store %6 %19;
+                                    (%21 : java.type:"java.lang.Integer")java.type:"void" -> {
+                                        var.store %6 %21;
                                         yield;
                                     };
-                                yield %17;
+                                yield %19;
                             }
                             ()java.type:"boolean" -> {
-                                %20 : java.type:"java.lang.Integer" = var.load %6;
-                                %21 : java.type:"int" = invoke %20 @java.ref:"java.lang.Integer::intValue():int";
-                                %22 : java.type:"int" = constant @0;
-                                %23 : java.type:"boolean" = gt %21 %22 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %23;
+                                %22 : java.type:"java.lang.Integer" = var.load %6;
+                                %23 : java.type:"int" = invoke %22 @java.ref:"java.lang.Integer::intValue():int";
+                                %24 : java.type:"int" = constant @0;
+                                %25 : java.type:"boolean" = gt %23 %24 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %25;
                             };
-                        yield %16;
+                        yield %18;
                     }
                     ()java.type:"void" -> {
-                        %24 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %25 : java.type:"java.lang.String" = constant @"positive int";
-                            yield %25;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %3;
+                        %27 : java.type:"java.lang.String" = constant @"positive int";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %3 %28;
                         yield;
                     }
-                    (%26 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                        %27 : java.type:"boolean" = java.cand
+                    (%30 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %31 : java.type:"boolean" = java.cand
                             ()java.type:"boolean" -> {
-                                %28 : java.type:"boolean" = pattern.match %26
+                                %32 : java.type:"boolean" = pattern.match %30
                                     ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" -> {
-                                        %29 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"i";
-                                        yield %29;
+                                        %33 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Integer>" = pattern.type @"i";
+                                        yield %33;
                                     }
-                                    (%30 : java.type:"java.lang.Integer")java.type:"void" -> {
-                                        var.store %8 %30;
+                                    (%34 : java.type:"java.lang.Integer")java.type:"void" -> {
+                                        var.store %8 %34;
                                         yield;
                                     };
-                                yield %28;
+                                yield %32;
                             }
                             ()java.type:"boolean" -> {
-                                %31 : java.type:"java.lang.Integer" = var.load %8;
-                                %32 : java.type:"int" = invoke %31 @java.ref:"java.lang.Integer::intValue():int";
-                                %33 : java.type:"int" = constant @0;
-                                %34 : java.type:"boolean" = lt %32 %33 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %34;
+                                %35 : java.type:"java.lang.Integer" = var.load %8;
+                                %36 : java.type:"int" = invoke %35 @java.ref:"java.lang.Integer::intValue():int";
+                                %37 : java.type:"int" = constant @0;
+                                %38 : java.type:"boolean" = lt %36 %37 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %38;
                             };
-                        yield %27;
+                        yield %31;
                     }
                     ()java.type:"void" -> {
-                        %35 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %36 : java.type:"java.lang.String" = constant @"negative int";
-                            yield %36;
-                        };
+                        %39 : java.type:"java.lang.String" = var.load %3;
+                        %40 : java.type:"java.lang.String" = constant @"negative int";
+                        %41 : java.type:"java.lang.String" = concat %39 %40;
+                        %42 : java.type:"java.lang.String" = var.assign %3 %41;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %37 : java.type:"boolean" = constant @true;
-                        yield %37;
+                        %43 : java.type:"boolean" = constant @true;
+                        yield %43;
                     }
                     ()java.type:"void" -> {
-                        %38 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %39 : java.type:"java.lang.String" = constant @"zero";
-                            yield %39;
-                        };
+                        %44 : java.type:"java.lang.String" = var.load %3;
+                        %45 : java.type:"java.lang.String" = constant @"zero";
+                        %46 : java.type:"java.lang.String" = concat %44 %45;
+                        %47 : java.type:"java.lang.String" = var.assign %3 %46;
                         yield;
                     };
-                %40 : java.type:"java.lang.String" = var.load %3;
-                return %40;
+                %48 : java.type:"java.lang.String" = var.load %3;
+                return %48;
             };
             """)
     @Reflect
@@ -1929,120 +1929,120 @@ public class SwitchStatementTest {
                         yield %18;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"String";
-                            yield %22;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"String";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
-                    (%23 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %24 : java.type:"boolean" = pattern.match %23
+                    (%25 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %26 : java.type:"boolean" = pattern.match %25
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.RandomAccess>" -> {
-                                %25 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.RandomAccess>" = pattern.type;
-                                yield %25;
+                                %27 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.RandomAccess>" = pattern.type;
+                                yield %27;
                             }
-                            (%26 : java.type:"java.util.RandomAccess")java.type:"void" -> {
-                                var.store %8 %26;
+                            (%28 : java.type:"java.util.RandomAccess")java.type:"void" -> {
+                                var.store %8 %28;
                                 yield;
                             };
-                        yield %24;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %27 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %28 : java.type:"java.lang.String" = constant @"RandomAccess";
-                            yield %28;
-                        };
+                        %29 : java.type:"java.lang.String" = var.load %3;
+                        %30 : java.type:"java.lang.String" = constant @"RandomAccess";
+                        %31 : java.type:"java.lang.String" = concat %29 %30;
+                        %32 : java.type:"java.lang.String" = var.assign %3 %31;
                         yield;
                     }
-                    (%29 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %30 : java.type:"boolean" = pattern.match %29
+                    (%33 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %34 : java.type:"boolean" = pattern.match %33
                             ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<int[]>" -> {
-                                %31 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<int[]>" = pattern.type;
-                                yield %31;
+                                %35 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<int[]>" = pattern.type;
+                                yield %35;
                             }
-                            (%32 : java.type:"int[]")java.type:"void" -> {
-                                var.store %10 %32;
+                            (%36 : java.type:"int[]")java.type:"void" -> {
+                                var.store %10 %36;
                                 yield;
                             };
-                        yield %30;
+                        yield %34;
                     }
                     ()java.type:"void" -> {
-                        %33 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %34 : java.type:"java.lang.String" = constant @"int[]";
-                            yield %34;
-                        };
-                        yield;
-                    }
-                    (%35 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %36 : java.type:"boolean" = pattern.match %35
-                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Stack[][]>" -> {
-                                %37 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Stack[][]>" = pattern.type;
-                                yield %37;
-                            }
-                            (%38 : java.type:"java.util.Stack[][]")java.type:"void" -> {
-                                var.store %12 %38;
-                                yield;
-                            };
-                        yield %36;
-                    }
-                    ()java.type:"void" -> {
-                        %39 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %40 : java.type:"java.lang.String" = constant @"Stack[][]";
-                            yield %40;
-                        };
+                        %37 : java.type:"java.lang.String" = var.load %3;
+                        %38 : java.type:"java.lang.String" = constant @"int[]";
+                        %39 : java.type:"java.lang.String" = concat %37 %38;
+                        %40 : java.type:"java.lang.String" = var.assign %3 %39;
                         yield;
                     }
                     (%41 : java.type:"java.lang.Object")java.type:"boolean" -> {
                         %42 : java.type:"boolean" = pattern.match %41
-                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Collection[][][]>" -> {
-                                %43 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Collection[][][]>" = pattern.type;
+                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Stack[][]>" -> {
+                                %43 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Stack[][]>" = pattern.type;
                                 yield %43;
                             }
-                            (%44 : java.type:"java.util.Collection[][][]")java.type:"void" -> {
-                                var.store %14 %44;
+                            (%44 : java.type:"java.util.Stack[][]")java.type:"void" -> {
+                                var.store %12 %44;
                                 yield;
                             };
                         yield %42;
                     }
                     ()java.type:"void" -> {
-                        %45 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %46 : java.type:"java.lang.String" = constant @"Collection[][][]";
-                            yield %46;
-                        };
+                        %45 : java.type:"java.lang.String" = var.load %3;
+                        %46 : java.type:"java.lang.String" = constant @"Stack[][]";
+                        %47 : java.type:"java.lang.String" = concat %45 %46;
+                        %48 : java.type:"java.lang.String" = var.assign %3 %47;
                         yield;
                     }
-                    (%47 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %48 : java.type:"boolean" = pattern.match %47
-                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" -> {
-                                %49 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" = pattern.type @"n";
-                                yield %49;
+                    (%49 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %50 : java.type:"boolean" = pattern.match %49
+                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Collection[][][]>" -> {
+                                %51 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.util.Collection[][][]>" = pattern.type;
+                                yield %51;
                             }
-                            (%50 : java.type:"java.lang.Number")java.type:"void" -> {
-                                var.store %16 %50;
+                            (%52 : java.type:"java.util.Collection[][][]")java.type:"void" -> {
+                                var.store %14 %52;
                                 yield;
                             };
-                        yield %48;
+                        yield %50;
                     }
                     ()java.type:"void" -> {
-                        %51 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %52 : java.type:"java.lang.String" = constant @"Number";
-                            yield %52;
-                        };
+                        %53 : java.type:"java.lang.String" = var.load %3;
+                        %54 : java.type:"java.lang.String" = constant @"Collection[][][]";
+                        %55 : java.type:"java.lang.String" = concat %53 %54;
+                        %56 : java.type:"java.lang.String" = var.assign %3 %55;
+                        yield;
+                    }
+                    (%57 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %58 : java.type:"boolean" = pattern.match %57
+                            ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" -> {
+                                %59 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" = pattern.type @"n";
+                                yield %59;
+                            }
+                            (%60 : java.type:"java.lang.Number")java.type:"void" -> {
+                                var.store %16 %60;
+                                yield;
+                            };
+                        yield %58;
+                    }
+                    ()java.type:"void" -> {
+                        %61 : java.type:"java.lang.String" = var.load %3;
+                        %62 : java.type:"java.lang.String" = constant @"Number";
+                        %63 : java.type:"java.lang.String" = concat %61 %62;
+                        %64 : java.type:"java.lang.String" = var.assign %3 %63;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %53 : java.type:"boolean" = constant @true;
-                        yield %53;
+                        %65 : java.type:"boolean" = constant @true;
+                        yield %65;
                     }
                     ()java.type:"void" -> {
-                        %54 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %55 : java.type:"java.lang.String" = constant @"something else";
-                            yield %55;
-                        };
+                        %66 : java.type:"java.lang.String" = var.load %3;
+                        %67 : java.type:"java.lang.String" = constant @"something else";
+                        %68 : java.type:"java.lang.String" = concat %66 %67;
+                        %69 : java.type:"java.lang.String" = var.assign %3 %68;
                         yield;
                     };
-                %56 : java.type:"java.lang.String" = var.load %3;
-                return %56;
+                %70 : java.type:"java.lang.String" = var.load %3;
+                return %70;
             };
             """)
     @Reflect
@@ -2084,25 +2084,25 @@ public class SwitchStatementTest {
                         yield %8;
                     }
                     ()java.type:"void" -> {
-                        %12 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %13 : java.type:"java.lang.String" = constant @"R(_)";
-                            yield %13;
-                        };
+                        %12 : java.type:"java.lang.String" = var.load %3;
+                        %13 : java.type:"java.lang.String" = constant @"R(_)";
+                        %14 : java.type:"java.lang.String" = concat %12 %13;
+                        %15 : java.type:"java.lang.String" = var.assign %3 %14;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %14 : java.type:"boolean" = constant @true;
-                        yield %14;
+                        %16 : java.type:"boolean" = constant @true;
+                        yield %16;
                     }
                     ()java.type:"void" -> {
-                        %15 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %16 : java.type:"java.lang.String" = constant @"else";
-                            yield %16;
-                        };
+                        %17 : java.type:"java.lang.String" = var.load %3;
+                        %18 : java.type:"java.lang.String" = constant @"else";
+                        %19 : java.type:"java.lang.String" = concat %17 %18;
+                        %20 : java.type:"java.lang.String" = var.assign %3 %19;
                         yield;
                     };
-                %17 : java.type:"java.lang.String" = var.load %3;
-                return %17;
+                %21 : java.type:"java.lang.String" = var.load %3;
+                return %21;
             };
             """)
     @Reflect
@@ -2150,60 +2150,60 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %18 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %19 : java.type:"java.lang.String" = constant @"str with length > %d";
-                            %20 : java.type:"java.lang.String" = var.load %6;
-                            %21 : java.type:"int" = invoke %20 @java.ref:"java.lang.String::length():int";
-                            %22 : java.type:"java.lang.Integer" = invoke %21 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
-                            %23 : java.type:"java.lang.String" = invoke %19 %22 @java.ref:"java.lang.String::formatted(java.lang.Object[]):java.lang.String" @invoke.kind="INSTANCE" @invoke.varargs=true;
-                            yield %23;
-                        };
+                        %18 : java.type:"java.lang.String" = var.load %3;
+                        %19 : java.type:"java.lang.String" = constant @"str with length > %d";
+                        %20 : java.type:"java.lang.String" = var.load %6;
+                        %21 : java.type:"int" = invoke %20 @java.ref:"java.lang.String::length():int";
+                        %22 : java.type:"java.lang.Integer" = invoke %21 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                        %23 : java.type:"java.lang.String" = invoke %19 %22 @java.ref:"java.lang.String::formatted(java.lang.Object[]):java.lang.String" @invoke.kind="INSTANCE" @invoke.varargs=true;
+                        %24 : java.type:"java.lang.String" = concat %18 %23;
+                        %25 : java.type:"java.lang.String" = var.assign %3 %24;
                         yield;
                     }
-                    (%24 : java.type:"java.lang.Object")java.type:"boolean" -> {
-                        %25 : java.type:"boolean" = java.cand
+                    (%26 : java.type:"java.lang.Object")java.type:"boolean" -> {
+                        %27 : java.type:"boolean" = java.cand
                             ()java.type:"boolean" -> {
-                                %26 : java.type:"boolean" = pattern.match %24
+                                %28 : java.type:"boolean" = pattern.match %26
                                     ()java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Record<SwitchStatementTest$R>" -> {
-                                        %27 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" = pattern.type @"n";
-                                        %28 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Record<SwitchStatementTest$R>" = pattern.record %27 @java.ref:"(java.lang.Number n)SwitchStatementTest$R";
-                                        yield %28;
+                                        %29 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Type<java.lang.Number>" = pattern.type @"n";
+                                        %30 : java.type:"jdk.incubator.code.dialect.java.JavaOp$Pattern$Record<SwitchStatementTest$R>" = pattern.record %29 @java.ref:"(java.lang.Number n)SwitchStatementTest$R";
+                                        yield %30;
                                     }
-                                    (%29 : java.type:"java.lang.Number")java.type:"void" -> {
-                                        var.store %8 %29;
+                                    (%31 : java.type:"java.lang.Number")java.type:"void" -> {
+                                        var.store %8 %31;
                                         yield;
                                     };
-                                yield %26;
+                                yield %28;
                             }
                             ()java.type:"boolean" -> {
-                                %30 : java.type:"java.lang.Number" = var.load %8;
-                                %31 : java.type:"java.lang.Class<?>" = invoke %30 @java.ref:"java.lang.Object::getClass():java.lang.Class";
-                                %32 : java.type:"java.lang.Class" = constant @java.type:"java.lang.Double";
-                                %33 : java.type:"boolean" = invoke %31 %32 @java.ref:"java.lang.Object::equals(java.lang.Object):boolean";
-                                yield %33;
+                                %32 : java.type:"java.lang.Number" = var.load %8;
+                                %33 : java.type:"java.lang.Class<?>" = invoke %32 @java.ref:"java.lang.Object::getClass():java.lang.Class";
+                                %34 : java.type:"java.lang.Class" = constant @java.type:"java.lang.Double";
+                                %35 : java.type:"boolean" = invoke %33 %34 @java.ref:"java.lang.Object::equals(java.lang.Object):boolean";
+                                yield %35;
                             };
-                        yield %25;
+                        yield %27;
                     }
                     ()java.type:"void" -> {
-                        %34 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %35 : java.type:"java.lang.String" = constant @"R(Double)";
-                            yield %35;
-                        };
+                        %36 : java.type:"java.lang.String" = var.load %3;
+                        %37 : java.type:"java.lang.String" = constant @"R(Double)";
+                        %38 : java.type:"java.lang.String" = concat %36 %37;
+                        %39 : java.type:"java.lang.String" = var.assign %3 %38;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %36 : java.type:"boolean" = constant @true;
-                        yield %36;
+                        %40 : java.type:"boolean" = constant @true;
+                        yield %40;
                     }
                     ()java.type:"void" -> {
-                        %37 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %38 : java.type:"java.lang.String" = constant @"else";
-                            yield %38;
-                        };
+                        %41 : java.type:"java.lang.String" = var.load %3;
+                        %42 : java.type:"java.lang.String" = constant @"else";
+                        %43 : java.type:"java.lang.String" = concat %41 %42;
+                        %44 : java.type:"java.lang.String" = var.assign %3 %43;
                         yield;
                     };
-                %39 : java.type:"java.lang.String" = var.load %3;
-                return %39;
+                %45 : java.type:"java.lang.String" = var.load %3;
+                return %45;
             };
             """)
     @Reflect
@@ -2229,38 +2229,38 @@ public class SwitchStatementTest {
                         yield %5;
                     }
                     ()java.type:"void" -> {
-                        %6 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %7 : java.type:"java.lang.String" = constant @"else";
-                            yield %7;
-                        };
+                        %6 : java.type:"java.lang.String" = var.load %3;
+                        %7 : java.type:"java.lang.String" = constant @"else";
+                        %8 : java.type:"java.lang.String" = concat %6 %7;
+                        %9 : java.type:"java.lang.String" = var.assign %3 %8;
                         yield;
                     }
-                    (%8 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %9 : java.type:"java.lang.String" = constant @"M";
-                        %10 : java.type:"boolean" = invoke %8 %9 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %10;
+                    (%10 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %11 : java.type:"java.lang.String" = constant @"M";
+                        %12 : java.type:"boolean" = invoke %10 %11 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %12;
                     }
                     ()java.type:"void" -> {
-                        %11 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %12 : java.type:"java.lang.String" = constant @"Mow";
-                            yield %12;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"Mow";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         yield;
                     }
-                    (%13 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %14 : java.type:"java.lang.String" = constant @"A";
-                        %15 : java.type:"boolean" = invoke %13 %14 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                        yield %15;
+                    (%17 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %18 : java.type:"java.lang.String" = constant @"A";
+                        %19 : java.type:"boolean" = invoke %17 %18 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                        yield %19;
                     }
                     ()java.type:"void" -> {
-                        %16 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %17 : java.type:"java.lang.String" = constant @"Aow";
-                            yield %17;
-                        };
+                        %20 : java.type:"java.lang.String" = var.load %3;
+                        %21 : java.type:"java.lang.String" = constant @"Aow";
+                        %22 : java.type:"java.lang.String" = concat %20 %21;
+                        %23 : java.type:"java.lang.String" = var.assign %3 %22;
                         yield;
                     };
-                %18 : java.type:"java.lang.String" = var.load %3;
-                return %18;
+                %24 : java.type:"java.lang.String" = var.load %3;
+                return %24;
             };
             """)
     @Reflect
@@ -2314,62 +2314,62 @@ public class SwitchStatementTest {
                         yield %5;
                     }
                     ()java.type:"void" -> {
-                        %6 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %7 : java.type:"java.lang.String" = constant @"? ";
-                            yield %7;
-                        };
+                        %6 : java.type:"java.lang.String" = var.load %3;
+                        %7 : java.type:"java.lang.String" = constant @"? ";
+                        %8 : java.type:"java.lang.String" = concat %6 %7;
+                        %9 : java.type:"java.lang.String" = var.assign %3 %8;
                         java.switch.fallthrough;
                     }
-                    (%8 : java.type:"int")java.type:"boolean" -> {
-                        %9 : java.type:"int" = constant @4;
-                        %10 : java.type:"boolean" = eq %8 %9 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %10;
+                    (%10 : java.type:"int")java.type:"boolean" -> {
+                        %11 : java.type:"int" = constant @4;
+                        %12 : java.type:"boolean" = eq %10 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %12;
                     }
                     ()java.type:"void" -> {
-                        %11 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %12 : java.type:"java.lang.String" = constant @"four ";
-                            yield %12;
-                        };
+                        %13 : java.type:"java.lang.String" = var.load %3;
+                        %14 : java.type:"java.lang.String" = constant @"four ";
+                        %15 : java.type:"java.lang.String" = concat %13 %14;
+                        %16 : java.type:"java.lang.String" = var.assign %3 %15;
                         java.switch.fallthrough;
                     }
-                    (%13 : java.type:"int")java.type:"boolean" -> {
-                        %14 : java.type:"int" = constant @2;
-                        %15 : java.type:"boolean" = eq %13 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %15;
+                    (%17 : java.type:"int")java.type:"boolean" -> {
+                        %18 : java.type:"int" = constant @2;
+                        %19 : java.type:"boolean" = eq %17 %18 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %19;
                     }
                     ()java.type:"void" -> {
-                        %16 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %17 : java.type:"java.lang.String" = constant @"two ";
-                            yield %17;
-                        };
+                        %20 : java.type:"java.lang.String" = var.load %3;
+                        %21 : java.type:"java.lang.String" = constant @"two ";
+                        %22 : java.type:"java.lang.String" = concat %20 %21;
+                        %23 : java.type:"java.lang.String" = var.assign %3 %22;
                         java.switch.fallthrough;
                     }
-                    (%18 : java.type:"int")java.type:"boolean" -> {
-                        %19 : java.type:"int" = constant @3;
-                        %20 : java.type:"boolean" = eq %18 %19 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %20;
+                    (%24 : java.type:"int")java.type:"boolean" -> {
+                        %25 : java.type:"int" = constant @3;
+                        %26 : java.type:"boolean" = eq %24 %25 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %26;
                     }
                     ()java.type:"void" -> {
-                        %21 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %22 : java.type:"java.lang.String" = constant @"three ";
-                            yield %22;
-                        };
+                        %27 : java.type:"java.lang.String" = var.load %3;
+                        %28 : java.type:"java.lang.String" = constant @"three ";
+                        %29 : java.type:"java.lang.String" = concat %27 %28;
+                        %30 : java.type:"java.lang.String" = var.assign %3 %29;
                         java.switch.fallthrough;
                     }
-                    (%23 : java.type:"int")java.type:"boolean" -> {
-                        %24 : java.type:"int" = constant @1;
-                        %25 : java.type:"boolean" = eq %23 %24 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %25;
+                    (%31 : java.type:"int")java.type:"boolean" -> {
+                        %32 : java.type:"int" = constant @1;
+                        %33 : java.type:"boolean" = eq %31 %32 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %33;
                     }
                     ()java.type:"void" -> {
-                        %26 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %27 : java.type:"java.lang.String" = constant @"one";
-                            yield %27;
-                        };
+                        %34 : java.type:"java.lang.String" = var.load %3;
+                        %35 : java.type:"java.lang.String" = constant @"one";
+                        %36 : java.type:"java.lang.String" = concat %34 %35;
+                        %37 : java.type:"java.lang.String" = var.assign %3 %36;
                         yield;
                     };
-                %28 : java.type:"java.lang.String" = var.load %3;
-                return %28;
+                %38 : java.type:"java.lang.String" = var.load %3;
+                return %38;
             };
             """)
     @Reflect
@@ -2404,48 +2404,48 @@ public class SwitchStatementTest {
                         yield %8;
                     }
                     ()java.type:"void" -> {
-                        %9 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %10 : java.type:"java.lang.String" = constant @"one";
-                            yield %10;
-                        };
+                        %9 : java.type:"java.lang.String" = var.load %3;
+                        %10 : java.type:"java.lang.String" = constant @"one";
+                        %11 : java.type:"java.lang.String" = concat %9 %10;
+                        %12 : java.type:"java.lang.String" = var.assign %3 %11;
                         yield;
                     }
-                    (%11 : java.type:"java.lang.Integer")java.type:"boolean" -> {
-                        %12 : java.type:"boolean" = java.cor
+                    (%13 : java.type:"java.lang.Integer")java.type:"boolean" -> {
+                        %14 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
-                                %13 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
-                                %14 : java.type:"int" = constant @2;
-                                %15 : java.type:"boolean" = eq %13 %14 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %15;
+                                %15 : java.type:"int" = invoke %13 @java.ref:"java.lang.Integer::intValue():int";
+                                %16 : java.type:"int" = constant @2;
+                                %17 : java.type:"boolean" = eq %15 %16 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %17;
                             }
                             ()java.type:"boolean" -> {
-                                %16 : java.type:"int" = invoke %11 @java.ref:"java.lang.Integer::intValue():int";
-                                %17 : java.type:"int" = constant @3;
-                                %18 : java.type:"boolean" = eq %16 %17 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %18;
+                                %18 : java.type:"int" = invoke %13 @java.ref:"java.lang.Integer::intValue():int";
+                                %19 : java.type:"int" = constant @3;
+                                %20 : java.type:"boolean" = eq %18 %19 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %20;
                             };
-                        yield %12;
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"two or three";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %3;
+                        %22 : java.type:"java.lang.String" = constant @"two or three";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %3 %23;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %21 : java.type:"boolean" = constant @true;
-                        yield %21;
+                        %25 : java.type:"boolean" = constant @true;
+                        yield %25;
                     }
                     ()java.type:"void" -> {
-                        %22 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %23 : java.type:"java.lang.String" = constant @"else";
-                            yield %23;
-                        };
+                        %26 : java.type:"java.lang.String" = var.load %3;
+                        %27 : java.type:"java.lang.String" = constant @"else";
+                        %28 : java.type:"java.lang.String" = concat %26 %27;
+                        %29 : java.type:"java.lang.String" = var.assign %3 %28;
                         yield;
                     };
-                %24 : java.type:"java.lang.String" = var.load %3;
-                return %24;
+                %30 : java.type:"java.lang.String" = var.load %3;
+                return %30;
             };
             """)
     @Reflect
@@ -2474,25 +2474,25 @@ public class SwitchStatementTest {
                         yield %9;
                     }
                     ()java.type:"void" -> {
-                        %10 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %11 : java.type:"java.lang.String" = constant @"one";
-                            yield %11;
-                        };
+                        %10 : java.type:"java.lang.String" = var.load %3;
+                        %11 : java.type:"java.lang.String" = constant @"one";
+                        %12 : java.type:"java.lang.String" = concat %10 %11;
+                        %13 : java.type:"java.lang.String" = var.assign %3 %12;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %12 : java.type:"boolean" = constant @true;
-                        yield %12;
+                        %14 : java.type:"boolean" = constant @true;
+                        yield %14;
                     }
                     ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %14 : java.type:"java.lang.String" = constant @"not one";
-                            yield %14;
-                        };
+                        %15 : java.type:"java.lang.String" = var.load %3;
+                        %16 : java.type:"java.lang.String" = constant @"not one";
+                        %17 : java.type:"java.lang.String" = concat %15 %16;
+                        %18 : java.type:"java.lang.String" = var.assign %3 %17;
                         yield;
                     };
-                %15 : java.type:"java.lang.String" = var.load %3;
-                return %15;
+                %19 : java.type:"java.lang.String" = var.load %3;
+                return %19;
             };
             """)
     @Reflect
@@ -2518,46 +2518,46 @@ public class SwitchStatementTest {
                         yield %7;
                     }
                     ()java.type:"void" -> {
-                        %8 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %9 : java.type:"java.lang.String" = constant @"one";
-                            yield %9;
-                        };
+                        %8 : java.type:"java.lang.String" = var.load %3;
+                        %9 : java.type:"java.lang.String" = constant @"one";
+                        %10 : java.type:"java.lang.String" = concat %8 %9;
+                        %11 : java.type:"java.lang.String" = var.assign %3 %10;
                         yield;
                     }
-                    (%10 : java.type:"java.lang.String")java.type:"boolean" -> {
-                        %11 : java.type:"boolean" = java.cor
+                    (%12 : java.type:"java.lang.String")java.type:"boolean" -> {
+                        %13 : java.type:"boolean" = java.cor
                             ()java.type:"boolean" -> {
-                                %12 : java.type:"java.lang.String" = constant @"2";
-                                %13 : java.type:"boolean" = invoke %10 %12 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                                yield %13;
+                                %14 : java.type:"java.lang.String" = constant @"2";
+                                %15 : java.type:"boolean" = invoke %12 %14 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                                yield %15;
                             }
                             ()java.type:"boolean" -> {
-                                %14 : java.type:"java.lang.String" = constant @"3";
-                                %15 : java.type:"boolean" = invoke %10 %14 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
-                                yield %15;
+                                %16 : java.type:"java.lang.String" = constant @"3";
+                                %17 : java.type:"boolean" = invoke %12 %16 @java.ref:"java.util.Objects::equals(java.lang.Object, java.lang.Object):boolean";
+                                yield %17;
                             };
-                        yield %11;
+                        yield %13;
                     }
                     ()java.type:"void" -> {
-                        %16 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %17 : java.type:"java.lang.String" = constant @"two or three";
-                            yield %17;
-                        };
+                        %18 : java.type:"java.lang.String" = var.load %3;
+                        %19 : java.type:"java.lang.String" = constant @"two or three";
+                        %20 : java.type:"java.lang.String" = concat %18 %19;
+                        %21 : java.type:"java.lang.String" = var.assign %3 %20;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %18 : java.type:"boolean" = constant @true;
-                        yield %18;
+                        %22 : java.type:"boolean" = constant @true;
+                        yield %22;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %3 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"else";
-                            yield %20;
-                        };
+                        %23 : java.type:"java.lang.String" = var.load %3;
+                        %24 : java.type:"java.lang.String" = constant @"else";
+                        %25 : java.type:"java.lang.String" = concat %23 %24;
+                        %26 : java.type:"java.lang.String" = var.assign %3 %25;
                         yield;
                     };
-                %21 : java.type:"java.lang.String" = var.load %3;
-                return %21;
+                %27 : java.type:"java.lang.String" = var.load %3;
+                return %27;
             };
             """)
     @Reflect
@@ -2603,25 +2603,25 @@ public class SwitchStatementTest {
                         yield %10;
                     }
                     ()java.type:"void" -> {
-                        %16 : java.type:"java.lang.String" = var.compound.assign %5 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %17 : java.type:"java.lang.String" = constant @"match";
-                            yield %17;
-                        };
+                        %16 : java.type:"java.lang.String" = var.load %5;
+                        %17 : java.type:"java.lang.String" = constant @"match";
+                        %18 : java.type:"java.lang.String" = concat %16 %17;
+                        %19 : java.type:"java.lang.String" = var.assign %5 %18;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %18 : java.type:"boolean" = constant @true;
-                        yield %18;
+                        %20 : java.type:"boolean" = constant @true;
+                        yield %20;
                     }
                     ()java.type:"void" -> {
-                        %19 : java.type:"java.lang.String" = var.compound.assign %5 @operator.type=func<java.type:"java.lang.String", java.type:"java.lang.String", java.type:"java.lang.String"> @compound.kind="CONCAT" ()java.type:"java.lang.String" -> {
-                            %20 : java.type:"java.lang.String" = constant @"no match";
-                            yield %20;
-                        };
+                        %21 : java.type:"java.lang.String" = var.load %5;
+                        %22 : java.type:"java.lang.String" = constant @"no match";
+                        %23 : java.type:"java.lang.String" = concat %21 %22;
+                        %24 : java.type:"java.lang.String" = var.assign %5 %23;
                         yield;
                     };
-                %21 : java.type:"java.lang.String" = var.load %5;
-                return %21;
+                %25 : java.type:"java.lang.String" = var.load %5;
+                return %25;
             };
             """)
     @Reflect

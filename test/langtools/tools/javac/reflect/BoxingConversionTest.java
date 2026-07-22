@@ -96,7 +96,14 @@ public class BoxingConversionTest {
             func @"test5" (%0 : java.type:"BoxingConversionTest", %1 : java.type:"java.lang.Integer")java.type:"void" -> {
                 %2 : Var<java.type:"java.lang.Integer"> = var %1 @"i2";
                 %3 : java.type:"java.lang.Integer" = var.load %2;
-                %4 : java.type:"java.lang.Integer" = var.update %2 %3 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
+                %4 : Var<java.type:"java.lang.Integer"> = var %3 @"$old";
+                %5 : java.type:"java.lang.Integer" = var.load %4;
+                %6 : java.type:"int" = invoke %5 @java.ref:"java.lang.Integer::intValue():int";
+                %7 : java.type:"int" = constant @1;
+                %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %9 : java.type:"java.lang.Integer" = invoke %8 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                %10 : java.type:"java.lang.Integer" = var.assign %2 %9;
+                %11 : java.type:"java.lang.Integer" = var.load %4;
                 return;
             };
             """)
@@ -108,10 +115,12 @@ public class BoxingConversionTest {
     @IR("""
             func @"test6" (%0 : java.type:"BoxingConversionTest", %1 : java.type:"java.lang.Integer")java.type:"void" -> {
                 %2 : Var<java.type:"java.lang.Integer"> = var %1 @"i2";
-                %3 : java.type:"java.lang.Integer" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %4 : java.type:"int" = constant @3;
-                    yield %4;
-                };
+                %3 : java.type:"java.lang.Integer" = var.load %2;
+                %4 : java.type:"int" = invoke %3 @java.ref:"java.lang.Integer::intValue():int";
+                %5 : java.type:"int" = constant @3;
+                %6 : java.type:"int" = add %4 %5 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %7 : java.type:"java.lang.Integer" = invoke %6 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                %8 : java.type:"java.lang.Integer" = var.assign %2 %7;
                 return;
             };
             """)
@@ -128,7 +137,14 @@ public class BoxingConversionTest {
             func @"test7" (%0 : java.type:"BoxingConversionTest")java.type:"void" -> {
                 %1 : java.type:"BoxingConversionTest$Box" = new @java.ref:"BoxingConversionTest$Box::()";
                 %2 : java.type:"java.lang.Integer" = field.load %1 @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer";
-                %3 : java.type:"java.lang.Integer" = field.update %1 %2 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer" @update.kind="POSTINC";
+                %3 : Var<java.type:"java.lang.Integer"> = var %2 @"$old";
+                %4 : java.type:"java.lang.Integer" = var.load %3;
+                %5 : java.type:"int" = invoke %4 @java.ref:"java.lang.Integer::intValue():int";
+                %6 : java.type:"int" = constant @1;
+                %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %8 : java.type:"java.lang.Integer" = invoke %7 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                %9 : java.type:"java.lang.Integer" = field.assign %1 %8 @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer";
+                %10 : java.type:"java.lang.Integer" = var.load %3;
                 return;
             };
             """)
@@ -140,10 +156,12 @@ public class BoxingConversionTest {
     @IR("""
             func @"test8" (%0 : java.type:"BoxingConversionTest")java.type:"void" -> {
                 %1 : java.type:"BoxingConversionTest$Box" = new @java.ref:"BoxingConversionTest$Box::()";
-                %2 : java.type:"java.lang.Integer" = field.compound.assign %1 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer" @compound.kind="ADD" ()java.type:"int" -> {
-                    %3 : java.type:"int" = constant @3;
-                    yield %3;
-                };
+                %2 : java.type:"java.lang.Integer" = field.load %1 @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer";
+                %3 : java.type:"int" = invoke %2 @java.ref:"java.lang.Integer::intValue():int";
+                %4 : java.type:"int" = constant @3;
+                %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %6 : java.type:"java.lang.Integer" = invoke %5 @java.ref:"java.lang.Integer::valueOf(int):java.lang.Integer";
+                %7 : java.type:"java.lang.Integer" = field.assign %1 %6 @java.ref:"BoxingConversionTest$Box::i:java.lang.Integer";
                 return;
             };
             """)
@@ -158,11 +176,11 @@ public class BoxingConversionTest {
                 %4 : Var<java.type:"java.lang.Integer"> = var %2 @"i";
                 %5 : java.type:"int[]" = var.load %3;
                 %6 : java.type:"int" = constant @0;
-                %7 : java.type:"int" = array.compound.assign %5 %6 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %8 : java.type:"java.lang.Integer" = var.load %4;
-                    %9 : java.type:"int" = invoke %8 @java.ref:"java.lang.Integer::intValue():int";
-                    yield %9;
-                };
+                %7 : java.type:"int" = array.load %5 %6;
+                %8 : java.type:"java.lang.Integer" = var.load %4;
+                %9 : java.type:"int" = invoke %8 @java.ref:"java.lang.Integer::intValue():int";
+                %10 : java.type:"int" = add %7 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %11 : java.type:"int" = array.assign %5 %6 %10;
                 return;
             };
             """)
@@ -725,14 +743,14 @@ public class BoxingConversionTest {
                         yield %7;
                     }
                     (%8 : Var<java.type:"int">)java.type:"void" -> {
-                        %9 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                            %10 : java.type:"int" = var.load %8;
-                            yield %10;
-                        };
+                        %9 : java.type:"int" = var.load %3;
+                        %10 : java.type:"int" = var.load %8;
+                        %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %12 : java.type:"int" = var.assign %3 %11;
                         java.continue;
                     };
-                %11 : java.type:"int" = var.load %3;
-                return %11;
+                %13 : java.type:"int" = var.load %3;
+                return %13;
             };
             """)
     static int unboxForEachList(List<Integer> li) {
@@ -760,14 +778,14 @@ public class BoxingConversionTest {
                         yield %7;
                     }
                     (%8 : Var<java.type:"int">)java.type:"void" -> {
-                        %9 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                            %10 : java.type:"int" = var.load %8;
-                            yield %10;
-                        };
+                        %9 : java.type:"int" = var.load %3;
+                        %10 : java.type:"int" = var.load %8;
+                        %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %12 : java.type:"int" = var.assign %3 %11;
                         java.continue;
                     };
-                %11 : java.type:"int" = var.load %3;
-                return %11;
+                %13 : java.type:"int" = var.load %3;
+                return %13;
             };
             """)
     static int unboxForEachArray(Integer[] is) {
@@ -794,16 +812,16 @@ public class BoxingConversionTest {
                         yield %6;
                     }
                     (%7 : Var<java.type:"java.lang.Object">)java.type:"void" -> {
-                        %8 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                            %9 : java.type:"java.lang.Object" = var.load %7;
-                            %10 : java.type:"java.lang.Integer" = cast %9 @java.type:"java.lang.Integer";
-                            %11 : java.type:"int" = invoke %10 @java.ref:"java.lang.Integer::intValue():int";
-                            yield %11;
-                        };
+                        %8 : java.type:"int" = var.load %3;
+                        %9 : java.type:"java.lang.Object" = var.load %7;
+                        %10 : java.type:"java.lang.Integer" = cast %9 @java.type:"java.lang.Integer";
+                        %11 : java.type:"int" = invoke %10 @java.ref:"java.lang.Integer::intValue():int";
+                        %12 : java.type:"int" = add %8 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %13 : java.type:"int" = var.assign %3 %12;
                         java.continue;
                     };
-                %12 : java.type:"int" = var.load %3;
-                return %12;
+                %14 : java.type:"int" = var.load %3;
+                return %14;
             };
             """)
     public static int unboxListRaw(List li) {
@@ -832,14 +850,14 @@ public class BoxingConversionTest {
                         yield %8;
                     }
                     (%9 : Var<java.type:"int">)java.type:"void" -> {
-                        %10 : java.type:"int" = var.compound.assign %3 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                            %11 : java.type:"int" = var.load %9;
-                            yield %11;
-                        };
+                        %10 : java.type:"int" = var.load %3;
+                        %11 : java.type:"int" = var.load %9;
+                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %13 : java.type:"int" = var.assign %3 %12;
                         java.continue;
                     };
-                %12 : java.type:"int" = var.load %3;
-                return %12;
+                %14 : java.type:"int" = var.load %3;
+                return %14;
             };
             """)
     public static <X extends Integer> int unboxListTvar(List<X> li) {

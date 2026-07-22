@@ -326,17 +326,17 @@ public class PatternsTest {
                         yield %8;
                     }
                     (%16 : Var<java.type:"int">)java.type:"void" -> {
-                        %17 : java.type:"int" = var.compound.assign %16 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
-                            %18 : java.type:"java.lang.Number" = var.load %4;
-                            %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Number::intValue():int";
-                            yield %19;
-                        };
+                        %17 : java.type:"int" = var.load %16;
+                        %18 : java.type:"java.lang.Number" = var.load %4;
+                        %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Number::intValue():int";
+                        %20 : java.type:"int" = add %17 %19 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %21 : java.type:"int" = var.assign %16 %20;
                         yield;
                     }
-                    (%20 : Var<java.type:"int">)java.type:"void" -> {
-                        %21 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %22 : java.type:"java.lang.Number" = var.load %4;
-                        invoke %21 %22 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
+                    (%22 : Var<java.type:"int">)java.type:"void" -> {
+                        %23 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %24 : java.type:"java.lang.Number" = var.load %4;
+                        invoke %23 %24 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
                         java.continue;
                     };
                 return;

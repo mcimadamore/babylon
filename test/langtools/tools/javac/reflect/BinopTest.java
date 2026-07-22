@@ -89,31 +89,31 @@ public class BinopTest {
     @IR("""
             func @"test4" (%0 : java.type:"BinopTest", %1 : java.type:"int")java.type:"int" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
-                %3 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %4 : java.type:"int" = constant @1;
-                    yield %4;
-                };
-                %5 : java.type:"int" = var.compound.assign %2 @compound.kind="MUL" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %6 : java.type:"int" = constant @1;
-                    yield %6;
-                };
-                %7 : java.type:"int" = add %3 %5 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %8 : java.type:"int" = var.compound.assign %2 @compound.kind="DIV" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %9 : java.type:"int" = constant @1;
-                    yield %9;
-                };
-                %10 : java.type:"int" = add %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %11 : java.type:"int" = var.compound.assign %2 @compound.kind="SUB" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %12 : java.type:"int" = constant @1;
-                    yield %12;
-                };
-                %13 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %14 : java.type:"int" = var.compound.assign %2 @compound.kind="MOD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %15 : java.type:"int" = constant @1;
-                    yield %15;
-                };
-                %16 : java.type:"int" = add %13 %14 @func<java.type:"int", java.type:"int", java.type:"int">;
-                return %16;
+                %3 : java.type:"int" = var.load %2;
+                %4 : java.type:"int" = constant @1;
+                %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %6 : java.type:"int" = var.assign %2 %5;
+                %7 : java.type:"int" = var.load %2;
+                %8 : java.type:"int" = constant @1;
+                %9 : java.type:"int" = mul %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %10 : java.type:"int" = var.assign %2 %9;
+                %11 : java.type:"int" = add %6 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %12 : java.type:"int" = var.load %2;
+                %13 : java.type:"int" = constant @1;
+                %14 : java.type:"int" = div %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %15 : java.type:"int" = var.assign %2 %14;
+                %16 : java.type:"int" = add %11 %15 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %17 : java.type:"int" = var.load %2;
+                %18 : java.type:"int" = constant @1;
+                %19 : java.type:"int" = sub %17 %18 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %20 : java.type:"int" = var.assign %2 %19;
+                %21 : java.type:"int" = add %16 %20 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %22 : java.type:"int" = var.load %2;
+                %23 : java.type:"int" = constant @1;
+                %24 : java.type:"int" = mod %22 %23 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %25 : java.type:"int" = var.assign %2 %24;
+                %26 : java.type:"int" = add %21 %25 @func<java.type:"int", java.type:"int", java.type:"int">;
+                return %26;
             };
             """)
     int test4(int i) {
@@ -231,31 +231,31 @@ public class BinopTest {
     @IR("""
             func @"test8" (%0 : java.type:"BinopTest", %1 : java.type:"double")java.type:"void" -> {
                 %2 : Var<java.type:"double"> = var %1 @"d";
-                %3 : java.type:"double" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %4 : java.type:"int" = constant @1;
-                    %5 : java.type:"double" = conv %4;
-                    yield %5;
-                };
-                %6 : java.type:"double" = var.compound.assign %2 @compound.kind="SUB" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %7 : java.type:"long" = constant @1L;
-                    %8 : java.type:"double" = conv %7;
-                    yield %8;
-                };
-                %9 : java.type:"double" = var.compound.assign %2 @compound.kind="MUL" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %10 : java.type:"int" = constant @1;
-                    %11 : java.type:"double" = conv %10;
-                    yield %11;
-                };
-                %12 : java.type:"double" = var.compound.assign %2 @compound.kind="DIV" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %13 : java.type:"long" = constant @1L;
-                    %14 : java.type:"double" = conv %13;
-                    yield %14;
-                };
-                %15 : java.type:"double" = var.compound.assign %2 @compound.kind="MOD" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %16 : java.type:"int" = constant @1;
-                    %17 : java.type:"double" = conv %16;
-                    yield %17;
-                };
+                %3 : java.type:"double" = var.load %2;
+                %4 : java.type:"int" = constant @1;
+                %5 : java.type:"double" = conv %4;
+                %6 : java.type:"double" = add %3 %5 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %7 : java.type:"double" = var.assign %2 %6;
+                %8 : java.type:"double" = var.load %2;
+                %9 : java.type:"long" = constant @1L;
+                %10 : java.type:"double" = conv %9;
+                %11 : java.type:"double" = sub %8 %10 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %12 : java.type:"double" = var.assign %2 %11;
+                %13 : java.type:"double" = var.load %2;
+                %14 : java.type:"int" = constant @1;
+                %15 : java.type:"double" = conv %14;
+                %16 : java.type:"double" = mul %13 %15 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %17 : java.type:"double" = var.assign %2 %16;
+                %18 : java.type:"double" = var.load %2;
+                %19 : java.type:"long" = constant @1L;
+                %20 : java.type:"double" = conv %19;
+                %21 : java.type:"double" = div %18 %20 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %22 : java.type:"double" = var.assign %2 %21;
+                %23 : java.type:"double" = var.load %2;
+                %24 : java.type:"int" = constant @1;
+                %25 : java.type:"double" = conv %24;
+                %26 : java.type:"double" = mod %23 %25 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %27 : java.type:"double" = var.assign %2 %26;
                 return;
             };
             """)
@@ -277,33 +277,45 @@ public class BinopTest {
                 %4 : Var<java.type:"byte"> = var %1 @"a";
                 %5 : Var<java.type:"byte"> = var %2 @"b";
                 %6 : Var<java.type:"short"> = var %3 @"s";
-                %7 : java.type:"byte" = var.compound.assign %4 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %8 : java.type:"byte" = var.load %5;
-                    %9 : java.type:"int" = conv %8;
-                    yield %9;
-                };
-                %10 : java.type:"byte" = var.compound.assign %4 @compound.kind="DIV" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %11 : java.type:"short" = var.load %6;
-                    %12 : java.type:"int" = conv %11;
-                    yield %12;
-                };
-                %13 : java.type:"byte" = var.compound.assign %4 @compound.kind="MUL" @operator.type=func<java.type:"double", java.type:"double", java.type:"double"> ()java.type:"double" -> {
-                    %14 : java.type:"double" = constant @3.5d;
-                    yield %14;
-                };
-                %15 : java.type:"byte" = var.compound.assign %4 @compound.kind="LSHL" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %16 : java.type:"byte" = var.load %5;
-                    %17 : java.type:"int" = conv %16;
-                    yield %17;
-                };
-                %18 : java.type:"byte" = var.compound.assign %4 @compound.kind="ASHR" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                    %19 : java.type:"int" = constant @1;
-                    yield %19;
-                };
-                %20 : java.type:"byte" = var.compound.assign %4 @compound.kind="ASHR" @operator.type=func<java.type:"int", java.type:"int", java.type:"long"> ()java.type:"long" -> {
-                    %21 : java.type:"long" = constant @1L;
-                    yield %21;
-                };
+                %7 : java.type:"byte" = var.load %4;
+                %8 : java.type:"int" = conv %7;
+                %9 : java.type:"byte" = var.load %5;
+                %10 : java.type:"int" = conv %9;
+                %11 : java.type:"int" = add %8 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %12 : java.type:"byte" = conv %11;
+                %13 : java.type:"byte" = var.assign %4 %12;
+                %14 : java.type:"byte" = var.load %4;
+                %15 : java.type:"int" = conv %14;
+                %16 : java.type:"short" = var.load %6;
+                %17 : java.type:"int" = conv %16;
+                %18 : java.type:"int" = div %15 %17 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %19 : java.type:"byte" = conv %18;
+                %20 : java.type:"byte" = var.assign %4 %19;
+                %21 : java.type:"byte" = var.load %4;
+                %22 : java.type:"double" = conv %21;
+                %23 : java.type:"double" = constant @3.5d;
+                %24 : java.type:"double" = mul %22 %23 @func<java.type:"double", java.type:"double", java.type:"double">;
+                %25 : java.type:"byte" = conv %24;
+                %26 : java.type:"byte" = var.assign %4 %25;
+                %27 : java.type:"byte" = var.load %4;
+                %28 : java.type:"int" = conv %27;
+                %29 : java.type:"byte" = var.load %5;
+                %30 : java.type:"int" = conv %29;
+                %31 : java.type:"int" = lshl %28 %30 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %32 : java.type:"byte" = conv %31;
+                %33 : java.type:"byte" = var.assign %4 %32;
+                %34 : java.type:"byte" = var.load %4;
+                %35 : java.type:"int" = conv %34;
+                %36 : java.type:"int" = constant @1;
+                %37 : java.type:"int" = ashr %35 %36 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %38 : java.type:"byte" = conv %37;
+                %39 : java.type:"byte" = var.assign %4 %38;
+                %40 : java.type:"byte" = var.load %4;
+                %41 : java.type:"int" = conv %40;
+                %42 : java.type:"long" = constant @1L;
+                %43 : java.type:"int" = ashr %41 %42 @func<java.type:"int", java.type:"int", java.type:"long">;
+                %44 : java.type:"byte" = conv %43;
+                %45 : java.type:"byte" = var.assign %4 %44;
                 return;
             };
             """)

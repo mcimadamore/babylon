@@ -43,11 +43,16 @@ public class SynchronizedTest {
                     }
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = var.load %2;
-                        %4 : java.type:"int" = var.update %2 %3 @update.kind="POSTINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                        %4 : Var<java.type:"int"> = var %3 @"$old";
+                        %5 : java.type:"int" = var.load %4;
+                        %6 : java.type:"int" = constant @1;
+                        %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %8 : java.type:"int" = var.assign %2 %7;
+                        %9 : java.type:"int" = var.load %4;
                         yield;
                     };
-                %5 : java.type:"int" = var.load %2;
-                return %5;
+                %10 : java.type:"int" = var.load %2;
+                return %10;
             };
             """)
     int test1(int i) {
@@ -72,11 +77,16 @@ public class SynchronizedTest {
                     }
                     ()java.type:"void" -> {
                         %4 : java.type:"int" = var.load %2;
-                        %5 : java.type:"int" = var.update %2 %4 @update.kind="POSTINC" @operator.type=func<java.type:"int", java.type:"int", java.type:"int">;
+                        %5 : Var<java.type:"int"> = var %4 @"$old";
+                        %6 : java.type:"int" = var.load %5;
+                        %7 : java.type:"int" = constant @1;
+                        %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        %9 : java.type:"int" = var.assign %2 %8;
+                        %10 : java.type:"int" = var.load %5;
                         yield;
                     };
-                %6 : java.type:"int" = var.load %2;
-                return %6;
+                %11 : java.type:"int" = var.load %2;
+                return %11;
             };
             """)
     int test2(int i) {

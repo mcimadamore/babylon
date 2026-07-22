@@ -83,36 +83,36 @@ public class BlockTest {
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %6 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                                %7 : java.type:"int" = constant @1;
-                                yield %7;
-                            };
+                            %6 : java.type:"int" = var.load %2;
+                            %7 : java.type:"int" = constant @1;
+                            %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            %9 : java.type:"int" = var.assign %2 %8;
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %8 : java.type:"int" = var.load %2;
-                        %9 : java.type:"int" = constant @2;
-                        %10 : java.type:"boolean" = lt %8 %9 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %10;
+                        %10 : java.type:"int" = var.load %2;
+                        %11 : java.type:"int" = constant @2;
+                        %12 : java.type:"boolean" = lt %10 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %12;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %11 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                                %12 : java.type:"int" = constant @2;
-                                yield %12;
-                            };
+                            %13 : java.type:"int" = var.load %2;
+                            %14 : java.type:"int" = constant @2;
+                            %15 : java.type:"int" = add %13 %14 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            %16 : java.type:"int" = var.assign %2 %15;
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %13 : java.type:"int" = var.compound.assign %2 @compound.kind="ADD" @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> ()java.type:"int" -> {
-                                %14 : java.type:"int" = constant @3;
-                                yield %14;
-                            };
+                            %17 : java.type:"int" = var.load %2;
+                            %18 : java.type:"int" = constant @3;
+                            %19 : java.type:"int" = add %17 %18 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            %20 : java.type:"int" = var.assign %2 %19;
                             yield;
                         };
                         yield;
@@ -185,7 +185,12 @@ public class BlockTest {
                     (%6 : Var<java.type:"int">)java.type:"void" -> {
                         java.block ()java.type:"void" -> {
                             %7 : java.type:"int" = var.load %6;
-                            %8 : java.type:"int" = var.update %6 %7 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
+                            %8 : Var<java.type:"int"> = var %7 @"$old";
+                            %9 : java.type:"int" = var.load %8;
+                            %10 : java.type:"int" = constant @1;
+                            %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            %12 : java.type:"int" = var.assign %6 %11;
+                            %13 : java.type:"int" = var.load %8;
                             yield;
                         };
                         java.continue;

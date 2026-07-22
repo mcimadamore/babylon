@@ -156,21 +156,21 @@ public class LocalVarTest {
             func @"test7" (%0 : java.type:"LocalVarTest")java.type:"int" -> {
                 %1 : java.type:"int" = constant @1;
                 %2 : Var<java.type:"int"> = var %1 @"x";
-                %3 : java.type:"int" = var.compound.assign %2 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
-                    %4 : java.type:"int" = constant @2;
-                    yield %4;
-                };
-                %5 : Var<java.type:"int"> = var %3 @"y";
-                %6 : java.type:"int" = var.compound.assign %5 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
-                    %7 : java.type:"int" = constant @3;
-                    yield %7;
-                };
-                %8 : java.type:"int" = var.compound.assign %2 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @compound.kind="ADD" ()java.type:"int" -> {
-                    %9 : java.type:"int" = constant @4;
-                    yield %9;
-                };
-                %10 : java.type:"int" = add %6 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
-                return %10;
+                %3 : java.type:"int" = var.load %2;
+                %4 : java.type:"int" = constant @2;
+                %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %6 : java.type:"int" = var.assign %2 %5;
+                %7 : Var<java.type:"int"> = var %6 @"y";
+                %8 : java.type:"int" = var.load %7;
+                %9 : java.type:"int" = constant @3;
+                %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %11 : java.type:"int" = var.assign %7 %10;
+                %12 : java.type:"int" = var.load %2;
+                %13 : java.type:"int" = constant @4;
+                %14 : java.type:"int" = add %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %15 : java.type:"int" = var.assign %2 %14;
+                %16 : java.type:"int" = add %11 %15 @func<java.type:"int", java.type:"int", java.type:"int">;
+                return %16;
             };
             """)
     int test7() {
@@ -184,11 +184,21 @@ public class LocalVarTest {
             func @"test8" (%0 : java.type:"LocalVarTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"int" = var.update %2 %3 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTINC";
-                %5 : Var<java.type:"int"> = var %4 @"x";
-                %6 : java.type:"int" = var.load %2;
-                %7 : java.type:"int" = var.update %2 %6 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="POSTDEC";
-                %8 : Var<java.type:"int"> = var %7 @"y";
+                %4 : Var<java.type:"int"> = var %3 @"$old";
+                %5 : java.type:"int" = var.load %4;
+                %6 : java.type:"int" = constant @1;
+                %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %8 : java.type:"int" = var.assign %2 %7;
+                %9 : java.type:"int" = var.load %4;
+                %10 : Var<java.type:"int"> = var %9 @"x";
+                %11 : java.type:"int" = var.load %2;
+                %12 : Var<java.type:"int"> = var %11 @"$old";
+                %13 : java.type:"int" = var.load %12;
+                %14 : java.type:"int" = constant @1;
+                %15 : java.type:"int" = sub %13 %14 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %16 : java.type:"int" = var.assign %2 %15;
+                %17 : java.type:"int" = var.load %12;
+                %18 : Var<java.type:"int"> = var %17 @"y";
                 return;
             };
             """)
@@ -202,11 +212,15 @@ public class LocalVarTest {
             func @"test9" (%0 : java.type:"LocalVarTest", %1 : java.type:"int")java.type:"void" -> {
                 %2 : Var<java.type:"int"> = var %1 @"i";
                 %3 : java.type:"int" = var.load %2;
-                %4 : java.type:"int" = var.update %2 %3 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="PREINC";
-                %5 : Var<java.type:"int"> = var %4 @"x";
-                %6 : java.type:"int" = var.load %2;
-                %7 : java.type:"int" = var.update %2 %6 @operator.type=func<java.type:"int", java.type:"int", java.type:"int"> @update.kind="PREDEC";
-                %8 : Var<java.type:"int"> = var %7 @"y";
+                %4 : java.type:"int" = constant @1;
+                %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %6 : java.type:"int" = var.assign %2 %5;
+                %7 : Var<java.type:"int"> = var %6 @"x";
+                %8 : java.type:"int" = var.load %2;
+                %9 : java.type:"int" = constant @1;
+                %10 : java.type:"int" = sub %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %11 : java.type:"int" = var.assign %2 %10;
+                %12 : Var<java.type:"int"> = var %11 @"y";
                 return;
             };
             """)

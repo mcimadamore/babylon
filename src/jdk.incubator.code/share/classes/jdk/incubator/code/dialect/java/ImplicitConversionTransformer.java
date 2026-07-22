@@ -201,8 +201,6 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
             case JavaOp.ArrayAccessOp.ArrayLoadOp _ when operand == 1 -> JavaType.INT;
             case JavaOp.AssignOp assign when operand == op.operands().size() - 1 -> assign.resultType();
             case JavaOp.ArrayAssignOp _ when operand == 1 -> JavaType.INT;
-            case JavaOp.ArrayCompoundAssignOp _ when operand == 1 -> JavaType.INT;
-            case JavaOp.ArrayUpdateOp _ when operand == 1 -> JavaType.INT;
             case JavaOp.InvokeOp invoke -> invocationTarget(invoke, operand);
             case JavaOp.NewOp new_ -> constructorTarget(new_, operand);
             case JavaOp.PatternOps.MatchOp match when operand == 0 -> patternTarget(match);
