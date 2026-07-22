@@ -48,33 +48,30 @@ public class TestLoop {
                 %7 : java.type:"int[]" = var.load %1;
                 %8 : java.type:"int" = array.length %7;
                 %9 : java.type:"boolean" = lt %6 %8;
-                cbranch %9 ^block_2 ^block_5;
+                cbranch %9 ^block_2 ^block_4;
 
               ^block_2:
                 %10 : java.type:"int" = var.load %3;
-                %11 : Var<java.type:"int"> = var;
-                %12 : java.type:"int[]" = var.load %1;
-                %13 : java.type:"int" = var.load %5;
-                %14 : java.type:"int" = array.load %12 %13;
-                var.store %11 %14;
+                %11 : java.type:"int[]" = var.load %1;
+                %12 : java.type:"int" = var.load %5;
+                %13 : java.type:"int" = array.load %11 %12;
+                %14 : java.type:"int" = add %10 %13;
+                var.store %3 %14;
                 branch ^block_3;
 
               ^block_3:
-                %15 : java.type:"int" = var.load %11;
-                %16 : java.type:"int" = add %10 %15;
-                var.store %3 %16;
-                branch ^block_4;
-
-              ^block_4:
-                %17 : java.type:"int" = var.load %5;
+                %15 : java.type:"int" = var.load %5;
+                %16 : Var<java.type:"int"> = var %15 @"$old";
+                %17 : java.type:"int" = var.load %16;
                 %18 : java.type:"int" = constant @1;
                 %19 : java.type:"int" = add %17 %18;
                 var.store %5 %19;
+                %20 : java.type:"int" = var.load %16;
                 branch ^block_1;
 
-              ^block_5:
-                %20 : java.type:"int" = var.load %3;
-                return %20;
+              ^block_4:
+                %21 : java.type:"int" = var.load %3;
+                return %21;
             };
             """, ssa = false)
     static int testFor(int[] a) {
@@ -95,23 +92,19 @@ public class TestLoop {
               ^block_1(%3 : java.type:"int", %4 : java.type:"int"):
                 %5 : java.type:"int" = array.length %0;
                 %6 : java.type:"boolean" = lt %3 %5;
-                cbranch %6 ^block_2 ^block_5;
+                cbranch %6 ^block_2 ^block_4;
 
               ^block_2:
                 %7 : java.type:"int" = array.load %0 %3;
-
+                %8 : java.type:"int" = add %4 %7;
                 branch ^block_3;
 
               ^block_3:
-                %8 : java.type:"int" = add %4 %7;
-                branch ^block_4;
-
-              ^block_4:
                 %9 : java.type:"int" = constant @1;
                 %10 : java.type:"int" = add %3 %9;
                 branch ^block_1(%10, %8);
 
-              ^block_5:
+              ^block_4:
                 return %4;
             };
             """, ssa = true)
