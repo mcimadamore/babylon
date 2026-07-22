@@ -66,6 +66,7 @@ import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCConstantCaseLabel;
 import com.sun.tools.javac.tree.JCTree.JCDefaultCaseLabel;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCFunctionalExpression;
 import com.sun.tools.javac.tree.JCTree.JCFunctionalExpression.CodeReflectionInfo;
@@ -105,6 +106,7 @@ import javax.tools.JavaFileObject;
 import java.lang.constant.ClassDesc;
 import java.util.*;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -743,6 +745,23 @@ public class ReflectMethods extends TreeTranslatorPrev {
             return result;
         }
 
+        @Override
+        public void visitExec(JCExpressionStatement tree) {
+            toValue(tree.expr, Type.noType);
+            result = null;
+        }
+
+        void storeAssignment(Type target, Value value, Consumer<Value> store) {
+            if (pt.hasTag(NONE)) {
+                store.accept(value);
+                result = null;
+            } else {
+                Value assignmentValue = append(CoreOp.var("$value", typeToCodeType(target), value));
+                store.accept(append(CoreOp.varLoad(assignmentValue)));
+                result = append(CoreOp.varLoad(assignmentValue));
+            }
+        }
+
         Value coerce(Value sourceValue, Type sourceType, Type targetType) {
             if (sourceType.isReference() && targetType.isReference() &&
                     !types.isSubtype(types.erasure(sourceType), types.erasure(targetType))) {
@@ -838,14 +857,17 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     switch (sym.getKind()) {
                         case LOCAL_VARIABLE, PARAMETER, EXCEPTION_PARAMETER -> {
                             Value varOp = varOpValue(sym);
-                            result = append(JavaOp.varAssign(varOp, rhs));
+                            storeAssignment(target, rhs,
+                                    value -> append(CoreOp.varStore(varOp, value)));
                         }
                         case FIELD -> {
                             FieldRef fd = symbolToFieldRef(sym, symbolSiteType(sym));
                             if (sym.isStatic()) {
-                                result = append(JavaOp.fieldAssign(fd, rhs));
+                                storeAssignment(target, rhs,
+                                        value -> append(JavaOp.fieldStore(fd, value)));
                             } else {
-                                result = append(JavaOp.fieldAssign(fd, thisValue(), rhs));
+                                storeAssignment(target, rhs,
+                                        value -> append(JavaOp.fieldStore(fd, thisValue(), value)));
                             }
                         }
                         default -> throw unreachable();
@@ -863,9 +885,11 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Symbol sym = assign.sym;
                     FieldRef fr = symbolToFieldRef(sym, assign.selected.type);
                     if (sym.isStatic()) {
-                        result = append(JavaOp.fieldAssign(fr, rhs));
+                        storeAssignment(target, rhs,
+                                value -> append(JavaOp.fieldStore(fr, value)));
                     } else {
-                        result = append(JavaOp.fieldAssign(fr, receiver, rhs));
+                        storeAssignment(target, rhs,
+                                value -> append(JavaOp.fieldStore(fr, receiver, value)));
                     }
                     break;
                 }
@@ -878,7 +902,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     // Scan the rhs, the assign expression result is its input
                     Value rhs = toValue(tree.rhs, target);
 
-                    result = append(JavaOp.arrayAssign(array, index, rhs));
+                    storeAssignment(target, rhs,
+                            value -> append(JavaOp.arrayStoreOp(array, index, value)));
                     break;
                 }
                 default:
@@ -922,7 +947,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                         case LOCAL_VARIABLE, PARAMETER -> {
                             Value varOp = varOpValue(sym);
                             Value lhsValue = append(CoreOp.varLoad(varOp));
-                            result = append(JavaOp.varAssign(varOp, scanRhs.apply(lhsValue)));
+                            storeAssignment(lhs.type, scanRhs.apply(lhsValue),
+                                    value -> append(CoreOp.varStore(varOp, value)));
                         }
                         case FIELD -> {
                             FieldRef fr = symbolToFieldRef(sym, symbolSiteType(sym));
@@ -931,9 +957,13 @@ public class ReflectMethods extends TreeTranslatorPrev {
                                     ? append(JavaOp.fieldLoad(fr.type(), fr))
                                     : append(JavaOp.fieldLoad(fr.type(), fr, receiver));
                             Value value = scanRhs.apply(lhsValue);
-                            result = receiver == null
-                                    ? append(JavaOp.fieldAssign(fr, value))
-                                    : append(JavaOp.fieldAssign(fr, receiver, value));
+                            if (receiver == null) {
+                                storeAssignment(lhs.type, value,
+                                        v -> append(JavaOp.fieldStore(fr, v)));
+                            } else {
+                                storeAssignment(lhs.type, value,
+                                        v -> append(JavaOp.fieldStore(fr, receiver, v)));
+                            }
                         }
                         default -> throw unreachable();
                     }
@@ -947,16 +977,22 @@ public class ReflectMethods extends TreeTranslatorPrev {
                             ? append(JavaOp.fieldLoad(fr.type(), fr))
                             : append(JavaOp.fieldLoad(fr.type(), fr, receiver));
                     Value value = scanRhs.apply(lhsValue);
-                    result = sym.isStatic()
-                            ? append(JavaOp.fieldAssign(fr, value))
-                            : append(JavaOp.fieldAssign(fr, receiver, value));
+                    if (sym.isStatic()) {
+                        storeAssignment(lhs.type, value,
+                                v -> append(JavaOp.fieldStore(fr, v)));
+                    } else {
+                        storeAssignment(lhs.type, value,
+                                v -> append(JavaOp.fieldStore(fr, receiver, v)));
+                    }
                 }
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
                     Value array = toValue(assign.indexed);
                     Value index = toValue(assign.index, syms.intType);
                     Value lhsValue = append(JavaOp.arrayLoadOp(array, index));
-                    result = append(JavaOp.arrayAssign(array, index, scanRhs.apply(lhsValue)));
+                    Value value = scanRhs.apply(lhsValue);
+                    storeAssignment(lhs.type, value,
+                            v -> append(JavaOp.arrayStoreOp(array, index, v)));
                 }
                 default -> throw unreachable();
             }
@@ -973,8 +1009,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                             Value varOp = varOpValue(sym);
                             Value oldValue = append(CoreOp.varLoad(varOp));
                             UpdateValue update = updateValue(oldValue, kind, operatorType);
-                            Value assigned = append(JavaOp.varAssign(varOp, update.value()));
-                            result = updateResult(update, assigned);
+                            storeUpdate(assign.type, update,
+                                    value -> append(CoreOp.varStore(varOp, value)));
                         }
                         case FIELD -> {
                             FieldRef fr = symbolToFieldRef(sym, symbolSiteType(sym));
@@ -983,10 +1019,13 @@ public class ReflectMethods extends TreeTranslatorPrev {
                                     ? append(JavaOp.fieldLoad(fr.type(), fr))
                                     : append(JavaOp.fieldLoad(fr.type(), fr, receiver));
                             UpdateValue update = updateValue(oldValue, kind, operatorType);
-                            Value assigned = receiver == null
-                                    ? append(JavaOp.fieldAssign(fr, update.value()))
-                                    : append(JavaOp.fieldAssign(fr, receiver, update.value()));
-                            result = updateResult(update, assigned);
+                            if (receiver == null) {
+                                storeUpdate(assign.type, update,
+                                        value -> append(JavaOp.fieldStore(fr, value)));
+                            } else {
+                                storeUpdate(assign.type, update,
+                                        value -> append(JavaOp.fieldStore(fr, receiver, value)));
+                            }
                         }
                         default -> throw unreachable();
                     }
@@ -1000,10 +1039,13 @@ public class ReflectMethods extends TreeTranslatorPrev {
                             ? append(JavaOp.fieldLoad(fr.type(), fr))
                             : append(JavaOp.fieldLoad(fr.type(), fr, receiver));
                     UpdateValue update = updateValue(oldValue, kind, operatorType);
-                    Value assigned = sym.isStatic()
-                            ? append(JavaOp.fieldAssign(fr, update.value()))
-                            : append(JavaOp.fieldAssign(fr, receiver, update.value()));
-                    result = updateResult(update, assigned);
+                    if (sym.isStatic()) {
+                        storeUpdate(assign.type, update,
+                                value -> append(JavaOp.fieldStore(fr, value)));
+                    } else {
+                        storeUpdate(assign.type, update,
+                                value -> append(JavaOp.fieldStore(fr, receiver, value)));
+                    }
                 }
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
@@ -1011,8 +1053,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     Value index = toValue(assign.index, syms.intType);
                     Value oldValue = append(JavaOp.arrayLoadOp(array, index));
                     UpdateValue update = updateValue(oldValue, kind, operatorType);
-                    Value assigned = append(JavaOp.arrayAssign(array, index, update.value()));
-                    result = updateResult(update, assigned);
+                    storeUpdate(assign.type, update,
+                            value -> append(JavaOp.arrayStoreOp(array, index, value)));
                 }
                 default -> throw unreachable();
             }
@@ -1022,7 +1064,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
         UpdateValue updateValue(Value oldValue, Tag kind, FunctionType operatorType) {
             Value snapshot = null;
-            if (kind == Tag.POSTINC || kind == Tag.POSTDEC) {
+            if (!pt.hasTag(NONE) && (kind == Tag.POSTINC || kind == Tag.POSTDEC)) {
                 snapshot = append(CoreOp.var("$old", oldValue));
                 oldValue = append(CoreOp.varLoad(snapshot));
             }
@@ -1033,8 +1075,13 @@ public class ReflectMethods extends TreeTranslatorPrev {
             return new UpdateValue(value, snapshot);
         }
 
-        Value updateResult(UpdateValue update, Value assigned) {
-            return update.snapshot() == null ? assigned : append(CoreOp.varLoad(update.snapshot()));
+        void storeUpdate(Type target, UpdateValue update, Consumer<Value> store) {
+            if (update.snapshot() == null) {
+                storeAssignment(target, update.value(), store);
+            } else {
+                store.accept(update.value());
+                result = append(CoreOp.varLoad(update.snapshot()));
+            }
         }
 
         @Override
@@ -1512,7 +1559,8 @@ public class ReflectMethods extends TreeTranslatorPrev {
             // Scan the lambda body
             Type lambdaReturnType = tree.getDescriptorType(types).getReturnType();
             if (tree.getBodyKind() == LambdaExpressionTree.BodyKind.EXPRESSION) {
-                Value exprVal = toValue(((JCExpression) tree.body), lambdaReturnType);
+                Type target = lambdaReturnType.hasTag(TypeTag.VOID) ? Type.noType : lambdaReturnType;
+                Value exprVal = toValue(((JCExpression) tree.body), target);
                 if (!lambdaReturnType.hasTag(TypeTag.VOID)) {
                     append(CoreOp.return_(exprVal));
                 } else {

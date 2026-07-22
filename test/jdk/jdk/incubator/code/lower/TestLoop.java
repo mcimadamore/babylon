@@ -41,16 +41,16 @@ public class TestLoop {
                 %3 : Var<java.type:"int"> = var %2 @"sum";
                 %4 : java.type:"int" = constant @0;
                 %5 : Var<java.type:"int"> = var %4 @"i";
-                branch ^block_1;
+                branch ^block_0;
 
-              ^block_1:
+              ^block_0:
                 %6 : java.type:"int" = var.load %5;
                 %7 : java.type:"int[]" = var.load %1;
                 %8 : java.type:"int" = array.length %7;
                 %9 : java.type:"boolean" = lt %6 %8;
-                cbranch %9 ^block_2 ^block_4;
+                cbranch %9 ^block_1 ^block_2;
 
-              ^block_2:
+              ^block_1:
                 %10 : java.type:"int" = var.load %3;
                 %11 : java.type:"int[]" = var.load %1;
                 %12 : java.type:"int" = var.load %5;
@@ -61,17 +61,14 @@ public class TestLoop {
 
               ^block_3:
                 %15 : java.type:"int" = var.load %5;
-                %16 : Var<java.type:"int"> = var %15 @"$old";
-                %17 : java.type:"int" = var.load %16;
-                %18 : java.type:"int" = constant @1;
-                %19 : java.type:"int" = add %17 %18;
-                var.store %5 %19;
-                %20 : java.type:"int" = var.load %16;
-                branch ^block_1;
+                %16 : java.type:"int" = constant @1;
+                %17 : java.type:"int" = add %15 %16;
+                var.store %5 %17;
+                branch ^block_0;
 
-              ^block_4:
-                %21 : java.type:"int" = var.load %3;
-                return %21;
+              ^block_2:
+                %18 : java.type:"int" = var.load %3;
+                return %18;
             };
             """, ssa = false)
     static int testFor(int[] a) {

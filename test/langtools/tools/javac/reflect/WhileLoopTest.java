@@ -52,7 +52,7 @@ public class WhileLoopTest {
                         %8 : java.type:"int" = var.load %2;
                         %9 : java.type:"int" = constant @1;
                         %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %11 : java.type:"int" = var.assign %2 %10;
+                        var.store %2 %10;
                         java.continue;
                     };
                 return;
@@ -107,14 +107,14 @@ public class WhileLoopTest {
                         %5 : java.type:"int" = var.load %2;
                         %6 : java.type:"int" = constant @1;
                         %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %8 : java.type:"int" = var.assign %2 %7;
+                        var.store %2 %7;
                         java.continue;
                     }
                     ()java.type:"boolean" -> {
-                        %9 : java.type:"int" = var.load %2;
-                        %10 : java.type:"int" = constant @10;
-                        %11 : java.type:"boolean" = lt %9 %10 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %11;
+                        %8 : java.type:"int" = var.load %2;
+                        %9 : java.type:"int" = constant @10;
+                        %10 : java.type:"boolean" = lt %8 %9 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %10;
                     };
                 return;
             };
@@ -143,17 +143,14 @@ public class WhileLoopTest {
                     }
                     ()java.type:"void" -> {
                         %7 : java.type:"int" = var.load %4;
-                        %8 : Var<java.type:"int"> = var %7 @"$old";
-                        %9 : java.type:"int" = var.load %8;
-                        %10 : java.type:"int" = constant @1;
-                        %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %12 : java.type:"int" = var.assign %4 %11;
-                        %13 : java.type:"int" = var.load %8;
-                        %14 : java.type:"int" = var.load %4;
-                        %15 : java.type:"int" = constant @10;
-                        %16 : java.type:"boolean" = lt %14 %15 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        %17 : java.type:"java.lang.Boolean" = invoke %16 @java.ref:"java.lang.Boolean::valueOf(boolean):java.lang.Boolean";
-                        %18 : java.type:"java.lang.Boolean" = var.assign %2 %17;
+                        %8 : java.type:"int" = constant @1;
+                        %9 : java.type:"int" = add %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %4 %9;
+                        %10 : java.type:"int" = var.load %4;
+                        %11 : java.type:"int" = constant @10;
+                        %12 : java.type:"boolean" = lt %10 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        %13 : java.type:"java.lang.Boolean" = invoke %12 @java.ref:"java.lang.Boolean::valueOf(boolean):java.lang.Boolean";
+                        var.store %2 %13;
                         java.continue;
                     };
                 return;
@@ -179,13 +176,13 @@ public class WhileLoopTest {
                         %4 : java.type:"int" = constant @10;
                         %5 : java.type:"boolean" = lt %3 %4 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                         %6 : java.type:"java.lang.Boolean" = invoke %5 @java.ref:"java.lang.Boolean::valueOf(boolean):java.lang.Boolean";
-                        %7 : java.type:"java.lang.Boolean" = var.assign %2 %6;
+                        var.store %2 %6;
                         java.continue;
                     }
                     ()java.type:"boolean" -> {
-                        %8 : java.type:"java.lang.Boolean" = var.load %2;
-                        %9 : java.type:"boolean" = invoke %8 @java.ref:"java.lang.Boolean::booleanValue():boolean";
-                        yield %9;
+                        %7 : java.type:"java.lang.Boolean" = var.load %2;
+                        %8 : java.type:"boolean" = invoke %7 @java.ref:"java.lang.Boolean::booleanValue():boolean";
+                        yield %8;
                     };
                 return;
             };

@@ -55,7 +55,7 @@ public class ImplicitConversionTest {
                 %1 : Var<java.type:"long"> = var @"x";
                 %2 : java.type:"int" = constant @1;
                 %3 : java.type:"long" = conv %2;
-                %4 : java.type:"long" = var.assign %1 %3;
+                var.store %1 %3;
                 return;
             };
             """)
@@ -73,7 +73,7 @@ public class ImplicitConversionTest {
                 %4 : java.type:"int" = constant @1;
                 %5 : java.type:"long" = conv %4;
                 %6 : java.type:"long" = add %3 %5 @func<java.type:"long", java.type:"long", java.type:"long">;
-                %7 : java.type:"long" = var.assign %2 %6;
+                var.store %2 %6;
                 return;
             };
             """)
@@ -101,7 +101,7 @@ public class ImplicitConversionTest {
                         %8 : java.type:"long" = conv %7;
                         yield %8;
                     };
-                %9 : java.type:"long" = var.assign %3 %4;
+                var.store %3 %4;
                 return;
             };
             """)
@@ -129,7 +129,7 @@ public class ImplicitConversionTest {
                         %8 : java.type:"long" = constant @2L;
                         yield %8;
                     };
-                %9 : java.type:"long" = var.assign %3 %4;
+                var.store %3 %4;
                 return;
             };
             """)
@@ -157,7 +157,7 @@ public class ImplicitConversionTest {
                         yield %7;
                     };
                 %8 : java.type:"long" = conv %4;
-                %9 : java.type:"long" = var.assign %3 %8;
+                var.store %3 %8;
                 return;
             };
             """)
@@ -591,11 +591,11 @@ public class ImplicitConversionTest {
                         %9 : java.type:"int" = var.load %3;
                         %10 : java.type:"int" = var.load %8;
                         %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %12 : java.type:"int" = var.assign %3 %11;
+                        var.store %3 %11;
                         java.continue;
                     };
-                %13 : java.type:"int" = var.load %3;
-                return %13;
+                %12 : java.type:"int" = var.load %3;
+                return %12;
             };
             """)
     static int widenForEachArray(byte[] ba) {

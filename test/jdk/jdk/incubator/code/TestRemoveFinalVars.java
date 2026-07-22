@@ -24,7 +24,6 @@
 import jdk.incubator.code.*;
 import jdk.incubator.code.Reflect;
 import jdk.incubator.code.dialect.core.SSA;
-import jdk.incubator.code.dialect.java.JavaOp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -48,15 +47,6 @@ import static jdk.incubator.code.dialect.core.CoreOp.VarOp;
 
 public class TestRemoveFinalVars {
 
-    // @@@ Lower assignment expressions until rmFinalVars handles them directly.
-    private static final CodeTransformer ASSIGNMENT_LOWERING_TRANSFORMER = (block, op) -> {
-        if (op instanceof JavaOp.AssignOp assignment) {
-            return ((Op.Lowerable) assignment).lower(block, null);
-        }
-        block.add(op);
-        return block;
-    };
-
     @Reflect
     static boolean f() {
         final int x = 8; // final var
@@ -73,8 +63,7 @@ public class TestRemoveFinalVars {
         FuncOp lf = lower(f);
         System.out.println(lf.toText());
 
-        FuncOp f2 = f.transform(ASSIGNMENT_LOWERING_TRANSFORMER)
-                .transform(TestRemoveFinalVars::rmFinalVars);
+        FuncOp f2 = f.transform(TestRemoveFinalVars::rmFinalVars);
         System.out.println(f2.toText());
         FuncOp lf2 = lower(f2);
         System.out.println(lf2.toText());

@@ -23,7 +23,6 @@
 
 import jdk.incubator.code.Block;
 import jdk.incubator.code.Body;
-import jdk.incubator.code.CodeTransformer;
 import jdk.incubator.code.Op;
 
 import jdk.incubator.code.Value;
@@ -34,36 +33,7 @@ import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 public class JavaHighInterpreter extends JavaLowInterpreter {
-    // @@@ Lower assignment expressions until JavaHighInterpreter executes them directly.
-    private static final CodeTransformer ASSIGNMENT_LOWERING_TRANSFORMER = (block, op) -> {
-        if (op instanceof JavaOp.AssignOp assignment) {
-            return ((Op.Lowerable) assignment).lower(block, null);
-        }
-        block.add(op);
-        return block;
-    };
-
     public JavaHighInterpreter() {
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Op & Op.Invokable> Object interpret(T op, List<Object> argsAndCaptures,
-                                                           MethodHandles.Lookup l) {
-        if (op instanceof CoreOp.FuncOp func) {
-            Op top = func;
-            while (top.ancestorBody() != null) {
-                top = top.ancestorOp();
-            }
-            if (top instanceof CoreOp.ModuleOp module) {
-                CoreOp.ModuleOp transformedModule = module.transform(ASSIGNMENT_LOWERING_TRANSFORMER);
-                func = transformedModule.functionTable().get(func.funcName());
-            } else {
-                func = func.transform(ASSIGNMENT_LOWERING_TRANSFORMER);
-            }
-            return super.interpret((T) func, argsAndCaptures, l);
-        }
-        return super.interpret(op, argsAndCaptures, l);
     }
 
     @Override

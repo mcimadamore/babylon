@@ -54,9 +54,9 @@ public class StringConcatTest {
                 %4 : java.type:"java.lang.String" = var.load %2;
                 %5 : java.type:"char" = var.load %3;
                 %6 : java.type:"java.lang.String" = concat %4 %5;
-                %7 : java.type:"java.lang.String" = var.assign %2 %6;
-                %8 : java.type:"java.lang.String" = var.load %2;
-                return %8;
+                var.store %2 %6;
+                %7 : java.type:"java.lang.String" = var.load %2;
+                return %7;
             };
             """)
     @Reflect
@@ -72,9 +72,9 @@ public class StringConcatTest {
                 %4 : java.type:"java.lang.String" = var.load %2;
                 %5 : java.type:"float" = var.load %3;
                 %6 : java.type:"java.lang.String" = concat %4 %5;
-                %7 : java.type:"java.lang.String" = var.assign %2 %6;
-                %8 : java.type:"java.lang.String" = var.load %2;
-                return %8;
+                var.store %2 %6;
+                %7 : java.type:"java.lang.String" = var.load %2;
+                return %7;
             };
             """)
     @Reflect

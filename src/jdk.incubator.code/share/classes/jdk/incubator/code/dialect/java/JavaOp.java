@@ -94,7 +94,6 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @jls 15 Expressions
      */
     public sealed interface JavaExpression permits
-            AssignOp,
             ArithmeticOperation,
             ArrayAccessOp.ArrayLoadOp,
             ArrayAccessOp.ArrayStoreOp,
@@ -346,8 +345,7 @@ public sealed abstract class JavaOp extends AbstractOp {
         }
 
         private static boolean isVariableWrite(Op op) {
-            return op instanceof CoreOp.VarAccessOp.VarStoreOp ||
-                    op instanceof VarAssignOp;
+            return op instanceof CoreOp.VarAccessOp.VarStoreOp;
         }
 
         private static boolean isConstantValue(Object o) {
@@ -369,7 +367,6 @@ public sealed abstract class JavaOp extends AbstractOp {
      * @jls 14.5 Statements
      */
     public sealed interface JavaStatement permits
-            AssignOp,
             ArrayAccessOp.ArrayStoreOp,
             AssertOp,
             FieldAccessOp.FieldStoreOp,
@@ -406,7 +403,6 @@ public sealed abstract class JavaOp extends AbstractOp {
      * An operation that performs access.
      */
     public sealed interface AccessOp permits
-        AssignOp,
         CoreOp.VarAccessOp,
         FieldAccessOp,
         ArrayAccessOp {
@@ -684,8 +680,7 @@ public sealed abstract class JavaOp extends AbstractOp {
                 switch (op) {
                     case VarOp varOp -> {
                         if (isValueUsedWithOp(varOp.result(), o ->
-                                o instanceof VarAccessOp.VarStoreOp ||
-                                o instanceof VarAssignOp)) {
+                                o instanceof VarAccessOp.VarStoreOp)) {
                             return null;
                         }
                     }
@@ -1302,177 +1297,6 @@ public sealed abstract class JavaOp extends AbstractOp {
         @Override
         public CodeType resultType() {
             return resultType;
-        }
-    }
-
-    /**
-     * A simple assignment operation.
-     *
-     * @jls 15.26.1 Simple Assignment Operator {@code =}
-     */
-    public sealed abstract static class AssignOp extends JavaOp
-            implements AccessOp, JavaExpression, JavaStatement, Op.Lowerable
-            permits VarAssignOp, FieldAssignOp, ArrayAssignOp {
-        final CodeType resultType;
-
-        AssignOp(AssignOp that, CodeContext cc) {
-            super(that, cc);
-            this.resultType = that.resultType;
-        }
-
-        AssignOp(List<? extends Value> operands, CodeType resultType) {
-            super(operands);
-            this.resultType = resultType;
-        }
-
-        @Override
-        public final CodeType resultType() {
-            return resultType;
-        }
-
-        @Override
-        public final Block.Builder lower(Block.Builder block,
-                                         BiFunction<Block.Builder, Op, Block.Builder> inherited) {
-            return lower(block, block.context().getValues(operands()));
-        }
-
-        abstract Block.Builder lower(Block.Builder block, List<Value> operands);
-    }
-
-    /** An assignment to a local variable. */
-    @OpDeclaration(VarAssignOp.NAME)
-    public static final class VarAssignOp extends AssignOp {
-        static final String NAME = "var.assign";
-
-        VarAssignOp(ExternalizedOp def) {
-            this(requireOperands(def, 2).get(0), def.operands().get(1));
-        }
-
-        VarAssignOp(VarAssignOp that, CodeContext cc) {
-            super(that, cc);
-        }
-
-        VarAssignOp(Value var, Value value) {
-            super(List.of(var, value), ((VarType) var.type()).valueType());
-        }
-
-        /** {@return the variable being assigned} */
-        public Value varOperand() {
-            return operands().get(0);
-        }
-
-        @Override
-        public VarAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new VarAssignOp(this, cc);
-        }
-
-        @Override
-        Block.Builder lower(Block.Builder block, List<Value> operands) {
-            Value value = operands.get(1);
-            block.add(CoreOp.varStore(operands.get(0), value));
-            if (result() != null) block.context().mapValue(result(), value);
-            return block;
-        }
-    }
-
-    /** An assignment to a field. */
-    @OpDeclaration(FieldAssignOp.NAME)
-    public static final class FieldAssignOp extends AssignOp implements ReflectiveOp {
-        static final String NAME = "field.assign";
-        final FieldRef fieldReference;
-
-        FieldAssignOp(ExternalizedOp def) {
-            this(requireAttribute(def, FieldAccessOp.ATTRIBUTE_FIELD_REF, true, FieldRef.class),
-                    requireOperands(def, 1, 2));
-        }
-
-        FieldAssignOp(FieldAssignOp that, CodeContext cc) {
-            super(that, cc);
-            this.fieldReference = that.fieldReference;
-        }
-
-        private FieldAssignOp(FieldRef fieldRef, List<Value> operands) {
-            super(operands, fieldRef.type());
-            this.fieldReference = fieldRef;
-        }
-
-        FieldAssignOp(FieldRef fieldRef, Value receiver, Value value) {
-            this(fieldRef, List.of(receiver, value));
-        }
-
-        FieldAssignOp(FieldRef fieldRef, Value value) {
-            this(fieldRef, List.of(value));
-        }
-
-        /** {@return the assigned field} */
-        public FieldRef fieldReference() {
-            return fieldReference;
-        }
-
-        /** {@return the receiver, or {@code null} for a static field} */
-        public Value receiverOperand() {
-            return operands().size() == 1 ? null : operands().get(0);
-        }
-
-        @Override
-        public Map<String, Object> externalize() {
-            return Map.of("", fieldReference);
-        }
-
-        @Override
-        public FieldAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new FieldAssignOp(this, cc);
-        }
-
-        @Override
-        Block.Builder lower(Block.Builder block, List<Value> operands) {
-            Value value = operands.getLast();
-            block.add(receiverOperand() == null
-                    ? JavaOp.fieldStore(fieldReference, value)
-                    : JavaOp.fieldStore(fieldReference, operands.getFirst(), value));
-            if (result() != null) block.context().mapValue(result(), value);
-            return block;
-        }
-    }
-
-    /** An assignment to an array component. */
-    @OpDeclaration(ArrayAssignOp.NAME)
-    public static final class ArrayAssignOp extends AssignOp {
-        static final String NAME = "array.assign";
-
-        ArrayAssignOp(ExternalizedOp def) {
-            this(requireOperands(def, 3).get(0), def.operands().get(1), def.operands().get(2));
-        }
-
-        ArrayAssignOp(ArrayAssignOp that, CodeContext cc) {
-            super(that, cc);
-        }
-
-        ArrayAssignOp(Value array, Value index, Value value) {
-            super(List.of(array, index, value), ((ArrayType) array.type()).componentType());
-        }
-
-        /** {@return the assigned array} */
-        public Value arrayOperand() {
-            return operands().get(0);
-        }
-
-        /** {@return the assigned array index} */
-        public Value indexOperand() {
-            return operands().get(1);
-        }
-
-        @Override
-        public ArrayAssignOp transform(CodeContext cc, CodeTransformer ct) {
-            return new ArrayAssignOp(this, cc);
-        }
-
-        @Override
-        Block.Builder lower(Block.Builder block, List<Value> operands) {
-            Value value = operands.get(2);
-            block.add(JavaOp.arrayStoreOp(operands.get(0), operands.get(1), value));
-            if (result() != null) block.context().mapValue(result(), value);
-            return block;
         }
     }
 
@@ -6606,7 +6430,6 @@ public sealed abstract class JavaOp extends AbstractOp {
         Op op = switch (def.name()) {
             case "add" -> new AddOp(def);
             case "and" -> new AndOp(def);
-            case "array.assign" -> new ArrayAssignOp(def);
             case "array.length" -> new ArrayLengthOp(def);
             case "array.load" -> new ArrayAccessOp.ArrayLoadOp(def);
             case "array.store" -> new ArrayAccessOp.ArrayStoreOp(def);
@@ -6621,7 +6444,6 @@ public sealed abstract class JavaOp extends AbstractOp {
             case "exception.region.enter" -> new ExceptionRegionEnter(def);
             case "exception.region.exit" -> new ExceptionRegionExit(def);
             case "field.load" -> new FieldAccessOp.FieldLoadOp(def);
-            case "field.assign" -> new FieldAssignOp(def);
             case "field.store" -> new FieldAccessOp.FieldStoreOp(def);
             case "ge" -> new GeOp(def);
             case "gt" -> new GtOp(def);
@@ -6667,7 +6489,6 @@ public sealed abstract class JavaOp extends AbstractOp {
             case "sub" -> new SubOp(def);
             case "throw" -> new ThrowOp(def);
             case "xor" -> new XorOp(def);
-            case "var.assign" -> new VarAssignOp(def);
             default -> null;
         };
         if (op != null) {
@@ -7008,16 +6829,6 @@ public sealed abstract class JavaOp extends AbstractOp {
     }
 
     /**
-     * Creates an assignment to a local variable.
-     * @param var the variable
-     * @param value the assigned value
-     * @return the assignment operation
-     */
-    public static VarAssignOp varAssign(Value var, Value value) {
-        return new VarAssignOp(var, value);
-    }
-
-    /**
      * Creates a field load operation to a non-static field.
      *
      * @param fieldRef   the field reference
@@ -7059,27 +6870,6 @@ public sealed abstract class JavaOp extends AbstractOp {
      */
     public static FieldAccessOp.FieldLoadOp fieldLoad(CodeType resultType, FieldRef fieldRef) {
         return new FieldAccessOp.FieldLoadOp(resultType, fieldRef);
-    }
-
-    /**
-     * Creates an assignment to a non-static field.
-     * @param fieldRef the field
-     * @param receiver the receiver
-     * @param value the assigned value
-     * @return the assignment operation
-     */
-    public static FieldAssignOp fieldAssign(FieldRef fieldRef, Value receiver, Value value) {
-        return new FieldAssignOp(fieldRef, receiver, value);
-    }
-
-    /**
-     * Creates an assignment to a static field.
-     * @param fieldRef the field
-     * @param value the assigned value
-     * @return the assignment operation
-     */
-    public static FieldAssignOp fieldAssign(FieldRef fieldRef, Value value) {
-        return new FieldAssignOp(fieldRef, value);
     }
 
     /**
@@ -7148,17 +6938,6 @@ public sealed abstract class JavaOp extends AbstractOp {
      */
     public static ArrayAccessOp.ArrayStoreOp arrayStoreOp(Value array, Value index, Value v) {
         return new ArrayAccessOp.ArrayStoreOp(array, index, v);
-    }
-
-    /**
-     * Creates an assignment to an array component.
-     * @param array the array
-     * @param index the index
-     * @param value the assigned value
-     * @return the assignment operation
-     */
-    public static ArrayAssignOp arrayAssign(Value array, Value index, Value value) {
-        return new ArrayAssignOp(array, index, value);
     }
 
     /**

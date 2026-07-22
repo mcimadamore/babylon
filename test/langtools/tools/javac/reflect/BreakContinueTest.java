@@ -52,19 +52,16 @@ public class BreakContinueTest {
                     }
                     (%7 : Var<java.type:"int">)java.type:"void" -> {
                         %8 : java.type:"int" = var.load %7;
-                        %9 : Var<java.type:"int"> = var %8 @"$old";
-                        %10 : java.type:"int" = var.load %9;
-                        %11 : java.type:"int" = constant @1;
-                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %13 : java.type:"int" = var.assign %7 %12;
-                        %14 : java.type:"int" = var.load %9;
+                        %9 : java.type:"int" = constant @1;
+                        %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %7 %10;
                         yield;
                     }
-                    (%15 : Var<java.type:"int">)java.type:"void" -> {
+                    (%11 : Var<java.type:"int">)java.type:"void" -> {
                         java.if
                             ()java.type:"boolean" -> {
-                                %16 : java.type:"boolean" = constant @true;
-                                yield %16;
+                                %12 : java.type:"boolean" = constant @true;
+                                yield %12;
                             }
                             ()java.type:"void" -> {
                                 java.continue;
@@ -74,8 +71,8 @@ public class BreakContinueTest {
                             };
                         java.if
                             ()java.type:"boolean" -> {
-                                %17 : java.type:"boolean" = constant @true;
-                                yield %17;
+                                %13 : java.type:"boolean" = constant @true;
+                                yield %13;
                             }
                             ()java.type:"void" -> {
                                 java.break;
@@ -85,31 +82,28 @@ public class BreakContinueTest {
                             };
                         java.for
                             ()Var<java.type:"int"> -> {
-                                %18 : java.type:"int" = constant @0;
-                                %19 : Var<java.type:"int"> = var %18 @"j";
+                                %14 : java.type:"int" = constant @0;
+                                %15 : Var<java.type:"int"> = var %14 @"j";
+                                yield %15;
+                            }
+                            (%16 : Var<java.type:"int">)java.type:"boolean" -> {
+                                %17 : java.type:"int" = var.load %16;
+                                %18 : java.type:"int" = constant @10;
+                                %19 : java.type:"boolean" = lt %17 %18 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                 yield %19;
                             }
-                            (%20 : Var<java.type:"int">)java.type:"boolean" -> {
+                            (%20 : Var<java.type:"int">)java.type:"void" -> {
                                 %21 : java.type:"int" = var.load %20;
-                                %22 : java.type:"int" = constant @10;
-                                %23 : java.type:"boolean" = lt %21 %22 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %23;
-                            }
-                            (%24 : Var<java.type:"int">)java.type:"void" -> {
-                                %25 : java.type:"int" = var.load %24;
-                                %26 : Var<java.type:"int"> = var %25 @"$old";
-                                %27 : java.type:"int" = var.load %26;
-                                %28 : java.type:"int" = constant @1;
-                                %29 : java.type:"int" = add %27 %28 @func<java.type:"int", java.type:"int", java.type:"int">;
-                                %30 : java.type:"int" = var.assign %24 %29;
-                                %31 : java.type:"int" = var.load %26;
+                                %22 : java.type:"int" = constant @1;
+                                %23 : java.type:"int" = add %21 %22 @func<java.type:"int", java.type:"int", java.type:"int">;
+                                var.store %20 %23;
                                 yield;
                             }
-                            (%32 : Var<java.type:"int">)java.type:"void" -> {
+                            (%24 : Var<java.type:"int">)java.type:"void" -> {
                                 java.if
                                     ()java.type:"boolean" -> {
-                                        %33 : java.type:"boolean" = constant @true;
-                                        yield %33;
+                                        %25 : java.type:"boolean" = constant @true;
+                                        yield %25;
                                     }
                                     ()java.type:"void" -> {
                                         java.continue;
@@ -119,8 +113,8 @@ public class BreakContinueTest {
                                     };
                                 java.if
                                     ()java.type:"boolean" -> {
-                                        %34 : java.type:"boolean" = constant @true;
-                                        yield %34;
+                                        %26 : java.type:"boolean" = constant @true;
+                                        yield %26;
                                     }
                                     ()java.type:"void" -> {
                                         java.break;
@@ -173,19 +167,16 @@ public class BreakContinueTest {
                         }
                         (%8 : Var<java.type:"int">)java.type:"void" -> {
                             %9 : java.type:"int" = var.load %8;
-                            %10 : Var<java.type:"int"> = var %9 @"$old";
-                            %11 : java.type:"int" = var.load %10;
-                            %12 : java.type:"int" = constant @1;
-                            %13 : java.type:"int" = add %11 %12 @func<java.type:"int", java.type:"int", java.type:"int">;
-                            %14 : java.type:"int" = var.assign %8 %13;
-                            %15 : java.type:"int" = var.load %10;
+                            %10 : java.type:"int" = constant @1;
+                            %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            var.store %8 %11;
                             yield;
                         }
-                        (%16 : Var<java.type:"int">)java.type:"void" -> {
+                        (%12 : Var<java.type:"int">)java.type:"void" -> {
                             java.if
                                 ()java.type:"boolean" -> {
-                                    %17 : java.type:"boolean" = constant @true;
-                                    yield %17;
+                                    %13 : java.type:"boolean" = constant @true;
+                                    yield %13;
                                 }
                                 ()java.type:"void" -> {
                                     java.continue %1;
@@ -195,8 +186,8 @@ public class BreakContinueTest {
                                 };
                             java.if
                                 ()java.type:"boolean" -> {
-                                    %18 : java.type:"boolean" = constant @true;
-                                    yield %18;
+                                    %14 : java.type:"boolean" = constant @true;
+                                    yield %14;
                                 }
                                 ()java.type:"void" -> {
                                     java.break %1;
@@ -205,34 +196,31 @@ public class BreakContinueTest {
                                     yield;
                                 };
                             java.labeled ()java.type:"void" -> {
-                                %19 : java.type:"java.lang.String" = constant @"inner";
+                                %15 : java.type:"java.lang.String" = constant @"inner";
                                 java.for
                                     ()Var<java.type:"int"> -> {
-                                        %20 : java.type:"int" = constant @0;
-                                        %21 : Var<java.type:"int"> = var %20 @"j";
+                                        %16 : java.type:"int" = constant @0;
+                                        %17 : Var<java.type:"int"> = var %16 @"j";
+                                        yield %17;
+                                    }
+                                    (%18 : Var<java.type:"int">)java.type:"boolean" -> {
+                                        %19 : java.type:"int" = var.load %18;
+                                        %20 : java.type:"int" = constant @10;
+                                        %21 : java.type:"boolean" = lt %19 %20 @func<java.type:"boolean", java.type:"int", java.type:"int">;
                                         yield %21;
                                     }
-                                    (%22 : Var<java.type:"int">)java.type:"boolean" -> {
+                                    (%22 : Var<java.type:"int">)java.type:"void" -> {
                                         %23 : java.type:"int" = var.load %22;
-                                        %24 : java.type:"int" = constant @10;
-                                        %25 : java.type:"boolean" = lt %23 %24 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                        yield %25;
-                                    }
-                                    (%26 : Var<java.type:"int">)java.type:"void" -> {
-                                        %27 : java.type:"int" = var.load %26;
-                                        %28 : Var<java.type:"int"> = var %27 @"$old";
-                                        %29 : java.type:"int" = var.load %28;
-                                        %30 : java.type:"int" = constant @1;
-                                        %31 : java.type:"int" = add %29 %30 @func<java.type:"int", java.type:"int", java.type:"int">;
-                                        %32 : java.type:"int" = var.assign %26 %31;
-                                        %33 : java.type:"int" = var.load %28;
+                                        %24 : java.type:"int" = constant @1;
+                                        %25 : java.type:"int" = add %23 %24 @func<java.type:"int", java.type:"int", java.type:"int">;
+                                        var.store %22 %25;
                                         yield;
                                     }
-                                    (%34 : Var<java.type:"int">)java.type:"void" -> {
+                                    (%26 : Var<java.type:"int">)java.type:"void" -> {
                                         java.if
                                             ()java.type:"boolean" -> {
-                                                %35 : java.type:"boolean" = constant @true;
-                                                yield %35;
+                                                %27 : java.type:"boolean" = constant @true;
+                                                yield %27;
                                             }
                                             ()java.type:"void" -> {
                                                 java.continue;
@@ -242,8 +230,8 @@ public class BreakContinueTest {
                                             };
                                         java.if
                                             ()java.type:"boolean" -> {
-                                                %36 : java.type:"boolean" = constant @true;
-                                                yield %36;
+                                                %28 : java.type:"boolean" = constant @true;
+                                                yield %28;
                                             }
                                             ()java.type:"void" -> {
                                                 java.break;
@@ -253,8 +241,8 @@ public class BreakContinueTest {
                                             };
                                         java.if
                                             ()java.type:"boolean" -> {
-                                                %37 : java.type:"boolean" = constant @true;
-                                                yield %37;
+                                                %29 : java.type:"boolean" = constant @true;
+                                                yield %29;
                                             }
                                             ()java.type:"void" -> {
                                                 java.continue %1;
@@ -264,8 +252,8 @@ public class BreakContinueTest {
                                             };
                                         java.if
                                             ()java.type:"boolean" -> {
-                                                %38 : java.type:"boolean" = constant @true;
-                                                yield %38;
+                                                %30 : java.type:"boolean" = constant @true;
+                                                yield %30;
                                             }
                                             ()java.type:"void" -> {
                                                 java.break %1;
@@ -380,18 +368,15 @@ public class BreakContinueTest {
                 java.labeled ()java.type:"void" -> {
                     %4 : java.type:"java.lang.String" = constant @"b";
                     %5 : java.type:"int" = var.load %3;
-                    %6 : Var<java.type:"int"> = var %5 @"$old";
-                    %7 : java.type:"int" = var.load %6;
-                    %8 : java.type:"int" = constant @1;
-                    %9 : java.type:"int" = add %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
-                    %10 : java.type:"int" = var.assign %3 %9;
-                    %11 : java.type:"int" = var.load %6;
+                    %6 : java.type:"int" = constant @1;
+                    %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
+                    var.store %3 %7;
                     yield;
                 };
                 java.labeled ()java.type:"void" -> {
-                    %12 : java.type:"java.lang.String" = constant @"a";
+                    %8 : java.type:"java.lang.String" = constant @"a";
                     java.labeled ()java.type:"void" -> {
-                        %13 : java.type:"java.lang.String" = constant @"b";
+                        %9 : java.type:"java.lang.String" = constant @"b";
                         java.block ()java.type:"void" -> {
                             yield;
                         };

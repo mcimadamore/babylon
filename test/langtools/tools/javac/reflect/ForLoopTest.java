@@ -183,18 +183,15 @@ public class ForLoopTest {
                     }
                     (%7 : Var<java.type:"int">)java.type:"void" -> {
                         %8 : java.type:"int" = var.load %7;
-                        %9 : Var<java.type:"int"> = var %8 @"$old";
-                        %10 : java.type:"int" = var.load %9;
-                        %11 : java.type:"int" = constant @1;
-                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %13 : java.type:"int" = var.assign %7 %12;
-                        %14 : java.type:"int" = var.load %9;
+                        %9 : java.type:"int" = constant @1;
+                        %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %7 %10;
                         yield;
                     }
-                    (%15 : Var<java.type:"int">)java.type:"void" -> {
-                        %16 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %17 : java.type:"int" = var.load %15;
-                        invoke %16 %17 @java.ref:"java.io.PrintStream::println(int):void";
+                    (%11 : Var<java.type:"int">)java.type:"void" -> {
+                        %12 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %13 : java.type:"int" = var.load %11;
+                        invoke %12 %13 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -223,20 +220,17 @@ public class ForLoopTest {
                     }
                     (%7 : Var<java.type:"int">)java.type:"void" -> {
                         %8 : java.type:"int" = var.load %7;
-                        %9 : Var<java.type:"int"> = var %8 @"$old";
-                        %10 : java.type:"int" = var.load %9;
-                        %11 : java.type:"int" = constant @1;
-                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %13 : java.type:"int" = var.assign %7 %12;
-                        %14 : java.type:"int" = var.load %9;
+                        %9 : java.type:"int" = constant @1;
+                        %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %7 %10;
                         yield;
                     }
-                    (%15 : Var<java.type:"int">)java.type:"void" -> {
-                        %16 : java.type:"int" = var.load %15;
-                        return %16;
+                    (%11 : Var<java.type:"int">)java.type:"void" -> {
+                        %12 : java.type:"int" = var.load %11;
+                        return %12;
                     };
-                %17 : java.type:"int" = constant @-1;
-                return %17;
+                %13 : java.type:"int" = constant @-1;
+                return %13;
             };
             """)
     int test3_1() {
@@ -265,13 +259,13 @@ public class ForLoopTest {
                         %8 : java.type:"int" = var.load %7;
                         %9 : java.type:"int" = constant @1;
                         %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %11 : java.type:"int" = var.assign %7 %10;
+                        var.store %7 %10;
                         yield;
                     }
-                    (%12 : Var<java.type:"int">)java.type:"void" -> {
-                        %13 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %14 : java.type:"int" = var.load %12;
-                        invoke %13 %14 @java.ref:"java.io.PrintStream::println(int):void";
+                    (%11 : Var<java.type:"int">)java.type:"void" -> {
+                        %12 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %13 : java.type:"int" = var.load %11;
+                        invoke %12 %13 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -301,10 +295,10 @@ public class ForLoopTest {
                         %8 : java.type:"int" = var.load %7;
                         %9 : java.type:"int" = constant @1;
                         %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %11 : java.type:"int" = var.assign %7 %10;
+                        var.store %7 %10;
                         yield;
                     }
-                    (%12 : Var<java.type:"int">)java.type:"void" -> {
+                    (%11 : Var<java.type:"int">)java.type:"void" -> {
                         java.continue;
                     };
                 return;
@@ -333,13 +327,13 @@ public class ForLoopTest {
                         %6 : java.type:"int" = var.load %2;
                         %7 : java.type:"int" = constant @1;
                         %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %9 : java.type:"int" = var.assign %2 %8;
+                        var.store %2 %8;
                         yield;
                     }
                     ()java.type:"void" -> {
-                        %10 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %11 : java.type:"int" = var.load %2;
-                        invoke %10 %11 @java.ref:"java.io.PrintStream::println(int):void";
+                        %9 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %10 : java.type:"int" = var.load %2;
+                        invoke %9 %10 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -362,26 +356,26 @@ public class ForLoopTest {
                         %3 : java.type:"int" = var.load %2;
                         %4 : java.type:"int" = constant @1;
                         %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %6 : java.type:"int" = var.assign %2 %5;
+                        var.store %2 %5;
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %7 : java.type:"int" = var.load %2;
-                        %8 : java.type:"int" = constant @10;
-                        %9 : java.type:"boolean" = lt %7 %8 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %9;
+                        %6 : java.type:"int" = var.load %2;
+                        %7 : java.type:"int" = constant @10;
+                        %8 : java.type:"boolean" = lt %6 %7 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %8;
                     }
                     ()java.type:"void" -> {
-                        %10 : java.type:"int" = var.load %2;
-                        %11 : java.type:"int" = constant @1;
-                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %13 : java.type:"int" = var.assign %2 %12;
+                        %9 : java.type:"int" = var.load %2;
+                        %10 : java.type:"int" = constant @1;
+                        %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %2 %11;
                         yield;
                     }
                     ()java.type:"void" -> {
-                        %14 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %15 : java.type:"int" = var.load %2;
-                        invoke %14 %15 @java.ref:"java.io.PrintStream::println(int):void";
+                        %12 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %13 : java.type:"int" = var.load %2;
+                        invoke %12 %13 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -411,13 +405,13 @@ public class ForLoopTest {
                         %6 : java.type:"int" = var.load %5;
                         %7 : java.type:"int" = constant @1;
                         %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %9 : java.type:"int" = var.assign %5 %8;
+                        var.store %5 %8;
                         yield;
                     }
-                    (%10 : Var<java.type:"int">)java.type:"void" -> {
-                        %11 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %12 : java.type:"int" = var.load %10;
-                        invoke %11 %12 @java.ref:"java.io.PrintStream::println(int):void";
+                    (%9 : Var<java.type:"int">)java.type:"void" -> {
+                        %10 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %11 : java.type:"int" = var.load %9;
+                        invoke %10 %11 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 unreachable;
@@ -517,20 +511,20 @@ public class ForLoopTest {
                         %17 : java.type:"int" = var.load %15;
                         %18 : java.type:"int" = constant @1;
                         %19 : java.type:"int" = add %17 %18 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %20 : java.type:"int" = var.assign %15 %19;
-                        %21 : java.type:"int" = var.load %16;
-                        %22 : java.type:"int" = constant @2;
-                        %23 : java.type:"int" = add %21 %22 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %24 : java.type:"int" = var.assign %16 %23;
+                        var.store %15 %19;
+                        %20 : java.type:"int" = var.load %16;
+                        %21 : java.type:"int" = constant @2;
+                        %22 : java.type:"int" = add %20 %21 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %16 %22;
                         yield;
                     }
-                    (%25 : Var<java.type:"int">, %26 : Var<java.type:"int">)java.type:"void" -> {
+                    (%23 : Var<java.type:"int">, %24 : Var<java.type:"int">)java.type:"void" -> {
+                        %25 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %26 : java.type:"int" = var.load %23;
+                        invoke %25 %26 @java.ref:"java.io.PrintStream::println(int):void";
                         %27 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %28 : java.type:"int" = var.load %25;
+                        %28 : java.type:"int" = var.load %24;
                         invoke %27 %28 @java.ref:"java.io.PrintStream::println(int):void";
-                        %29 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %30 : java.type:"int" = var.load %26;
-                        invoke %29 %30 @java.ref:"java.io.PrintStream::println(int):void";
                         java.continue;
                     };
                 return;
@@ -561,30 +555,27 @@ public class ForLoopTest {
                     }
                     (%9 : Var<java.type:"int">)java.type:"void" -> {
                         %10 : java.type:"int" = var.load %9;
-                        %11 : Var<java.type:"int"> = var %10 @"$old";
-                        %12 : java.type:"int" = var.load %11;
-                        %13 : java.type:"int" = constant @1;
-                        %14 : java.type:"int" = add %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %15 : java.type:"int" = var.assign %9 %14;
-                        %16 : java.type:"int" = var.load %11;
+                        %11 : java.type:"int" = constant @1;
+                        %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                        var.store %9 %12;
                         yield;
                     }
-                    (%17 : Var<java.type:"int">)java.type:"void" -> {
+                    (%13 : Var<java.type:"int">)java.type:"void" -> {
                         java.if
                             ()java.type:"boolean" -> {
-                                %18 : java.type:"int" = var.load %2;
-                                %19 : java.type:"int" = constant @0;
-                                %20 : java.type:"boolean" = eq %18 %19 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %20;
+                                %14 : java.type:"int" = var.load %2;
+                                %15 : java.type:"int" = constant @0;
+                                %16 : java.type:"boolean" = eq %14 %15 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %16;
                             }
                             ()java.type:"void" -> {
                                 java.break;
                             }
                             ()java.type:"boolean" -> {
-                                %21 : java.type:"int" = var.load %2;
-                                %22 : java.type:"int" = constant @1;
-                                %23 : java.type:"boolean" = eq %21 %22 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                                yield %23;
+                                %17 : java.type:"int" = var.load %2;
+                                %18 : java.type:"int" = constant @1;
+                                %19 : java.type:"boolean" = eq %17 %18 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                                yield %19;
                             }
                             ()java.type:"void" -> {
                                 java.continue;

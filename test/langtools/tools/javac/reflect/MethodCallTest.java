@@ -284,7 +284,7 @@ public class MethodCallTest {
                 %8 : java.type:"java.util.List<java.lang.String>" = var.load %7;
                 %9 : java.type:"int" = constant @0;
                 %10 : java.type:"java.lang.String" = invoke %8 %9 @java.ref:"java.util.List::get(int):java.lang.Object";
-                %11 : java.type:"java.lang.String" = var.assign %5 %10;
+                var.store %5 %10;
                 return;
             };
             """)

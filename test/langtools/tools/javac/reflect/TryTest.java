@@ -42,18 +42,18 @@ public class TryTest {
                 java.try
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = constant @1;
-                        %4 : java.type:"int" = var.assign %2 %3;
+                        var.store %2 %3;
                         yield;
                     }
-                    (%5 : java.type:"java.lang.Exception")java.type:"void" -> {
-                        %6 : Var<java.type:"java.lang.Exception"> = var %5 @"e";
-                        %7 : java.type:"int" = constant @2;
-                        %8 : java.type:"int" = var.assign %2 %7;
+                    (%4 : java.type:"java.lang.Exception")java.type:"void" -> {
+                        %5 : Var<java.type:"java.lang.Exception"> = var %4 @"e";
+                        %6 : java.type:"int" = constant @2;
+                        var.store %2 %6;
                         yield;
                     }
                     ()java.type:"void" -> {
-                        %9 : java.type:"int" = constant @3;
-                        %10 : java.type:"int" = var.assign %2 %9;
+                        %7 : java.type:"int" = constant @3;
+                        var.store %2 %7;
                         yield;
                     };
                 return;
@@ -78,12 +78,12 @@ public class TryTest {
                 java.try
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = constant @1;
-                        %4 : java.type:"int" = var.assign %2 %3;
+                        var.store %2 %3;
                         yield;
                     }
                     ()java.type:"void" -> {
-                        %5 : java.type:"int" = constant @3;
-                        %6 : java.type:"int" = var.assign %2 %5;
+                        %4 : java.type:"int" = constant @3;
+                        var.store %2 %4;
                         yield;
                     };
                 return;
@@ -106,13 +106,13 @@ public class TryTest {
                 java.try
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = constant @1;
-                        %4 : java.type:"int" = var.assign %2 %3;
+                        var.store %2 %3;
                         yield;
                     }
-                    (%5 : java.type:"java.lang.Exception")java.type:"void" -> {
-                        %6 : Var<java.type:"java.lang.Exception"> = var %5 @"e";
-                        %7 : java.type:"java.lang.Exception" = var.load %6;
-                        invoke %7 @java.ref:"java.lang.Exception::printStackTrace():void";
+                    (%4 : java.type:"java.lang.Exception")java.type:"void" -> {
+                        %5 : Var<java.type:"java.lang.Exception"> = var %4 @"e";
+                        %6 : java.type:"java.lang.Exception" = var.load %5;
+                        invoke %6 @java.ref:"java.lang.Exception::printStackTrace():void";
                         yield;
                     };
                 return;
@@ -223,19 +223,19 @@ public class TryTest {
                 java.try
                     ()java.type:"void" -> {
                         %3 : java.type:"int" = constant @1;
-                        %4 : java.type:"int" = var.assign %2 %3;
+                        var.store %2 %3;
                         yield;
                     }
-                    (%5 : java.type:"java.lang.NullPointerException")java.type:"void" -> {
-                        %6 : Var<java.type:"java.lang.NullPointerException"> = var %5 @"e";
-                        %7 : java.type:"int" = constant @2;
-                        %8 : java.type:"int" = var.assign %2 %7;
+                    (%4 : java.type:"java.lang.NullPointerException")java.type:"void" -> {
+                        %5 : Var<java.type:"java.lang.NullPointerException"> = var %4 @"e";
+                        %6 : java.type:"int" = constant @2;
+                        var.store %2 %6;
                         yield;
                     }
-                    (%9 : java.type:"java.lang.OutOfMemoryError")java.type:"void" -> {
-                        %10 : Var<java.type:"java.lang.OutOfMemoryError"> = var %9 @"e";
-                        %11 : java.type:"int" = constant @3;
-                        %12 : java.type:"int" = var.assign %2 %11;
+                    (%7 : java.type:"java.lang.OutOfMemoryError")java.type:"void" -> {
+                        %8 : Var<java.type:"java.lang.OutOfMemoryError"> = var %7 @"e";
+                        %9 : java.type:"int" = constant @3;
+                        var.store %2 %9;
                         yield;
                     };
                 return;
@@ -294,7 +294,7 @@ public class TryTest {
                     (%2 : java.type:"java.lang.Exception")java.type:"void" -> {
                         %3 : Var<java.type:"java.lang.Exception"> = var %2 @"exception";
                         %4 : java.type:"java.lang.Exception" = constant @null;
-                        %5 : java.type:"java.lang.Exception" = var.assign %3 %4;
+                        var.store %3 %4;
                         yield;
                     };
                 return;

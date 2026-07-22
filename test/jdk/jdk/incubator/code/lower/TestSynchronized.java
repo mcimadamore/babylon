@@ -48,28 +48,25 @@ public class TestSynchronized {
 
               ^block_2:
                 %7 : java.type:"int" = var.load %3;
-                %8 : Var<java.type:"int"> = var %7 @"$old";
-                %9 : java.type:"int" = var.load %8;
-                %10 : java.type:"int" = constant @1;
-                %11 : java.type:"int" = add %9 %10;
-                var.store %3 %11;
-                %12 : java.type:"int" = var.load %8;
+                %8 : java.type:"int" = constant @1;
+                %9 : java.type:"int" = add %7 %8;
+                var.store %3 %9;
                 monitor.exit %5;
                 exception.region.exit %6 ^block_3;
 
               ^block_3:
-                %13 : java.type:"int" = var.load %3;
-                return %13;
+                %10 : java.type:"int" = var.load %3;
+                return %10;
 
-              ^block_4(%14 : java.type:"java.lang.Throwable"):
-                %15 : java.type:"void" = exception.region.enter ^block_5 ^block_4;
+              ^block_4(%11 : java.type:"java.lang.Throwable"):
+                %12 : java.type:"void" = exception.region.enter ^block_5 ^block_4;
 
               ^block_5:
                 monitor.exit %5;
-                exception.region.exit %15 ^block_6;
+                exception.region.exit %12 ^block_6;
 
               ^block_6:
-                throw %14;
+                throw %11;
             };
             """, ssa = false)
     static int test1(Object m, int i) {
@@ -111,28 +108,25 @@ public class TestSynchronized {
 
               ^block_6:
                 %11 : java.type:"int" = var.load %3;
-                %12 : Var<java.type:"int"> = var %11 @"$old";
-                %13 : java.type:"int" = var.load %12;
-                %14 : java.type:"int" = constant @1;
-                %15 : java.type:"int" = add %13 %14;
-                var.store %3 %15;
-                %16 : java.type:"int" = var.load %12;
+                %12 : java.type:"int" = constant @1;
+                %13 : java.type:"int" = add %11 %12;
+                var.store %3 %13;
                 monitor.exit %5;
                 exception.region.exit %6 ^block_7;
 
               ^block_7:
-                %17 : java.type:"int" = var.load %3;
-                return %17;
+                %14 : java.type:"int" = var.load %3;
+                return %14;
 
-              ^block_8(%18 : java.type:"java.lang.Throwable"):
-                %19 : java.type:"void" = exception.region.enter ^block_9 ^block_8;
+              ^block_8(%15 : java.type:"java.lang.Throwable"):
+                %16 : java.type:"void" = exception.region.enter ^block_9 ^block_8;
 
               ^block_9:
                 monitor.exit %5;
-                exception.region.exit %19 ^block_10;
+                exception.region.exit %16 ^block_10;
 
               ^block_10:
-                throw %18;
+                throw %15;
             };
             """, ssa = false)
     static int test2(Object m, int i) {

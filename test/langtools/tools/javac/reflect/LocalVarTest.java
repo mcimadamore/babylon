@@ -74,13 +74,13 @@ public class LocalVarTest {
                 %1 : Var<java.type:"int"> = var @"x";
                 %2 : Var<java.type:"int"> = var @"y";
                 %3 : java.type:"int" = constant @1;
-                %4 : java.type:"int" = var.assign %1 %3;
-                %5 : java.type:"int" = constant @2;
-                %6 : java.type:"int" = var.assign %2 %5;
-                %7 : java.type:"int" = var.load %1;
-                %8 : java.type:"int" = var.load %2;
-                %9 : java.type:"int" = add %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
-                return %9;
+                var.store %1 %3;
+                %4 : java.type:"int" = constant @2;
+                var.store %2 %4;
+                %5 : java.type:"int" = var.load %1;
+                %6 : java.type:"int" = var.load %2;
+                %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
+                return %7;
             };
             """)
     int test3() {
@@ -137,10 +137,13 @@ public class LocalVarTest {
                 %5 : java.type:"int" = constant @1;
                 %6 : Var<java.type:"int"> = var %5 @"z";
                 %7 : java.type:"int" = var.load %2;
-                %8 : java.type:"int" = var.assign %4 %7;
-                %9 : java.type:"int" = var.assign %6 %8;
-                %10 : java.type:"int" = var.load %6;
-                return %10;
+                %8 : Var<java.type:"int"> = var %7 @"$value";
+                %9 : java.type:"int" = var.load %8;
+                var.store %4 %9;
+                %10 : java.type:"int" = var.load %8;
+                var.store %6 %10;
+                %11 : java.type:"int" = var.load %6;
+                return %11;
             };
             """)
     int test6() {
@@ -159,18 +162,27 @@ public class LocalVarTest {
                 %3 : java.type:"int" = var.load %2;
                 %4 : java.type:"int" = constant @2;
                 %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %6 : java.type:"int" = var.assign %2 %5;
-                %7 : Var<java.type:"int"> = var %6 @"y";
-                %8 : java.type:"int" = var.load %7;
-                %9 : java.type:"int" = constant @3;
-                %10 : java.type:"int" = add %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %11 : java.type:"int" = var.assign %7 %10;
-                %12 : java.type:"int" = var.load %2;
-                %13 : java.type:"int" = constant @4;
-                %14 : java.type:"int" = add %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %15 : java.type:"int" = var.assign %2 %14;
-                %16 : java.type:"int" = add %11 %15 @func<java.type:"int", java.type:"int", java.type:"int">;
-                return %16;
+                %6 : Var<java.type:"int"> = var %5 @"$value";
+                %7 : java.type:"int" = var.load %6;
+                var.store %2 %7;
+                %8 : java.type:"int" = var.load %6;
+                %9 : Var<java.type:"int"> = var %8 @"y";
+                %10 : java.type:"int" = var.load %9;
+                %11 : java.type:"int" = constant @3;
+                %12 : java.type:"int" = add %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %13 : Var<java.type:"int"> = var %12 @"$value";
+                %14 : java.type:"int" = var.load %13;
+                var.store %9 %14;
+                %15 : java.type:"int" = var.load %13;
+                %16 : java.type:"int" = var.load %2;
+                %17 : java.type:"int" = constant @4;
+                %18 : java.type:"int" = add %16 %17 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %19 : Var<java.type:"int"> = var %18 @"$value";
+                %20 : java.type:"int" = var.load %19;
+                var.store %2 %20;
+                %21 : java.type:"int" = var.load %19;
+                %22 : java.type:"int" = add %15 %21 @func<java.type:"int", java.type:"int", java.type:"int">;
+                return %22;
             };
             """)
     int test7() {
@@ -188,17 +200,17 @@ public class LocalVarTest {
                 %5 : java.type:"int" = var.load %4;
                 %6 : java.type:"int" = constant @1;
                 %7 : java.type:"int" = add %5 %6 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %8 : java.type:"int" = var.assign %2 %7;
-                %9 : java.type:"int" = var.load %4;
-                %10 : Var<java.type:"int"> = var %9 @"x";
-                %11 : java.type:"int" = var.load %2;
-                %12 : Var<java.type:"int"> = var %11 @"$old";
-                %13 : java.type:"int" = var.load %12;
-                %14 : java.type:"int" = constant @1;
-                %15 : java.type:"int" = sub %13 %14 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %16 : java.type:"int" = var.assign %2 %15;
-                %17 : java.type:"int" = var.load %12;
-                %18 : Var<java.type:"int"> = var %17 @"y";
+                var.store %2 %7;
+                %8 : java.type:"int" = var.load %4;
+                %9 : Var<java.type:"int"> = var %8 @"x";
+                %10 : java.type:"int" = var.load %2;
+                %11 : Var<java.type:"int"> = var %10 @"$old";
+                %12 : java.type:"int" = var.load %11;
+                %13 : java.type:"int" = constant @1;
+                %14 : java.type:"int" = sub %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
+                var.store %2 %14;
+                %15 : java.type:"int" = var.load %11;
+                %16 : Var<java.type:"int"> = var %15 @"y";
                 return;
             };
             """)
@@ -214,13 +226,19 @@ public class LocalVarTest {
                 %3 : java.type:"int" = var.load %2;
                 %4 : java.type:"int" = constant @1;
                 %5 : java.type:"int" = add %3 %4 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %6 : java.type:"int" = var.assign %2 %5;
-                %7 : Var<java.type:"int"> = var %6 @"x";
-                %8 : java.type:"int" = var.load %2;
-                %9 : java.type:"int" = constant @1;
-                %10 : java.type:"int" = sub %8 %9 @func<java.type:"int", java.type:"int", java.type:"int">;
-                %11 : java.type:"int" = var.assign %2 %10;
-                %12 : Var<java.type:"int"> = var %11 @"y";
+                %6 : Var<java.type:"int"> = var %5 @"$value";
+                %7 : java.type:"int" = var.load %6;
+                var.store %2 %7;
+                %8 : java.type:"int" = var.load %6;
+                %9 : Var<java.type:"int"> = var %8 @"x";
+                %10 : java.type:"int" = var.load %2;
+                %11 : java.type:"int" = constant @1;
+                %12 : java.type:"int" = sub %10 %11 @func<java.type:"int", java.type:"int", java.type:"int">;
+                %13 : Var<java.type:"int"> = var %12 @"$value";
+                %14 : java.type:"int" = var.load %13;
+                var.store %2 %14;
+                %15 : java.type:"int" = var.load %13;
+                %16 : Var<java.type:"int"> = var %15 @"y";
                 return;
             };
             """)

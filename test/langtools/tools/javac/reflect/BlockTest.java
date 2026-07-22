@@ -86,33 +86,33 @@ public class BlockTest {
                             %6 : java.type:"int" = var.load %2;
                             %7 : java.type:"int" = constant @1;
                             %8 : java.type:"int" = add %6 %7 @func<java.type:"int", java.type:"int", java.type:"int">;
-                            %9 : java.type:"int" = var.assign %2 %8;
+                            var.store %2 %8;
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"boolean" -> {
-                        %10 : java.type:"int" = var.load %2;
-                        %11 : java.type:"int" = constant @2;
-                        %12 : java.type:"boolean" = lt %10 %11 @func<java.type:"boolean", java.type:"int", java.type:"int">;
-                        yield %12;
+                        %9 : java.type:"int" = var.load %2;
+                        %10 : java.type:"int" = constant @2;
+                        %11 : java.type:"boolean" = lt %9 %10 @func<java.type:"boolean", java.type:"int", java.type:"int">;
+                        yield %11;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %13 : java.type:"int" = var.load %2;
-                            %14 : java.type:"int" = constant @2;
-                            %15 : java.type:"int" = add %13 %14 @func<java.type:"int", java.type:"int", java.type:"int">;
-                            %16 : java.type:"int" = var.assign %2 %15;
+                            %12 : java.type:"int" = var.load %2;
+                            %13 : java.type:"int" = constant @2;
+                            %14 : java.type:"int" = add %12 %13 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            var.store %2 %14;
                             yield;
                         };
                         yield;
                     }
                     ()java.type:"void" -> {
                         java.block ()java.type:"void" -> {
-                            %17 : java.type:"int" = var.load %2;
-                            %18 : java.type:"int" = constant @3;
-                            %19 : java.type:"int" = add %17 %18 @func<java.type:"int", java.type:"int", java.type:"int">;
-                            %20 : java.type:"int" = var.assign %2 %19;
+                            %15 : java.type:"int" = var.load %2;
+                            %16 : java.type:"int" = constant @3;
+                            %17 : java.type:"int" = add %15 %16 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            var.store %2 %17;
                             yield;
                         };
                         yield;
@@ -185,12 +185,9 @@ public class BlockTest {
                     (%6 : Var<java.type:"int">)java.type:"void" -> {
                         java.block ()java.type:"void" -> {
                             %7 : java.type:"int" = var.load %6;
-                            %8 : Var<java.type:"int"> = var %7 @"$old";
-                            %9 : java.type:"int" = var.load %8;
-                            %10 : java.type:"int" = constant @1;
-                            %11 : java.type:"int" = add %9 %10 @func<java.type:"int", java.type:"int", java.type:"int">;
-                            %12 : java.type:"int" = var.assign %6 %11;
-                            %13 : java.type:"int" = var.load %8;
+                            %8 : java.type:"int" = constant @1;
+                            %9 : java.type:"int" = add %7 %8 @func<java.type:"int", java.type:"int", java.type:"int">;
+                            var.store %6 %9;
                             yield;
                         };
                         java.continue;

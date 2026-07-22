@@ -330,13 +330,13 @@ public class PatternsTest {
                         %18 : java.type:"java.lang.Number" = var.load %4;
                         %19 : java.type:"int" = invoke %18 @java.ref:"java.lang.Number::intValue():int";
                         %20 : java.type:"int" = add %17 %19 @func<java.type:"int", java.type:"int", java.type:"int">;
-                        %21 : java.type:"int" = var.assign %16 %20;
+                        var.store %16 %20;
                         yield;
                     }
-                    (%22 : Var<java.type:"int">)java.type:"void" -> {
-                        %23 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
-                        %24 : java.type:"java.lang.Number" = var.load %4;
-                        invoke %23 %24 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
+                    (%21 : Var<java.type:"int">)java.type:"void" -> {
+                        %22 : java.type:"java.io.PrintStream" = field.load @java.ref:"java.lang.System::out:java.io.PrintStream";
+                        %23 : java.type:"java.lang.Number" = var.load %4;
+                        invoke %22 %23 @java.ref:"java.io.PrintStream::println(java.lang.Object):void";
                         java.continue;
                     };
                 return;
