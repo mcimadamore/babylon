@@ -42,19 +42,28 @@ import java.util.Set;
 
 /**
  * Adds the implicit Java conversions required by a high-level Java code model.
- *
- * The transformer intentionally obtains conversion targets from the model: a
- * variable, field, array component, invocation signature, or enclosing body.
- * Operator conversion targets are obtained from the resolved function type
- * carried by each unary and binary operation.
- * <p>
  * This transformer is intended for javac-generated, high-level Java models
- * containing {@link JavaOp Java operations}. A contextual conversion is
- * appended to an operation that produces a value, or prepended to a block
- * that introduces a parameter, or to the innermost body that directly
- * captures a value. The first body that directly uses a value determines the
- * conversion target for all its descendant bodies; independent sibling bodies may
- * use the same value with different conversion targets.
+ * containing {@link JavaOp Java operations} in the following normal form:
+ * <ul>
+ * <li>Every source expression maps to a fresh model value, distinct from values
+ * produced for internal parts of that expression.  This is the
+ * <em>source expression value</em>.</li>
+ * <li>In a body that uses a source expression value, all uses of that value in
+ * the body and its descendants require the same type.  This is the
+ * <em>source expression target</em>.  Independent sibling bodies may establish
+ * different targets.</li>
+ * </ul>
+ * A source expression target must therefore be discoverable from the uses of
+ * its source expression value, for example through a storage type, invocation
+ * signature, body result type, or resolved operator signature.  Since the
+ * values of statement expressions have no uses, they need not map to model
+ * values.
+ * <p>
+ * The transformer inserts conversions so that each source expression value
+ * conforms to its source expression target.  A conversion is inserted as soon
+ * as possible: after the value is produced when it is used in the same body,
+ * or at the relevant block entry when the value is introduced as a block
+ * parameter or capture.
  */
 public final class ImplicitConversionTransformer implements CodeTransformer {
 
@@ -113,7 +122,8 @@ public final class ImplicitConversionTransformer implements CodeTransformer {
 
     private static CodeType commonConversionTarget(Value value, Body body) {
         // A variable is storage, not a Java value.  Its initializer and stores
-        // already conform to its declared type; conversions apply to loads.
+        // declare conversion targets for their input values; conversions of a
+        // variable's value apply to loads.
         if (value.type() instanceof VarType) return null;
 
         Map<Body, CodeType> targets = new IdentityHashMap<>();
