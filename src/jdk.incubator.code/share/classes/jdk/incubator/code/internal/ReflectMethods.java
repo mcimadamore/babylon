@@ -873,7 +873,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
 
                     Value array = toValue(assign.indexed);
-                    Value index = toValue(assign.index);
+                    Value index = toValue(assign.index, syms.intType);
 
                     // Scan the rhs, the assign expression result is its input
                     Value rhs = toValue(tree.rhs, target);
@@ -954,7 +954,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
                     Value array = toValue(assign.indexed);
-                    Value index = toValue(assign.index);
+                    Value index = toValue(assign.index, syms.intType);
                     Value lhsValue = append(JavaOp.arrayLoadOp(array, index));
                     result = append(JavaOp.arrayAssign(array, index, scanRhs.apply(lhsValue)));
                 }
@@ -1008,7 +1008,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
                 case INDEXED -> {
                     JCArrayAccess assign = (JCArrayAccess) lhs;
                     Value array = toValue(assign.indexed);
-                    Value index = toValue(assign.index);
+                    Value index = toValue(assign.index, syms.intType);
                     Value oldValue = append(JavaOp.arrayLoadOp(array, index));
                     UpdateValue update = updateValue(oldValue, kind, operatorType);
                     Value assigned = append(JavaOp.arrayAssign(array, index, update.value()));
@@ -1136,7 +1136,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
 
             Value array = toValue(tree.indexed);
 
-            Value index = toValue(tree.index, codeTypeToType(JavaType.INT));
+            Value index = toValue(tree.index, syms.intType);
 
             result = append(JavaOp.arrayLoadOp(array, index));
         }
