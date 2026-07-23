@@ -326,7 +326,7 @@ final class UnresolvedTypesTransformer {
         };
     }
 
-    private static JavaOp resolvedArithmeticOp(JavaOp.ArithmeticOperation op, List<Value> operands) {
+    private static JavaOp.ArithmeticOperation resolvedArithmeticOp(JavaOp.ArithmeticOperation op, List<Value> operands) {
         Value first = operands.getFirst();
         return switch (op) {
             case JavaOp.AddOp _ -> JavaOp.add(first, operands.get(1));
