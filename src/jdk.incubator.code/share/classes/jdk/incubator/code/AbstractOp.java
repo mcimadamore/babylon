@@ -25,38 +25,15 @@
 
 package jdk.incubator.code;
 
-import com.sun.tools.javac.api.JavacScope;
-import com.sun.tools.javac.api.JavacTrees;
-import com.sun.tools.javac.code.Symbol.ClassSymbol;
-import com.sun.tools.javac.comp.Attr;
-import com.sun.tools.javac.model.JavacElements;
-import com.sun.tools.javac.processing.JavacProcessingEnvironment;
-import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.util.Context;
-import jdk.incubator.code.dialect.core.CoreOp.FuncOp;
-import jdk.incubator.code.dialect.core.CoreType;
-import jdk.incubator.code.dialect.core.FunctionType;
-import jdk.incubator.code.dialect.java.JavaOp;
-import jdk.incubator.code.dialect.java.MethodRef;
-import jdk.incubator.code.extern.OpWriter;
-import jdk.incubator.code.internal.ReflectMethods;
-import jdk.internal.access.SharedSecrets;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.function.BiFunction;
 
 /**
- * The abstract implementation of an operation. All concrete operations extend this class.
+ * The abstract implementation of a non-terminating operation. All concrete non-terminating operations extend this
+ * class and implement {@link Op}.
  *
  * <h2>Operation implementation requirements</h2>
  * <p>
- * A concrete operation class must satisfy the following requirements:
+ * A concrete non-terminating operation class must satisfy the following requirements:
  * <ul>
  * <li>
  * implement {@link #resultType()} to return the result type of operation instances;
@@ -71,9 +48,6 @@ import java.util.function.BiFunction;
  * override {@link #bodies()} if instances may have bodies. If the operation class implements {@link Op.Nested}, then
  * {@code bodies()} must return one or more bodies;
  * <li>
- * override {@link #successors()} if instances may have successors. If the operation class implements
- * {@link Op.BlockTerminating}, then {@code successors()} must return one or more successors;
- * <li>
  * copy mutable constructor arguments that define successors, bodies, and operation-specific state, ensuring they are
  * all fixed when construction completes; and
  * <li>
@@ -81,48 +55,32 @@ import java.util.function.BiFunction;
  * state.
  * </ul>
  * <p>
- * A concrete operation class may additionally:
+ * A concrete non-terminating operation class may additionally:
  * <ul>
  * <li>
- * override {@link #externalizeOpName()} and {@link #externalize()} to define an external form;
+ * implement {@link jdk.incubator.code.extern.ExternalizedOp.Externalizable} to define an external form;
  * <li>
  * implement {@link Op.Lowerable} to define a lowering; and
  * <li>
  * provide operation-specific accessors for operation-specific state.
  * </ul>
  */
-public non-sealed abstract class AbstractOp implements Op {
-
-    // Set when op is placed in a block or as a root operation, otherwise null when unplaced
-    // @@@ stable value?
-    Result result;
-
-    // null if not specified
-    // @@@ stable value?
-    Location location;
-
-    final List<Value> operands;
-
+public non-sealed abstract class AbstractOp extends InternalAbstractOp {
     /**
-     * Constructs an operation with a list of operands.
+     * Constructs a non-terminating operation with a list of operands.
      *
      * @param operands the list of operands, a copy of the list is performed if required.
      * @throws IllegalArgumentException if an operand's declaring block is built.
      */
     protected AbstractOp(List<? extends Value> operands) {
-        for (Value operand : operands) {
-            if (operand.isBuilt()) {
-                throw new IllegalArgumentException("Operand's declaring block is built: " + operand);
-            }
-        }
-        this.operands = List.copyOf(operands);
+        super(operands);
     }
 
     /**
-     * Constructs an operation with operands mapped from, and location copied from, the given operation.
+     * Constructs a non-terminating with operands mapped from, and location copied from, the given operation.
      * <p>
      * The constructed operation's operands are the values mapped, in order, from the given operation's operands using
-     * the given code context. The new operation's location is the given operation's location, if any.
+     * the given code context. The constructed operation's location is the given operation's location, if any.
      *
      * @param that the operation
      * @param cc   the code context
@@ -130,41 +88,7 @@ public non-sealed abstract class AbstractOp implements Op {
      * @throws IllegalArgumentException if a mapped value's declaring block is built.
      */
     protected AbstractOp(AbstractOp that, CodeContext cc) {
-        this(cc.getValues(that.operands));
-        this.location = that.location;
-    }
-
-    @Override
-    public final void setLocation(Location l) {
-        // @@@ Fail if location != null?
-        if (isRoot() || (result != null && result.block.isBuilt())) {
-            throw new IllegalStateException("Built operation");
-        }
-
-        location = l;
-    }
-
-    @Override
-    public final Location location() {
-        return location;
-    }
-
-    @Override
-    public final Block parent() {
-        if (isRoot() || result == null) {
-            return null;
-        }
-
-        if (!result.block.isBuilt()) {
-            throw new IllegalStateException("Parent block is unobservable");
-        }
-
-        return result.block;
-    }
-
-    @Override
-    public final List<Body> children() {
-        return bodies();
+        super(that, cc);
     }
 
     /**
@@ -172,96 +96,89 @@ public non-sealed abstract class AbstractOp implements Op {
      * @implSpec this implementation returns an unmodifiable empty list.
      */
     @Override
-    public List<Body> bodies() {
+    public final List<Block.Reference> successors() {
         return List.of();
     }
 
-    @Override
-    public final Result result() {
-        return result == Result.ROOT_RESULT ? null : result;
-    }
-
-    @Override
-    public final List<Value> operands() {
-        return operands;
-    }
-
     /**
-     * {@inheritDoc}
-     * @implSpec this implementation returns an unmodifiable empty list.
+     * The abstract implementation of a terminating operation. All concrete terminating operations extend this
+     * class and implement {@link Terminating}.
+     *
+     * <h2>Operation implementation requirements</h2>
+     * <p>
+     * A concrete terminating operation class must satisfy the implementation requirements of a concrete non-terminating
+     * operation specified by {@link AbstractOp} in addition to the following requirements:
+     * <ul>
+     * <li>
+     * override {@link #successors()} if instances may have successors;
+     * </ul>
+     * <p>
+     * A concrete terminating operation class may additionally:
+     * <ul>
+     * <li>
+     * implement {@link jdk.incubator.code.extern.ExternalizedOp.Externalizable} to define an external form;
+     * <li>
+     * implement {@link Lowerable} to define a lowering; and
+     * <li>
+     * provide operation-specific accessors for operation-specific state.
+     * </ul>
      */
-    @Override
-    public List<Block.Reference> successors() {
-        return List.of();
-    }
+    public non-sealed abstract static class Terminating extends InternalAbstractOp
+            implements Op.Terminating {
 
-    @Override
-    public final FunctionType opSignature() {
-        List<CodeType> operandTypes = operands.stream().map(Value::type).toList();
-        return CoreType.functionType(resultType(), operandTypes);
-    }
+        final List<Block.Reference> successors;
 
-    @Override
-    public final List<Value> capturedValues() {
-        Set<Value> cvs = new LinkedHashSet<>();
+        /**
+         * Constructs a terminating operation with a list of operands and list of successors
+         *
+         * @param operands the list of operands, a copy of the list is performed if required.
+         * @param successors the list of successors, a copy of the list is performed if required.
+         * @throws IllegalArgumentException if an operand's declaring block is built.
+         * @throws IllegalArgumentException if a successor's referencing block is built or successor's block argument's
+         * declaring block is built.
+         */
+        protected Terminating(List<? extends Value> operands, List<Block.Reference> successors) {
+            super(operands);
 
-        Deque<Body> bodyStack = new ArrayDeque<>();
-        for (Body childBody : bodies()) {
-            Body.capturedValues(cvs, bodyStack, childBody);
+            // @@@ Check unbuilt blocks/arguments
+            this.successors = List.copyOf(successors);
         }
-        return new ArrayList<>(cvs);
-    }
 
-    @Override
-    public final void buildAsRoot() {
-        if (result == Result.ROOT_RESULT) {
-            return;
+        /**
+         * Constructs a terminating operation with a list of operands and an empty list of successors
+         *
+         * @param operands the list of operands, a copy of the list is performed if required.
+         * @throws IllegalArgumentException if an operand's declaring block is built.
+         */
+        protected Terminating(List<? extends Value> operands) {
+            this(operands, List.of());
         }
-        if (!bodies().stream().allMatch(Body::isIsolated)) {
-            throw new IllegalStateException("One of the operation bodies is not isolated");
+
+        /**
+         * Constructs a terminating operation with operands and successors mapped from, and location copied from, the given operation.
+         * <p>
+         * The constructed operation's operands are the values mapped, in order, from the given operation's operands using
+         * the given code context. The constructed operation's successors are the successors mapped, in order, from the
+         * given operation's successors using the given code context and applying
+         * {@link CodeContext#getReferenceOrCreate(Block.Reference)} to each successor. The constructed operation's location
+         * is the given operation's location, if any.
+         *
+         * @param that the operation
+         * @param cc   the code context
+         * @throws IllegalArgumentException if an operation's operand has no context mapping
+         * @throws IllegalArgumentException if a mapped value's declaring block is built.
+         * @throws IllegalArgumentException if a mapped successor's referencing block is built or mapped successor's block
+         * argument's declaring block is built.
+         */
+        protected Terminating(AbstractOp.Terminating that, CodeContext cc) {
+            super(that, cc);
+
+            this.successors = that.successors().stream().map(s -> cc.getReferenceOrCreate(s)).toList();
         }
-        if (!operands().isEmpty()) {
-            throw new IllegalStateException("Operation has operands");
+
+        @Override
+        public final List<Block.Reference> successors() {
+            return successors;
         }
-        if (!successors().isEmpty()) {
-            throw new IllegalStateException("Operation has successors");
-        }
-        if (result != null) {
-            throw new IllegalStateException("Operation is placed in a block");
-        }
-        result = Result.ROOT_RESULT;
-    }
-
-    @Override
-    public final boolean isRoot() {
-        return result == Result.ROOT_RESULT;
-    }
-
-    @Override
-    public final boolean isPlacedInBlock() {
-        return !isRoot() && result != null;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @implSpec this implementation returns the result of the expression {@code this.getClass().getName()}.
-     */
-    @Override
-    public String externalizeOpName() {
-        return this.getClass().getName();
-    }
-
-    /**
-     * {@inheritDoc}
-     * @implSpec this implementation returns an unmodifiable empty map.
-     */
-    @Override
-    public Map<String, Object> externalize() {
-        return Map.of();
-    }
-
-    @Override
-    public final String toText() {
-        return OpWriter.toText(this);
     }
 }

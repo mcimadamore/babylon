@@ -32,8 +32,9 @@ import jdk.incubator.code.Value;
 import jdk.incubator.code.CodeContext;
 import jdk.incubator.code.CodeType;
 import jdk.incubator.code.dialect.java.JavaType;
+import jdk.incubator.code.extern.ExternalizedOp;
 
-public abstract class SpirvOp extends AbstractOp {
+public abstract class SpirvOp extends AbstractOp implements ExternalizedOp.Externalizable {
     private final String opName;
     private final CodeType type;
 
@@ -44,12 +45,6 @@ public abstract class SpirvOp extends AbstractOp {
     }
 
     SpirvOp(String opName, CodeType type, List<Value> operands) {
-        super(operands);
-        this.opName = opName;
-        this.type = type;
-    }
-
-    SpirvOp(String opName, CodeType type, List<Value> operands, Map<String, Object> attributes) {
         super(operands);
         this.opName = opName;
         this.type = type;
