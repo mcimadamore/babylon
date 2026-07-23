@@ -49,9 +49,8 @@ public class TestTransform {
     static int f() {
         IntBinaryOperator o = (a, b) -> a + b;
         int sum = 0;
-        // Use explicit additions so the transformers below can rewrite their AddOps.
-        for (int i = 0; i < 10; i = i + 1) {
-            sum = sum + o.applyAsInt(i, i);
+        for (int i = 0; i < 10; i++) {
+            sum += o.applyAsInt(i, i);
         }
         return sum + 42;
     }

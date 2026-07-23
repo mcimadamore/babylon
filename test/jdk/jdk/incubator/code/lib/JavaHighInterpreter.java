@@ -75,7 +75,6 @@ public class JavaHighInterpreter extends JavaLowInterpreter {
             case JavaOp.LabeledOp o -> executeLabeledOp(o, e);
             case JavaOp.ContinueOp o -> executeContinueOp(o, e);
             case JavaOp.BlockOp o -> executeBlockOp(o, e);
-            // @@@ New high-level operations must be handled here or lowered before reaching JavaLowInterpreter.
             default -> super.executeOp(op, e);
         };
     }
