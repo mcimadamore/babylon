@@ -547,6 +547,14 @@ public class ReflectMethods extends TreeTranslatorPrev {
                         append(CoreOp.var(capturedSymbol.name.toString(), capturedArg)));
             }
 
+            // add captured constant mappings
+            for (Map.Entry<Symbol, Object> constantCapture : lambdaCaptureScanner.constantCaptures.entrySet()) {
+                Symbol capturedSymbol = constantCapture.getKey();
+                top.localToOp.put(capturedSymbol,
+                        append(CoreOp.constant(typeToCodeType(capturedSymbol.type),
+                                constantCapture.getValue())));
+            }
+
             bodyTarget = tree.target.getReturnType();
         }
 
@@ -557,6 +565,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
         class ReflectableLambdaCaptureScanner extends CaptureScanner {
             boolean capturesThis;
             Set<ClassSymbol> seenClasses = new HashSet<>();
+            Map<Symbol, Object> constantCaptures = new LinkedHashMap<>();
 
             ReflectableLambdaCaptureScanner(JCLambda ownerTree) {
                 super(ownerTree);
@@ -579,8 +588,10 @@ public class ReflectMethods extends TreeTranslatorPrev {
                     capturesThis = true;
                 } else if (tree.sym instanceof VarSymbol vsym &&
                         vsym.getConstValue() != null &&
+                        vsym.owner.kind == MTH &&
                         !isVarSeen(vsym)) {
-                    return;
+                    // record the constant value associated with this
+                    constantCaptures.put(tree.sym, vsym.getConstValue());
                 } else {
                     // might be a local capture
                     super.visitIdent(tree);
@@ -1037,15 +1048,7 @@ public class ReflectMethods extends TreeTranslatorPrev {
             switch (sym.getKind()) {
                 case LOCAL_VARIABLE -> {
                     if (sym instanceof VarSymbol variable && variable.getConstantValue() != null) {
-                        // reuse a definition
-                        Value local = null;
-                        for (BodyStack s = stack; s != null && local == null; s = s.parent) {
-                            local = s.localToOp.get(sym);
-                        }
-                        BodyStack where = local == null && isLambdaReflectable ? top : stack;
-                        result = local != null ? local
-                                : append(CoreOp.constant(typeToCodeType(tree.type), variable.getConstantValue()), generateLocation(pos(), false), where);
-                        where.localToOp.put(sym, result);
+                        result = varOpValue(sym);
                     } else {
                         result = loadVar(sym);
                     }
